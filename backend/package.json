@@ -14,7 +14,7 @@
     "stop:pm2": "pm2 stop pawliz",
     "restart:pm2": "pm2 restart pawliz",
     "logs:pm2": "pm2 logs pawliz",
-    "dev": "nodemon server.js",
+    "dev": "tsx watch server.js",
     "seed": "node database/seed.js",
     "test": "jest",
     "migrate": "node migrate.js up",

@@ -1,0 +1,41 @@
+{
+  "hero": {
+    "title": "Bangladesh's Pet Care Platform",
+    "subtitle": "Find trusted veterinary clinics, manage your pets, and connect with the community",
+    "exploreMap": "Explore Map",
+    "getStarted": "Get Started"
+  },
+  "features": {
+    "findVets": "Find Vets",
+    "findVetsDesc": "Locate trusted veterinary clinics near you on the map",
+    "lostFound": "Lost & Found",
+    "lostFoundDesc": "Report and find lost pets in your community",
+    "rescueAdopt": "Rescue & Adopt",
+    "rescueAdoptDesc": "Give a home to rescued pets or find one for adoption",
+    "community": "Community",
+    "communityDesc": "Connect with fellow pet owners across Bangladesh"
+  },
+  "map": {
+    "loadingMap": "Loading map...",
+    "searchPlaceholder": "Search clinics, doctors...",
+    "findNearby": "📍 Find Nearby Vets",
+    "clearNearby": "✕ Clear Nearby",
+    "nearMe": "Near Me",
+    "allClinics": "All Clinics",
+    "noResults": "No clinics found",
+    "loading": "Loading clinics...",
+    "backendOffline": "Backend offline — showing demo data"
+  },
+  "sections": {
+    "lostFound": "Lost & Found",
+    "rescue": "Rescue & Adoption",
+    "community": "Community",
+    "helpBoard": "Help Board"
+  },
+  "community": {
+    "title": "Community",
+    "comingSoon": "Coming Soon",
+    "description": "A space for pet lovers across Bangladesh to connect, share stories, ask questions, and support each other. We're building something special — stay tuned!",
+    "backHome": "← Back to Home"
+  }
+}

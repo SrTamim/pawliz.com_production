@@ -1,0 +1,74 @@
+{
+  "nav": {
+    "donate": "♥ Donate",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "adminPanel": "Admin Panel",
+    "vetDashboard": "Vet Dashboard"
+  },
+  "profile": {
+    "label": "Profile",
+    "completePrompt": "Complete your profile to unlock more features"
+  },
+  "lang": {
+    "selectTitle": "Choose Your Language",
+    "selectSubtitle": "Select your preferred language for the best experience",
+    "english": "English",
+    "bangla": "বাংলা",
+    "toggleLabel": "EN"
+  },
+  "bottomNav": {
+    "home": "Home",
+    "helpBoard": "Help Board",
+    "community": "Community",
+    "myProfile": "My Profile"
+  },
+  "buttons": {
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "submit": "Submit",
+    "back": "Back",
+    "confirm": "Confirm",
+    "share": "Share",
+    "report": "Report",
+    "retry": "Try Again",
+    "loadMore": "Load More",
+    "addComment": "Add Comment",
+    "send": "Send",
+    "upload": "Upload",
+    "download": "Download",
+    "saving": "Saving...",
+    "updating": "Updating...",
+    "saveChanges": "💾 Save Changes",
+    "updatePassword": "🔒 Update Password"
+  },
+  "status": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "noData": "No data found",
+    "success": "Success",
+    "autoSaving": "⏳ Auto-saving...",
+    "autoSaved": "✓ Auto-saved"
+  },
+  "words": {
+    "unknown": "Unknown",
+    "anonymous": "Anonymous",
+    "mixed": "Mixed",
+    "locationNotSpecified": "Location not specified",
+    "colorNotSpecified": "Color not specified",
+    "breedUnknown": "Breed unknown",
+    "yr": "yr",
+    "yrs": "yrs",
+    "comment": "Comment",
+    "comments": "Comments",
+    "viewDetails": "View Details →",
+    "by": "by",
+    "on": "on",
+    "or": "or"
+  }
+}

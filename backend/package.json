@@ -1,0 +1,56 @@
+{
+  "name": "pawliz-backend",
+  "version": "1.0.0",
+  "description": "Pawliz - Veterinary Platform Backend",
+  "main": "server.js",
+  "engines": {
+    "node": "20.x"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "start:pm2": "pm2 start ecosystem.config.js --env production",
+    "stop:pm2": "pm2 stop pawliz",
+    "restart:pm2": "pm2 restart pawliz",
+    "logs:pm2": "pm2 logs pawliz",
+    "dev": "nodemon server.js",
+    "seed": "node database/seed.js",
+    "test": "jest",
+    "migrate": "node migrate.js up",
+    "migrate:down": "node migrate.js down",
+    "migrate:status": "node migrate.js status",
+    "migrate:create": "node migrate.js create"
+  },
+  "node-pg-migrate": {
+    "migrations-dir": "migrations",
+    "database-url-var": "DATABASE_URL"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1058.0",
+    "@aws-sdk/s3-request-presigner": "^3.1058.0",
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.8.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^8.4.1",
+    "express-validator": "^7.0.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.1",
+    "multer": "^1.4.5-lts.1",
+    "node-cron": "^4.2.1",
+    "pg": "^8.11.3",
+    "qrcode": "^1.5.4",
+    "sharp": "^0.34.5",
+    "socket.io": "^4.8.3",
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0"
+  },
+  "devDependencies": {
+    "jest": "^30.3.0",
+    "node-pg-migrate": "^8.0.4",
+    "nodemon": "^3.0.2",
+    "supertest": "^7.2.2"
+  }
+}

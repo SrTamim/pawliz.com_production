@@ -1,0 +1,300 @@
+/* Fonts self-hosted via @fontsource (see _app.jsx) — no Google Fonts @import. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #0a0d12;
+  --bg-secondary: #0f1318;
+  --bg-card: #13181f;
+  --bg-elevated: #1a2030;
+  --bg-hover: #1f2736;
+  --accent: #00e5a0;
+  --accent-dim: rgba(0, 229, 160, 0.15);
+  --accent-glow: rgba(0, 229, 160, 0.35);
+  --gold: #f0a500;
+  --text-primary: #e8edf5;
+  --text-secondary: #8a97aa;
+  --text-muted: #4a5568;
+  --border: rgba(255, 255, 255, 0.07);
+  --border-accent: rgba(0, 229, 160, 0.3);
+  --danger: #ff4f6a;
+  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 30px rgba(0, 229, 160, 0.2);
+  --radius: 12px;
+  --radius-lg: 20px;
+  --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --header-height: 64px;
+  --sidebar-width: 450px;
+}
+
+.light {
+  --bg-primary: #f0f4f8;
+  --bg-secondary: #e8edf4;
+  --bg-card: #ffffff;
+  --bg-elevated: #f5f8fc;
+  --bg-hover: #edf1f7;
+  --accent: #00b87a;
+  --accent-dim: rgba(0, 184, 122, 0.1);
+  --text-primary: #1a2332;
+  --text-secondary: #4a5568;
+  --text-muted: #9aa5b4;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-accent: rgba(0, 184, 122, 0.3);
+  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Bengali font — applied when data-lang="bn" is set on <html> */
+[data-lang="bn"] body,
+[data-lang="bn"] .input-field,
+[data-lang="bn"] button:not(.keep-latin) {
+  font-family: "Hind Siliguri", "DM Sans", sans-serif;
+}
+
+body {
+  font-family: "DM Sans", sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition:
+    background 0.3s,
+    color 0.3s;
+  overflow: auto;
+  height: 100vh;
+  padding-bottom: 80px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-dim);
+}
+
+/* Leaflet fixes — counteract Tailwind preflight */
+@layer base {
+  .leaflet-container img {
+    max-width: none;
+    max-height: none;
+    padding: 0;
+    margin: 0;
+    border: none;
+    height: auto;
+  }
+}
+.leaflet-container {
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.leaflet-tile {
+  border: none !important;
+  outline: none !important;
+}
+.leaflet-pane > div {
+  border: none !important;
+  outline: none !important;
+}
+.leaflet-grab {
+  cursor: grab !important;
+}
+.leaflet-dragging,
+.leaflet-dragging .leaflet-grab,
+.leaflet-dragging .leaflet-interactive {
+  cursor: grabbing !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+/* Leaflet overrides */
+.leaflet-popup-content-wrapper {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-accent) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--shadow-lg) !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+.leaflet-popup-content {
+  margin: 0 !important;
+}
+.leaflet-popup-tip-container {
+  display: none !important;
+}
+.leaflet-popup-close-button {
+  position: absolute;
+  right: 8px !important;
+  top: 8px !important;
+  width: 26px;
+  height: 26px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 0 !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+  border-radius: 50%;
+  background: var(--danger) !important;
+  color: #fff !important;
+  z-index: 10;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+.leaflet-popup-close-button:hover {
+  background: #ff3355 !important;
+  transform: scale(1.08);
+}
+
+/* Cluster icon — same teardrop pin shape as .custom-marker-pin, just with a
+   count instead of the paw. Fully custom (see iconCreateFunction in MapView);
+   does not depend on leaflet.markercluster's .Default.css. */
+.pawliz-cluster-wrap {
+  background: transparent;
+}
+.pawliz-cluster {
+  width: 100%;
+  height: 100%;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background: var(--accent);
+  border: 3px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pawliz-cluster span {
+  transform: rotate(45deg);
+  color: #0a0d12;
+  font-family: "DM Sans", sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.custom-marker-pin {
+  background: var(--accent);
+  border-radius: 50% 50% 50% 0;
+  width: 32px;
+  height: 32px;
+  transform: rotate(-45deg);
+  border: 3px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.custom-marker-pin.selected {
+  background: var(--gold);
+  transform: rotate(-45deg) scale(1.2);
+}
+.custom-marker-inner {
+  transform: rotate(45deg);
+  font-size: 13px;
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium cursor-pointer border-none transition-all duration-200 whitespace-nowrap;
+  }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .input-field {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-family: "DM Sans", sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
+  }
+  .input-field:focus {
+    border-color: var(--border-accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+  .input-field::placeholder {
+    color: var(--text-muted);
+  }
+  .label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 767px) {
+  :root {
+    --sidebar-width: 0px;
+    --header-height: 56px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  :root {
+    --sidebar-width: 260px;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Hide Tawk.to default launcher bubble — replaced by custom launcher
+   (see CustomChatLauncher). Keeps the open chat window intact. */
+.tawk-min-container,
+#tawkchat-minified-iframe-element,
+iframe[id*="tawkchat-minified"] {
+  display: none !important;
+  visibility: hidden !important;
+}

@@ -1,0 +1,72 @@
+{
+  "title": "My Profile",
+  "edit": "Edit Profile",
+  "updateProfile": "✏️ Update Profile",
+  "logout": "🚪 Logout",
+  "personalInfo": "👤 Personal Information",
+  "accountSettings": "Account Settings",
+  "changePassword": "🔑 Change Password",
+  "myPets": "🐾 My Pets",
+  "loadingProfile": "Loading profile...",
+  "fields": {
+    "name": "Full Name",
+    "nameRequired": "Full Name *",
+    "phone": "Phone Number",
+    "email": "Email",
+    "dob": "Date of Birth",
+    "occupation": "Occupation",
+    "address": "Address",
+    "bio": "Bio",
+    "petCount": "Number of Pets"
+  },
+  "placeholders": {
+    "name": "Your full name",
+    "phone": "01XXXXXXXXX",
+    "email": "you@example.com",
+    "occupation": "Software Engineer",
+    "address": "Dhaka, Bangladesh",
+    "passwordMin": "Min. 6 characters",
+    "passwordRepeat": "Repeat new password"
+  },
+  "password": {
+    "title": "🔑 Change Password",
+    "current": "Current Password *",
+    "new": "New Password *",
+    "confirm": "Confirm New Password *",
+    "submit": "🔒 Update Password",
+    "updating": "Updating..."
+  },
+  "accountSecurity": "🔐 Account Security",
+  "passwordSection": "🔐 Account Security",
+  "changePassword": "🔑 Change Password",
+  "completion": {
+    "title": "Profile Completion",
+    "completeToUnlock": "Complete your profile to unlock more features",
+    "addPicture": "Add profile picture",
+    "addEmail": "Add email address",
+    "addDob": "Add date of birth",
+    "addAddress": "Add address"
+  },
+  "picture": {
+    "upload": "Upload Picture",
+    "change": "Change Picture",
+    "remove": "Remove Picture"
+  },
+  "phoneReadOnly": "Contact support to change your phone number",
+  "fieldLabels": {
+    "name": "Name",
+    "phone": "Phone",
+    "email": "Email",
+    "dob": "Date of Birth",
+    "occupation": "Occupation",
+    "address": "Address"
+  },
+  "passwordStrength": {
+    "checks": {
+      "letter": "Letter (A-Z / a-z)",
+      "number": "Number (0-9)"
+    },
+    "strong": "Strong password",
+    "weak": "Weak password"
+  }
+}

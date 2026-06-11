@@ -1,0 +1,33 @@
+{
+  "name": "pawliz-frontend",
+  "version": "1.0.0",
+  "description": "Pawliz - Veterinary Platform Frontend",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@fontsource/dm-sans": "^5.2.8",
+    "@fontsource/hind-siliguri": "^5.2.7",
+    "@fontsource/roboto": "^5.2.10",
+    "@vercel/analytics": "^2.0.1",
+    "axios": "^1.16.1",
+    "i18next": "^26.0.10",
+    "js-cookie": "^3.0.5",
+    "leaflet": "^1.9.4",
+    "leaflet.markercluster": "^1.5.3",
+    "next": "^14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-i18next": "^17.0.7",
+    "react-leaflet": "^4.2.1",
+    "socket.io-client": "^4.8.3",
+    "tailwindcss": "^3.3.0"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.9.8",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.31"
+  }
+}

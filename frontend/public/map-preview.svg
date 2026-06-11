@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600" fill="none" role="img" aria-label="Map of Bangladesh">
+  <rect width="1200" height="1600" fill="#0a0d12"/>
+
+  <!-- subtle map grid -->
+  <g stroke="#151b24" stroke-width="2">
+    <path d="M0 200H1200M0 400H1200M0 600H1200M0 800H1200M0 1000H1200M0 1200H1200M0 1400H1200"/>
+    <path d="M200 0V1600M400 0V1600M600 0V1600M800 0V1600M1000 0V1600"/>
+  </g>
+
+  <!-- water (Bay of Bengal, bottom) -->
+  <path d="M0 1240 C 220 1180, 420 1300, 600 1250 C 820 1190, 1000 1320, 1200 1250 L1200 1600 L0 1600 Z" fill="#0c1622"/>
+
+  <!-- simplified Bangladesh landmass -->
+  <path d="M360 340
+           C 460 300, 600 320, 700 300
+           C 820 280, 900 340, 880 440
+           C 920 520, 860 600, 900 680
+           C 940 780, 860 860, 880 960
+           C 900 1060, 800 1120, 720 1180
+           C 640 1240, 520 1220, 440 1160
+           C 360 1100, 380 1000, 340 920
+           C 300 840, 360 760, 320 680
+           C 280 600, 340 520, 320 440
+           C 308 388, 320 356, 360 340 Z"
+        fill="#13181f" stroke="#1f2736" stroke-width="3"/>
+
+  <!-- rivers hint -->
+  <g stroke="#1a2530" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.8">
+    <path d="M560 360 C 540 480, 620 560, 600 680 C 580 800, 660 900, 640 1040"/>
+    <path d="M460 520 C 520 600, 480 700, 540 780"/>
+  </g>
+
+  <!-- vet pins (teardrop + paw dot) -->
+  <g>
+    <!-- pin 1 -->
+    <path d="M560 520 c0-44 -36-80 -80-80 s-80 36 -80 80 c0 60 80 132 80 132 s80-72 80-132 Z" transform="translate(40,-40)" fill="#00e5a0"/>
+    <circle cx="520" cy="440" r="26" fill="#0a0d12"/>
+    <!-- pin 2 -->
+    <path d="M740 720 c0-38 -31-69 -69-69 s-69 31 -69 69 c0 52 69 114 69 114 s69-62 69-114 Z" fill="#00e5a0"/>
+    <circle cx="671" cy="651" r="22" fill="#0a0d12"/>
+    <!-- pin 3 -->
+    <path d="M520 900 c0-38 -31-69 -69-69 s-69 31 -69 69 c0 52 69 114 69 114 s69-62 69-114 Z" fill="#00e5a0"/>
+    <circle cx="451" cy="831" r="22" fill="#0a0d12"/>
+    <!-- pin 4 (smaller, dim) -->
+    <path d="M780 980 c0-30 -25-55 -55-55 s-55 25 -55 55 c0 42 55 92 55 92 s55-50 55-92 Z" fill="#00b37e"/>
+    <circle cx="725" cy="925" r="17" fill="#0a0d12"/>
+  </g>
+
+  <!-- brand paw watermark -->
+  <text x="600" y="1340" font-size="120" text-anchor="middle" fill="#1f2736" font-family="sans-serif">🐾</text>
+</svg>

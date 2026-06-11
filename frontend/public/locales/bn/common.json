@@ -1,0 +1,74 @@
+{
+  "nav": {
+    "donate": "♥ দান করুন",
+    "login": "লগইন",
+    "register": "নিবন্ধন",
+    "logout": "লগআউট",
+    "adminPanel": "অ্যাডমিন প্যানেল",
+    "vetDashboard": "ভেট ড্যাশবোর্ড"
+  },
+  "profile": {
+    "label": "প্রোফাইল",
+    "completePrompt": "আরও ফিচার আনলক করতে আপনার প্রোফাইল সম্পন্ন করুন"
+  },
+  "lang": {
+    "selectTitle": "ভাষা নির্বাচন করুন",
+    "selectSubtitle": "সেরা অভিজ্ঞতার জন্য আপনার পছন্দের ভাষা বেছে নিন",
+    "english": "English",
+    "bangla": "বাংলা",
+    "toggleLabel": "বাং"
+  },
+  "bottomNav": {
+    "home": "হোম",
+    "helpBoard": "হেল্প বোর্ড",
+    "community": "কমিউনিটি",
+    "myProfile": "আমার প্রোফাইল"
+  },
+  "buttons": {
+    "close": "বন্ধ করুন",
+    "save": "সংরক্ষণ করুন",
+    "cancel": "বাতিল",
+    "delete": "মুছুন",
+    "edit": "সম্পাদনা",
+    "view": "দেখুন",
+    "submit": "জমা দিন",
+    "back": "পিছনে",
+    "confirm": "নিশ্চিত করুন",
+    "share": "শেয়ার করুন",
+    "report": "রিপোর্ট করুন",
+    "retry": "আবার চেষ্টা করুন",
+    "loadMore": "আরও দেখুন",
+    "addComment": "মন্তব্য যোগ করুন",
+    "send": "পাঠান",
+    "upload": "আপলোড করুন",
+    "download": "ডাউনলোড করুন",
+    "saving": "সংরক্ষণ হচ্ছে...",
+    "updating": "আপডেট হচ্ছে...",
+    "saveChanges": "💾 পরিবর্তন সংরক্ষণ করুন",
+    "updatePassword": "🔒 পাসওয়ার্ড আপডেট করুন"
+  },
+  "status": {
+    "loading": "লোড হচ্ছে...",
+    "error": "কিছু একটা ভুল হয়েছে",
+    "noData": "কোনো তথ্য পাওয়া যায়নি",
+    "success": "সফল",
+    "autoSaving": "⏳ স্বয়ংক্রিয়ভাবে সংরক্ষণ হচ্ছে...",
+    "autoSaved": "✓ সংরক্ষিত হয়েছে"
+  },
+  "words": {
+    "unknown": "অজানা",
+    "anonymous": "অজ্ঞাত",
+    "mixed": "মিশ্র",
+    "locationNotSpecified": "স্থান উল্লেখ নেই",
+    "colorNotSpecified": "রঙ উল্লেখ নেই",
+    "breedUnknown": "জাত অজানা",
+    "yr": "বছর",
+    "yrs": "বছর",
+    "comment": "মন্তব্য",
+    "comments": "মন্তব্য",
+    "viewDetails": "বিস্তারিত দেখুন →",
+    "by": "দ্বারা",
+    "on": "তে",
+    "or": "বা"
+  }
+}

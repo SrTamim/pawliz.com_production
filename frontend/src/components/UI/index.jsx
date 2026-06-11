@@ -1,0 +1,253 @@
+import { useState, useEffect } from 'react';
+
+// ─── SPINNER ─────────────────────────────────────────────────────────────
+export function Spinner({ size = 18 }) {
+  return (
+    <div style={{
+      width: size, height: size,
+      border: '2px solid var(--border)',
+      borderTopColor: 'var(--accent)',
+      borderRadius: '50%',
+      animation: 'spin 0.7s linear infinite',
+      flexShrink: 0,
+    }} />
+  );
+}
+
+// ─── LOADING STATE ───────────────────────────────────────────────────────
+export function Loading({ text = 'Loading...' }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 48, gap: 10, color: 'var(--text-muted)', fontSize: 13 }}>
+      <Spinner /> {text}
+    </div>
+  );
+}
+
+// ─── EMPTY STATE ──────────────────────────────────────────────────────────
+export function EmptyState({ icon = '🔍', title = 'Nothing found', subtitle }) {
+  return (
+    <div style={{ textAlign: 'center', padding: '48px 20px' }}>
+      <div style={{ fontSize: 48, marginBottom: 12 }}>{icon}</div>
+      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4 }}>{title}</div>
+      {subtitle && <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{subtitle}</div>}
+    </div>
+  );
+}
+
+// ─── BUTTON ───────────────────────────────────────────────────────────────
+export function Button({ children, variant = 'accent', size = 'md', loading, disabled, style, ...props }) {
+  const sizes = { sm: '6px 12px', md: '9px 18px', lg: '12px 24px' };
+  const fontSizes = { sm: 12, md: 14, lg: 15 };
+  const minHeights = { sm: 32, md: 44, lg: 48 };
+  const variants = {
+    accent: { background: 'var(--accent)', color: '#0a0d12', fontWeight: 700 },
+    ghost: { background: 'transparent', color: 'var(--text-secondary)', border: '1px solid var(--border)' },
+    danger: { background: 'var(--danger)', color: 'white', fontWeight: 600 },
+    outline: { background: 'transparent', border: '1px solid var(--border-accent)', color: 'var(--accent)' },
+    donate: { background: 'linear-gradient(135deg, #f0a500, #e07800)', color: '#0a0d12', fontWeight: 700 },
+    dark: { background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border)' },
+  };
+  return (
+    <button
+      disabled={disabled || loading}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+        padding: sizes[size],
+        borderRadius: 8,
+        fontSize: fontSizes[size],
+        fontFamily: 'DM Sans, sans-serif',
+        cursor: disabled || loading ? 'not-allowed' : 'pointer',
+        border: 'none',
+        transition: 'all 0.2s',
+        opacity: disabled ? 0.6 : 1,
+        whiteSpace: 'nowrap',
+        minHeight: minHeights[size],
+        ...variants[variant],
+        ...style,
+      }}
+      {...props}
+    >
+      {loading && <Spinner size={14} />}
+      {children}
+    </button>
+  );
+}
+
+// ─── INPUT ────────────────────────────────────────────────────────────────
+export function Input({ label, error, id, name, ...props }) {
+  const fieldId = id ?? name;
+  return (
+    <div style={{ marginBottom: error ? 4 : 0 }}>
+      {label && <label className="label" htmlFor={fieldId}>{label}</label>}
+      <input className="input-field" id={fieldId} name={name} style={{ minHeight: 44 }} {...props} />
+      {error && <div style={{ fontSize: 11, color: 'var(--danger)', marginTop: 4 }}>{error}</div>}
+    </div>
+  );
+}
+
+// ─── TEXTAREA ─────────────────────────────────────────────────────────────
+export function Textarea({ label, error, rows = 3, ...props }) {
+  return (
+    <div>
+      {label && <label className="label">{label}</label>}
+      <textarea className="input-field" rows={rows} style={{ resize: 'vertical' }} {...props} />
+      {error && <div style={{ fontSize: 11, color: 'var(--danger)', marginTop: 4 }}>{error}</div>}
+    </div>
+  );
+}
+
+// ─── BADGE ────────────────────────────────────────────────────────────────
+export function Badge({ children, color = 'accent' }) {
+  const colors = {
+    accent: { bg: 'var(--accent-dim)', border: 'var(--border-accent)', color: 'var(--accent)' },
+    gold: { bg: 'rgba(240,165,0,0.15)', border: 'rgba(240,165,0,0.3)', color: 'var(--gold)' },
+    danger: { bg: 'rgba(255,79,106,0.1)', border: 'rgba(255,79,106,0.2)', color: 'var(--danger)' },
+    gray: { bg: 'var(--bg-elevated)', border: 'var(--border)', color: 'var(--text-muted)' },
+    info: { bg: 'rgba(99,179,237,0.12)', border: 'rgba(99,179,237,0.3)', color: '#63b3ed' },
+  };
+  const c = colors[color] || colors.accent;
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center',
+      padding: '3px 10px',
+      borderRadius: 999,
+      fontSize: 11, fontWeight: 600, letterSpacing: '0.3px',
+      background: c.bg, border: `1px solid ${c.border}`, color: c.color,
+    }}>
+      {children}
+    </span>
+  );
+}
+
+// ─── STAR DISPLAY ─────────────────────────────────────────────────────────
+export function Stars({ rating, count, size = 13 }) {
+  const filled = Math.round(rating || 0);
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <span style={{ color: 'var(--gold)', fontSize: size, letterSpacing: 1 }}>
+        {'★'.repeat(filled)}{'☆'.repeat(5 - filled)}
+      </span>
+      <span style={{ fontSize: size, fontWeight: 600, color: 'var(--text-primary)' }}>
+        {parseFloat(rating || 0).toFixed(1)}
+      </span>
+      {count !== undefined && (
+        <span style={{ fontSize: size - 1, color: 'var(--text-muted)' }}>({count})</span>
+      )}
+    </div>
+  );
+}
+
+// ─── STAR INPUT ───────────────────────────────────────────────────────────
+export function StarInput({ value, onChange }) {
+  const [hover, setHover] = useState(0);
+  return (
+    <div style={{ display: 'flex', gap: 4 }}>
+      {[1, 2, 3, 4, 5].map(i => (
+        <button
+          key={i}
+          onClick={() => onChange(i)}
+          onMouseEnter={() => setHover(i)}
+          onMouseLeave={() => setHover(0)}
+          style={{
+            fontSize: 26, cursor: 'pointer', background: 'none', border: 'none',
+            color: i <= (hover || value) ? 'var(--gold)' : 'var(--text-muted)',
+            transition: 'all 0.15s',
+            transform: i <= (hover || value) ? 'scale(1.2)' : 'scale(1)',
+          }}
+        >
+          ★
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─── MODAL ───────────────────────────────────────────────────────────────
+export function Modal({ open, onClose, title, children, maxWidth = 440 }) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+  if (!open) return null;
+  return (
+    <div
+      onClick={e => e.target === e.currentTarget && onClose()}
+      style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(0,0,0,0.75)',
+        backdropFilter: 'blur(8px)',
+        zIndex: 2000,
+        display: 'flex',
+        alignItems: isMobile ? 'flex-start' : 'center',
+        justifyContent: 'center',
+        padding: isMobile ? 'calc(var(--header-height) + 16px) 12px 16px' : 20,
+        overflowY: isMobile ? 'auto' : 'visible',
+        WebkitOverflowScrolling: 'touch',
+        animation: 'fadeIn 0.2s ease',
+      }}
+    >
+      <div style={{
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-lg)',
+        width: '100%',
+        maxWidth,
+        maxHeight: isMobile ? 'none' : '90vh',
+        overflowY: isMobile ? 'visible' : 'auto',
+        animation: 'slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+        boxShadow: 'var(--shadow-lg)',
+      }}>
+        <div style={{ padding: isMobile ? '16px 16px 0' : '24px 24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <div style={{ fontFamily: 'Roboto, sans-serif', fontWeight: 800, fontSize: 20, color: 'var(--text-primary)' }}>{title}</div>
+          <button
+            onClick={onClose}
+            style={{
+              width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+              borderRadius: 8, cursor: 'pointer', fontSize: 16, color: 'var(--text-secondary)',
+              transition: 'all 0.2s', flexShrink: 0,
+            }}
+          >✕</button>
+        </div>
+        <div style={{ padding: isMobile ? '0 16px 16px' : '0 24px 24px' }}>{children}</div>
+      </div>
+    </div>
+  );
+}
+
+// ─── DIVIDER ─────────────────────────────────────────────────────────────
+export function Divider() {
+  return <div style={{ borderTop: '1px solid var(--border)', margin: '16px 0' }} />;
+}
+
+// ─── ALERT ───────────────────────────────────────────────────────────────
+export function Alert({ type = 'error', children }) {
+  const styles = {
+    error: { bg: 'rgba(255,79,106,0.12)', border: 'rgba(255,79,106,0.3)', color: '#ff8fa3' },
+    success: { bg: 'rgba(0,229,160,0.12)', border: 'rgba(0,229,160,0.3)', color: 'var(--accent)' },
+    info: { bg: 'rgba(99,179,237,0.12)', border: 'rgba(99,179,237,0.3)', color: '#63b3ed' },
+    warning: { bg: 'rgba(240,165,0,0.12)', border: 'rgba(240,165,0,0.3)', color: '#f0a500' },
+  };
+  const s = styles[type];
+  return (
+    <div style={{ padding: '10px 14px', borderRadius: 8, fontSize: 13, background: s.bg, border: `1px solid ${s.border}`, color: s.color, marginBottom: 14 }}>
+      {children}
+    </div>
+  );
+}
+
+// ─── PAGINATION ───────────────────────────────────────────────────────────
+export function Pagination({ page, total, limit, onChange }) {
+  const totalPages = Math.ceil(total / limit);
+  if (totalPages <= 1) return null;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 20 }}>
+      <Button variant="ghost" size="sm" disabled={page <= 1} onClick={() => onChange(page - 1)}>← Prev</Button>
+      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Page {page} of {totalPages}</span>
+      <Button variant="ghost" size="sm" disabled={page >= totalPages} onClick={() => onChange(page + 1)}>Next →</Button>
+    </div>
+  );
+}

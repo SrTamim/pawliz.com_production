@@ -1,0 +1,231 @@
+const pool = require("../config/database");
+const { deleteUploadedFiles } = require("../utils/fileUtils");
+const { logActivity } = require("../utils/activityLogger");
+
+/**
+ * Generate unique PAW-XXXXXX pet ID (6 alphanum suffix).
+ * @returns {string} Pet ID in format PAW-XXXXXX
+ */
+function generatePetId() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let suffix = "";
+  for (let i = 0; i < 6; i++)
+    suffix += chars[Math.floor(Math.random() * chars.length)];
+  return `PAW-${suffix}`;
+}
+
+/**
+ * List user's active pets + lost report metadata.
+ * @param {number} userId - User ID
+ * @returns {Promise<array>} Pet records with lost_pet_reports join
+ */
+async function listUserPets(userId) {
+  const result = await pool.query(
+    `SELECT p.*,
+      lpr.lost_date, lpr.lost_location_name, lpr.lost_latitude, lpr.lost_longitude, lpr.additional_details
+     FROM pets p
+     LEFT JOIN lost_pet_reports lpr ON lpr.pet_id = p.id AND lpr.is_found = false
+     WHERE p.user_id = $1 AND p.is_active = true
+     ORDER BY p.created_at ASC`,
+    [userId],
+  );
+  return result.rows;
+}
+
+/**
+ * Fetch public pet record by pet_id (QR code lookup).
+ * @param {string} petId - Pet ID (PAW-XXXXXX)
+ * @returns {Promise<object|null>} Pet + owner details or null
+ */
+async function getPublicPet(petId) {
+  const result = await pool.query(
+    `SELECT p.id, p.pet_id, p.name, p.type, p.breed, p.gender, p.age, p.color, p.weight, p.images,
+            p.vaccination_status, p.medical_conditions, p.allergies, p.is_lost,
+            p.temperament, p.potty_trained, p.knows_commands,
+            p.good_with_strangers, p.good_with_kids, p.good_with_pets, p.special_notes,
+            u.name as owner_name
+     FROM pets p
+     JOIN users u ON u.id = p.user_id
+     WHERE p.pet_id = $1 AND p.is_active = true`,
+    [petId],
+  );
+  return result.rows[0] || null;
+}
+
+/**
+ * Create pet for user (transaction with unique pet_id generation).
+ * @param {number} userId - User ID
+ * @param {object} data - Pet fields (name, type, breed, age, etc.)
+ * @returns {Promise<object>} Created pet record
+ * @throws {Error} If pet ID generation fails after retries
+ */
+async function createPet(userId, data) {
+  const {
+    name, type, breed, gender, age, color, weight,
+    vaccination_status, last_vaccination_date, next_vaccination_date,
+    medical_conditions, allergies, current_medicines,
+    temperament, potty_trained, knows_commands,
+    good_with_strangers, good_with_kids, good_with_pets, special_notes,
+  } = data;
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const tryInsert = async () => {
+      const petId = generatePetId();
+      const r = await client.query(
+        `INSERT INTO pets (
+          user_id, pet_id, name, type, breed, gender, age, color, weight,
+          vaccination_status, last_vaccination_date, next_vaccination_date,
+          medical_conditions, allergies, current_medicines,
+          temperament, potty_trained, knows_commands, good_with_strangers,
+          good_with_kids, good_with_pets, special_notes
+        ) VALUES (
+          $1,$2,$3,$4,$5,$6,$7,$8,$9,
+          $10,$11,$12,
+          $13,$14,$15,
+          $16,$17,$18,$19,
+          $20,$21,$22
+        ) ON CONFLICT (pet_id) DO NOTHING RETURNING *`,
+        [
+          userId, petId, name, type, breed || null, gender || null,
+          age ? String(age).trim().slice(0, 30) : null, color || null, weight ? parseFloat(weight) : null,
+          vaccination_status || null, last_vaccination_date || null, next_vaccination_date || null,
+          medical_conditions || null, allergies || null, current_medicines || null,
+          temperament || null,
+          potty_trained !== undefined ? potty_trained : null,
+          knows_commands !== undefined ? knows_commands : null,
+          good_with_strangers !== undefined ? good_with_strangers : null,
+          good_with_kids !== undefined ? good_with_kids : null,
+          good_with_pets !== undefined ? good_with_pets : null,
+          special_notes || null,
+        ],
+      );
+      return r;
+    };
+
+    let result = { rowCount: 0 };
+    for (let attempt = 0; attempt < 5 && result.rowCount === 0; attempt++) {
+      result = await tryInsert();
+    }
+    if (result.rowCount === 0) throw new Error("Failed to generate unique pet ID");
+
+    await client.query("COMMIT");
+
+    logActivity(userId, "pet_created", {
+      petDbId: result.rows[0].id, petUid: result.rows[0].pet_id, petName: name, petType: type,
+    });
+
+    return result.rows[0];
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+/**
+ * Update pet (ownership check, soft fields, coalesce provided values).
+ * @param {number} petDbId - Pet DB ID
+ * @param {number} userId - User ID (ownership check)
+ * @param {object} data - Pet fields to update
+ * @returns {Promise<object|null>} Updated pet or null if not found/owned
+ */
+async function updatePet(petDbId, userId, data) {
+  const check = await pool.query(
+    "SELECT id FROM pets WHERE id = $1 AND user_id = $2 AND is_active = true",
+    [petDbId, userId],
+  );
+  if (!check.rows[0]) return null;
+
+  const {
+    name, type, breed, gender, age, color, weight,
+    vaccination_status, last_vaccination_date, next_vaccination_date,
+    medical_conditions, allergies, current_medicines,
+    temperament, potty_trained, knows_commands,
+    good_with_strangers, good_with_kids, good_with_pets, special_notes,
+  } = data;
+
+  const result = await pool.query(
+    `UPDATE pets SET
+      name = COALESCE($1, name), type = COALESCE($2, type),
+      breed = $3, gender = $4, age = $5, color = $6, weight = $7,
+      vaccination_status = $8, last_vaccination_date = $9, next_vaccination_date = $10,
+      medical_conditions = $11, allergies = $12, current_medicines = $13,
+      temperament = $14, potty_trained = $15, knows_commands = $16,
+      good_with_strangers = $17, good_with_kids = $18, good_with_pets = $19,
+      special_notes = $20, updated_at = NOW()
+    WHERE id = $21 AND user_id = $22
+    RETURNING *`,
+    [
+      name || null, type || null,
+      breed !== undefined ? breed || null : null,
+      gender !== undefined ? gender || null : null,
+      age !== undefined ? (age ? String(age).trim().slice(0, 30) : null) : null,
+      color !== undefined ? color || null : null,
+      weight !== undefined ? (weight ? parseFloat(weight) : null) : null,
+      vaccination_status !== undefined ? vaccination_status || null : null,
+      last_vaccination_date !== undefined ? last_vaccination_date || null : null,
+      next_vaccination_date !== undefined ? next_vaccination_date || null : null,
+      medical_conditions !== undefined ? medical_conditions || null : null,
+      allergies !== undefined ? allergies || null : null,
+      current_medicines !== undefined ? current_medicines || null : null,
+      temperament !== undefined ? temperament || null : null,
+      potty_trained !== undefined ? potty_trained : null,
+      knows_commands !== undefined ? knows_commands : null,
+      good_with_strangers !== undefined ? good_with_strangers : null,
+      good_with_kids !== undefined ? good_with_kids : null,
+      good_with_pets !== undefined ? good_with_pets : null,
+      special_notes !== undefined ? special_notes || null : null,
+      petDbId, userId,
+    ],
+  );
+  if (!result.rows[0]) return null;
+  return result.rows[0];
+}
+
+/**
+ * Soft-delete pet + clean images.
+ * @param {number} petDbId - Pet DB ID
+ * @param {number} userId - User ID (ownership check)
+ * @returns {Promise<boolean>} True if deleted, false if not found/owned
+ */
+async function deletePet(petDbId, userId) {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    // Ownership check inside the txn with FOR UPDATE to prevent TOCTOU races
+    const petCheck = await client.query(
+      "SELECT images FROM pets WHERE id = $1 AND user_id = $2 AND is_active = true FOR UPDATE",
+      [petDbId, userId],
+    );
+    if (!petCheck.rows[0]) {
+      await client.query("ROLLBACK");
+      return false;
+    }
+
+    const imagesToDelete = petCheck.rows[0].images || [];
+
+    await client.query(
+      "UPDATE pets SET is_active = false, updated_at = NOW() WHERE id = $1",
+      [petDbId],
+    );
+
+    await client.query("COMMIT");
+
+    try { if (imagesToDelete.length > 0) deleteUploadedFiles(imagesToDelete); } catch {}
+    logActivity(userId, "pet_deleted", { petDbId });
+
+    return true;
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+module.exports = { listUserPets, getPublicPet, createPet, updatePet, deletePet };

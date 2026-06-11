@@ -1,0 +1,72 @@
+{
+  "title": "আমার প্রোফাইল",
+  "edit": "প্রোফাইল সম্পাদনা করুন",
+  "updateProfile": "✏️ প্রোফাইল আপডেট করুন",
+  "logout": "🚪 লগআউট",
+  "personalInfo": "👤 ব্যক্তিগত তথ্য",
+  "accountSettings": "অ্যাকাউন্ট সেটিংস",
+  "changePassword": "🔑 পাসওয়ার্ড পরিবর্তন করুন",
+  "myPets": "🐾 আমার পোষা প্রাণী",
+  "loadingProfile": "প্রোফাইল লোড হচ্ছে...",
+  "fields": {
+    "name": "পুরো নাম",
+    "nameRequired": "পুরো নাম *",
+    "phone": "ফোন নম্বর",
+    "email": "ইমেইল",
+    "dob": "জন্ম তারিখ",
+    "occupation": "পেশা",
+    "address": "ঠিকানা",
+    "bio": "পরিচিতি",
+    "petCount": "পোষা প্রাণীর সংখ্যা"
+  },
+  "placeholders": {
+    "name": "আপনার পুরো নাম",
+    "phone": "০১XXXXXXXXX",
+    "email": "you@example.com",
+    "occupation": "সফটওয়্যার ইঞ্জিনিয়ার",
+    "address": "ঢাকা, বাংলাদেশ",
+    "passwordMin": "কমপক্ষে ৬ অক্ষর",
+    "passwordRepeat": "নতুন পাসওয়ার্ড পুনরায় দিন"
+  },
+  "password": {
+    "title": "🔑 পাসওয়ার্ড পরিবর্তন করুন",
+    "current": "বর্তমান পাসওয়ার্ড *",
+    "new": "নতুন পাসওয়ার্ড *",
+    "confirm": "নতুন পাসওয়ার্ড নিশ্চিত করুন *",
+    "submit": "🔒 পাসওয়ার্ড আপডেট করুন",
+    "updating": "আপডেট হচ্ছে..."
+  },
+  "accountSecurity": "🔐 অ্যাকাউন্ট নিরাপত্তা",
+  "passwordSection": "🔐 অ্যাকাউন্ট নিরাপত্তা",
+  "changePassword": "🔑 পাসওয়ার্ড পরিবর্তন করুন",
+  "completion": {
+    "title": "প্রোফাইল সম্পূর্ণতা",
+    "completeToUnlock": "আরও ফিচার আনলক করতে আপনার প্রোফাইল সম্পন্ন করুন",
+    "addPicture": "প্রোফাইল ছবি যোগ করুন",
+    "addEmail": "ইমেইল ঠিকানা যোগ করুন",
+    "addDob": "জন্ম তারিখ যোগ করুন",
+    "addAddress": "ঠিকানা যোগ করুন"
+  },
+  "picture": {
+    "upload": "ছবি আপলোড করুন",
+    "change": "ছবি পরিবর্তন করুন",
+    "remove": "ছবি সরান"
+  },
+  "phoneReadOnly": "ফোন নম্বর পরিবর্তন করতে সাপোর্টে যোগাযোগ করুন",
+  "fieldLabels": {
+    "name": "নাম",
+    "phone": "ফোন",
+    "email": "ইমেইল",
+    "dob": "জন্ম তারিখ",
+    "occupation": "পেশা",
+    "address": "ঠিকানা"
+  },
+  "passwordStrength": {
+    "checks": {
+      "letter": "অক্ষর (A-Z / a-z)",
+      "number": "সংখ্যা (0-9)"
+    },
+    "strong": "শক্তিশালী পাসওয়ার্ড",
+    "weak": "দুর্বল পাসওয়ার্ড"
+  }
+}

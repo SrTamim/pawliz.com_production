@@ -17,7 +17,28 @@
 // they are reserved for the built-in `admin` superuser. They are excluded from
 // the assignable registry returned to the role editor.
 
-const PAGES = [
+import type { RolePermissions } from '../types/models';
+
+export interface UiFlag {
+  key: string;
+  label: string;
+}
+
+export interface PageDef {
+  key: string;
+  icon: string;
+  label: string;
+  ui: UiFlag[];
+  adminOnly?: boolean;
+}
+
+/** Minimal user shape permission checks rely on (req.user-compatible). */
+interface PermissionUser {
+  role: string;
+  permissions?: RolePermissions | null;
+}
+
+export const PAGES: PageDef[] = [
   { key: 'overview',        icon: '📊', label: 'Overview',       ui: [] },
   {
     key: 'vets', icon: '🏥', label: 'Manage Vets',
@@ -98,23 +119,23 @@ const PAGES = [
   { key: 'roles', icon: '🛡️', label: 'Role Manager', ui: [], adminOnly: true },
 ];
 
-const PAGE_KEYS = new Set(PAGES.map((p) => p.key));
-const UI_KEYS = new Set(
+export const PAGE_KEYS = new Set(PAGES.map((p) => p.key));
+export const UI_KEYS = new Set(
   PAGES.flatMap((p) => (p.ui || []).map((u) => u.key)),
 );
-const ADMIN_ONLY_PAGE_KEYS = new Set(
+export const ADMIN_ONLY_PAGE_KEYS = new Set(
   PAGES.filter((p) => p.adminOnly).map((p) => p.key),
 );
 
 // Registry exposed to the role editor — excludes adminOnly (non-grantable) pages.
-const ASSIGNABLE_PAGES = PAGES.filter((p) => !p.adminOnly);
+export const ASSIGNABLE_PAGES = PAGES.filter((p) => !p.adminOnly);
 
 /**
  * Normalize a stored permissions blob into a safe { pages:Set, ui:Set } shape.
  * Defensive against null / malformed JSONB (default-deny, see L2).
  */
-function normalize(permissions) {
-  const p = permissions && typeof permissions === 'object' ? permissions : {};
+export function normalize(permissions: unknown): { pages: Set<string>; ui: Set<string> } {
+  const p = (permissions && typeof permissions === 'object' ? permissions : {}) as Partial<RolePermissions>;
   const pages = Array.isArray(p.pages) ? p.pages : [];
   const ui = Array.isArray(p.ui) ? p.ui : [];
   return { pages: new Set(pages), ui: new Set(ui) };
@@ -128,7 +149,7 @@ function normalize(permissions) {
  *   the parent page (L3: an orphan UI flag never grants access).
  * Default-deny on missing/malformed perms (L2).
  */
-function hasPermission(user, key) {
+export function hasPermission(user: PermissionUser | null | undefined, key: string): boolean {
   if (!user) return false;
   if (user.role === 'admin') return true;
   const { pages, ui } = normalize(user.permissions);
@@ -140,7 +161,7 @@ function hasPermission(user, key) {
 }
 
 /** True if the user can open the admin dashboard at all (admin OR ≥1 page). */
-function hasAnyAdminAccess(user) {
+export function hasAnyAdminAccess(user: PermissionUser | null | undefined): boolean {
   if (!user) return false;
   if (user.role === 'admin') return true;
   return normalize(user.permissions).pages.size > 0;
@@ -152,8 +173,8 @@ function hasAnyAdminAccess(user) {
  * `roles` reserved permission so a custom role can never be made admin-equal.
  * Returns { pages, ui } with validated, deduped values.
  */
-function sanitizePermissions(input) {
-  const src = input && typeof input === 'object' ? input : {};
+export function sanitizePermissions(input: unknown): RolePermissions {
+  const src = (input && typeof input === 'object' ? input : {}) as Partial<RolePermissions>;
   const inPages = Array.isArray(src.pages) ? src.pages : [];
   const inUi = Array.isArray(src.ui) ? src.ui : [];
 
@@ -171,20 +192,9 @@ function sanitizePermissions(input) {
 }
 
 /** Does a requested permissions blob try to grant a reserved/adminOnly page? */
-function requestsReservedPage(input) {
-  const inPages = Array.isArray(input?.pages) ? input.pages : [];
+export function requestsReservedPage(input: unknown): boolean {
+  const inPages = Array.isArray((input as Partial<RolePermissions> | null | undefined)?.pages)
+    ? (input as RolePermissions).pages
+    : [];
   return inPages.some((k) => ADMIN_ONLY_PAGE_KEYS.has(k));
 }
-
-module.exports = {
-  PAGES,
-  ASSIGNABLE_PAGES,
-  PAGE_KEYS,
-  UI_KEYS,
-  ADMIN_ONLY_PAGE_KEYS,
-  normalize,
-  hasPermission,
-  hasAnyAdminAccess,
-  sanitizePermissions,
-  requestsReservedPage,
-};

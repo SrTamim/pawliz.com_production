@@ -5,11 +5,9 @@
  *      "8801712345678"  → "01712345678"
  *      "01712345678"    → "01712345678"
  */
-function normalizePhone(phone) {
+export function normalizePhone(phone: string | null | undefined): string {
   const p = (phone || '').trim();
   if (/^\+88(01[3-9]\d{8})$/.test(p)) return p.slice(3);
   if (/^88(01[3-9]\d{8})$/.test(p)) return p.slice(2);
   return p;
 }
-
-module.exports = { normalizePhone };

@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmitOnError": true,
+    "types": ["node"]
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "uploads",
+    "coverage",
+    "logs",
+    "tests",
+    "jest.config.js",
+    "ecosystem.config.js"
+  ]
+}

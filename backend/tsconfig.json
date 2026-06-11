@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "rootDir": ".",
+    "outDir": "dist",
+    "allowJs": true,
+    "checkJs": false,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "isolatedModules": true,
+    "strict": false,
+    "types": ["node", "jest"]
+  },
+  "include": ["**/*.ts", "**/*.js", "types/**/*.d.ts"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "uploads",
+    "coverage",
+    "logs",
+    "ecosystem.config.js"
+  ]
+}

@@ -1,4 +1,4 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
 
 router.use("/", require("./admin-settings"));
@@ -9,4 +9,4 @@ router.use("/", require("./admin-pets"));
 router.use("/comments", require("./admin-comments"));
 router.use("/sms", require("./admin-sms"));
 
-module.exports = router;
+export = router;

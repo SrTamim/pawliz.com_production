@@ -34,4 +34,5 @@ const env = { ...process.env };
 if (!isCompiled) {
   env.NODE_OPTIONS = [env.NODE_OPTIONS, '--import tsx'].filter(Boolean).join(' ');
 }
-execSync(`npx node-pg-migrate ${args} -m ${migrationsDir}`, { stdio: 'inherit', env });
+// --ignore-pattern: skip sourcemaps in dist/migrations (and anything non-migration)
+execSync(`npx node-pg-migrate ${args} -m ${migrationsDir} --ignore-pattern ".*\\.map"`, { stdio: 'inherit', env });

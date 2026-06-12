@@ -1,3 +1,4 @@
+import type { MigrationBuilder } from 'node-pg-migrate';
 'use strict';
 
 // RBAC flag split (REFINEMENT 3). Existing custom roles store the old coarse UI
@@ -45,7 +46,7 @@ function remap(pgm, oldKey, newKeysJsonbArray) {
   `);
 }
 
-exports.up = (pgm) => {
+export const up = (pgm: MigrationBuilder): void => {
   remap(pgm, 'users.edit', '["users.reset_password"]');
   remap(pgm, 'users.delete', '["users.deactivate"]');
   // vets.edit stays AND gains vets.approve. Use a no-op for the old key (keep it)
@@ -56,7 +57,7 @@ exports.up = (pgm) => {
 // Best-effort down: remove vets.approve (added by up). users.reset_password /
 // users.deactivate are left in place — harmless under the old registry (sanitize
 // drops unknown keys on next save). Old users.edit/users.delete are not restored.
-exports.down = (pgm) => {
+export const down = (pgm: MigrationBuilder): void => {
   pgm.sql(`
     UPDATE roles r
     SET permissions = jsonb_set(

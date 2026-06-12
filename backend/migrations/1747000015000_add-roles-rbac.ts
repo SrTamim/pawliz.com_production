@@ -1,3 +1,4 @@
+import type { MigrationBuilder } from 'node-pg-migrate';
 'use strict';
 
 // RBAC: roles table + per-role permissions (JSONB), replacing the rigid
@@ -15,9 +16,9 @@
 // node-pg-migrate wraps each migration in a single transaction, so a partial
 // failure rolls back cleanly — no half-migrated prod schema.
 
-exports.shorthands = undefined;
+export const shorthands = undefined;
 
-exports.up = (pgm) => {
+export const up = (pgm: MigrationBuilder): void => {
   pgm.sql(`
     CREATE TABLE IF NOT EXISTS roles (
       name        VARCHAR(50) PRIMARY KEY,
@@ -60,7 +61,7 @@ exports.up = (pgm) => {
   `);
 };
 
-exports.down = (pgm) => {
+export const down = (pgm: MigrationBuilder): void => {
   pgm.sql(`ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_fkey`);
   // Restore the original CHECK. Any custom roles assigned to users would violate
   // this; FK ON DELETE SET DEFAULT already reset them to 'user' on table drop,

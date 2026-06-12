@@ -1,14 +1,14 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
-const bcrypt = require("bcryptjs");
-const { body, validationResult } = require("express-validator");
-const pool = require("../config/database");
-const { authenticate } = require("../middleware/auth");
-const upload = require("../middleware/upload");
-const { deleteUploadedFile } = require("../utils/fileUtils");
-const logger = require("../utils/logger");
-const { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN } = require("../utils/constants");
-const { createTokens, setCookies } = require("../utils/authHelpers");
+import bcrypt from 'bcryptjs';
+import { body, validationResult } from 'express-validator';
+import pool from '../config/database';
+import { authenticate } from '../middleware/auth';
+import upload from '../middleware/upload';
+import { deleteUploadedFile } from '../utils/fileUtils';
+import logger from '../utils/logger';
+import { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN } from '../utils/constants';
+import { createTokens, setCookies } from '../utils/authHelpers';
 
 // GET /api/profile - Full profile with pets
 router.get("/", authenticate, async (req, res) => {
@@ -274,4 +274,4 @@ router.post(
   },
 );
 
-module.exports = router;
+export = router;

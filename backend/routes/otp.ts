@@ -1,6 +1,6 @@
-const express = require("express");
-const { body, validationResult } = require("express-validator");
-const smsService = require("../services/smsService");
+import express from 'express';
+import { body, validationResult } from 'express-validator';
+import * as smsService from '../services/smsService';
 
 const router = express.Router();
 
@@ -61,4 +61,4 @@ router.post(
   },
 );
 
-module.exports = router;
+export = router;

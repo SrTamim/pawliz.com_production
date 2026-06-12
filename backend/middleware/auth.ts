@@ -1,6 +1,8 @@
-const jwt = require('jsonwebtoken');
-const pool = require('../config/database');
-const { hasPermission, hasAnyAdminAccess } = require('../utils/permissions');
+import jwt from 'jsonwebtoken';
+import type { Request, Response, NextFunction, RequestHandler } from 'express';
+import pool from '../config/database';
+import { hasPermission, hasAnyAdminAccess } from '../utils/permissions';
+import type { AuthUser } from '../types/models';
 
 // SELECT used by authenticate/optionalAuth on cache miss. Joins the role's
 // permissions so req.user carries them for requirePermission checks. `permissions`
@@ -35,9 +37,9 @@ const USER_SELECT = `
 // active if evictUser() is missed (e.g. direct DB update, script, future route).
 // Admin deactivations still call evictUser() for instant effect.
 const USER_CACHE_TTL_MS = 60 * 1000; // 60 seconds
-const _userCache = new Map();
+const _userCache = new Map<number, { user: AuthUser; expiresAt: number }>();
 
-function _getCached(userId) {
+function _getCached(userId: number): AuthUser | null {
   const entry = _userCache.get(userId);
   if (!entry) return null;
   if (Date.now() > entry.expiresAt) {
@@ -47,7 +49,7 @@ function _getCached(userId) {
   return entry.user;
 }
 
-function _setCache(userId, user) {
+function _setCache(userId: number, user: AuthUser): void {
   _userCache.set(userId, {
     user,
     expiresAt: Date.now() + USER_CACHE_TTL_MS,
@@ -60,9 +62,8 @@ function _setCache(userId, user) {
  * Without this, the deactivated user stays active for up to 14 minutes (TTL).
  * Currently called by: admin-users.js (role change, deactivation, deletion).
  * Any new route that sets is_active=false MUST also call evictUser(userId).
- * @param {number} userId
  */
-function evictUser(userId) {
+export function evictUser(userId: number): void {
   _userCache.delete(userId);
 }
 
@@ -80,10 +81,8 @@ setInterval(() => {
 
 /**
  * Extract JWT from httpOnly cookie or Authorization header.
- * @param {object} req - Express request
- * @returns {string|null}
  */
-function extractToken(req) {
+function extractToken(req: Request): string | null {
   const fromCookie = req.cookies?.pawliz_access;
   if (fromCookie) return fromCookie;
   const authHeader = req.headers.authorization;
@@ -97,13 +96,13 @@ function extractToken(req) {
  * Middleware: Verify JWT + fetch user (cache-first). Blocks inactive users.
  * Sets req.user. Cache hit = 0 DB queries. Cache miss = 1 DB query, then cached.
  */
-const authenticate = async (req, res, next) => {
+export const authenticate = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
   const token = extractToken(req);
   if (!token) return res.status(401).json({ error: 'No token provided' });
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string, {
       algorithms: ['HS256'],
-    });
+    }) as jwt.JwtPayload;
 
     // Cache hit — skip the DB query entirely.
     const cached = _getCached(decoded.userId);
@@ -113,7 +112,7 @@ const authenticate = async (req, res, next) => {
     }
 
     // Cache miss — query DB and populate cache for subsequent requests.
-    const result = await pool.query(USER_SELECT, [decoded.userId]);
+    const result = await pool.query<AuthUser>(USER_SELECT, [decoded.userId]);
     if (!result.rows[0] || !result.rows[0].is_active) {
       return res.status(401).json({ error: 'User not found or inactive' });
     }
@@ -128,7 +127,7 @@ const authenticate = async (req, res, next) => {
 /**
  * Middleware: Block non-admin users. Requires authenticate to run first.
  */
-const requireAdmin = (req, res, next) => {
+export const requireAdmin = (req: Request, res: Response, next: NextFunction): any => {
   if (req.user?.role !== 'admin') {
     return res.status(403).json({ error: 'Admin access required' });
   }
@@ -139,9 +138,9 @@ const requireAdmin = (req, res, next) => {
  * Middleware factory: block unless the user holds permission `key`.
  * admin role passes everything (superuser short-circuit, in hasPermission).
  * Default-deny: missing/malformed perms → 403. Requires authenticate first.
- * @param {string} key - page key ("users") or action key ("users.delete")
+ * @param key page key ("users") or action key ("users.delete")
  */
-const requirePermission = (key) => (req, res, next) => {
+export const requirePermission = (key: string): RequestHandler => (req, res, next): any => {
   if (hasPermission(req.user, key)) return next();
   return res.status(403).json({ error: 'Insufficient permissions' });
 };
@@ -150,9 +149,8 @@ const requirePermission = (key) => (req, res, next) => {
  * Middleware factory: block unless the user holds AT LEAST ONE of `keys`.
  * Used where a single endpoint backs multiple dashboard pages (e.g. the admin
  * pets list serves the Manage Pets, Lost Pets and Adoptable Pets sections).
- * @param {...string} keys
  */
-const requireAnyPermission = (...keys) => (req, res, next) => {
+export const requireAnyPermission = (...keys: string[]): RequestHandler => (req, res, next): any => {
   if (keys.some((k) => hasPermission(req.user, k))) return next();
   return res.status(403).json({ error: 'Insufficient permissions' });
 };
@@ -162,7 +160,7 @@ const requireAnyPermission = (...keys) => (req, res, next) => {
  * which must NEVER be reachable by a custom role (Security #2). Distinct from
  * requireAdmin only in intent/naming; both check role === 'admin'.
  */
-const requireSuperAdmin = (req, res, next) => {
+export const requireSuperAdmin = (req: Request, res: Response, next: NextFunction): any => {
   if (req.user?.role !== 'admin') {
     return res.status(403).json({ error: 'Admin access required' });
   }
@@ -174,7 +172,7 @@ const requireSuperAdmin = (req, res, next) => {
  * page permission). Lets a staff role reach the dashboard shell; per-page gating
  * is handled by requirePermission on individual routes.
  */
-const requireStaff = (req, res, next) => {
+export const requireStaff = (req: Request, res: Response, next: NextFunction): any => {
   if (hasAnyAdminAccess(req.user)) return next();
   return res.status(403).json({ error: 'Admin access required' });
 };
@@ -182,7 +180,7 @@ const requireStaff = (req, res, next) => {
 /**
  * Middleware: Block non-vet users. Requires authenticate to run first.
  */
-const requireVet = (req, res, next) => {
+export const requireVet = (req: Request, res: Response, next: NextFunction): any => {
   if (req.user?.role !== 'vet') {
     return res.status(403).json({ error: 'Vet/Clinic access required' });
   }
@@ -193,13 +191,13 @@ const requireVet = (req, res, next) => {
  * Middleware: Attempt JWT auth, continue regardless. Sets req.user if valid.
  * Also cache-first for optional auth routes.
  */
-const optionalAuth = async (req, res, next) => {
+export const optionalAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const token = extractToken(req);
   if (!token) return next();
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string, {
       algorithms: ['HS256'],
-    });
+    }) as jwt.JwtPayload;
 
     const cached = _getCached(decoded.userId);
     if (cached) {
@@ -207,7 +205,7 @@ const optionalAuth = async (req, res, next) => {
       return next();
     }
 
-    const result = await pool.query(USER_SELECT, [decoded.userId]);
+    const result = await pool.query<AuthUser>(USER_SELECT, [decoded.userId]);
     if (result.rows[0]?.is_active) {
       _setCache(decoded.userId, result.rows[0]);
       req.user = result.rows[0];
@@ -220,26 +218,12 @@ const optionalAuth = async (req, res, next) => {
  * Evict every cached user holding a given role. Call when a role's permissions
  * change so affected users pick up new perms on their next request (instead of
  * waiting out the ≤60s cache TTL). Best-effort; failures are non-fatal.
- * @param {string} roleName
  */
-async function evictUsersByRole(roleName) {
+export async function evictUsersByRole(roleName: string): Promise<void> {
   try {
-    const { rows } = await pool.query('SELECT id FROM users WHERE role = $1', [roleName]);
+    const { rows } = await pool.query<{ id: number }>('SELECT id FROM users WHERE role = $1', [roleName]);
     for (const r of rows) _userCache.delete(r.id);
   } catch {
     // Non-fatal: stale entries still expire within the 60s TTL.
   }
 }
-
-module.exports = {
-  authenticate,
-  requireAdmin,
-  requireVet,
-  requirePermission,
-  requireAnyPermission,
-  requireSuperAdmin,
-  requireStaff,
-  optionalAuth,
-  evictUser,
-  evictUsersByRole,
-};

@@ -2,19 +2,19 @@
   "name": "pawliz-backend",
   "version": "1.0.0",
   "description": "Pawliz - Veterinary Platform Backend",
-  "main": "server.js",
+  "main": "dist/server.js",
   "engines": {
     "node": "20.x"
   },
   "scripts": {
-    "start": "node server.js",
+    "start": "node dist/server.js",
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "start:pm2": "pm2 start ecosystem.config.js --env production",
     "stop:pm2": "pm2 stop pawliz",
     "restart:pm2": "pm2 restart pawliz",
     "logs:pm2": "pm2 logs pawliz",
-    "dev": "tsx watch server.js",
+    "dev": "tsx watch server.ts",
     "seed": "node database/seed.js",
     "test": "jest",
     "migrate": "node migrate.js up",

@@ -1,18 +1,18 @@
 require("dotenv").config();
-const http = require("http");
-const express = require("express");
-const cors = require("cors");
-const helmet = require("helmet");
-const compression = require("compression");
-const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
-const cookieParser = require("cookie-parser");
-const morgan = require("morgan");
-const cron = require("node-cron");
-const pool = require("./config/database");
-const logger = require("./utils/logger");
-const smsService = require("./services/smsService");
-const socketModule = require("./socket");
-const { REQUEST_TIMEOUT_MS, RATE_LIMIT_API_MAX } = require("./utils/constants");
+import http from 'http';
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import compression from 'compression';
+import { rateLimit, ipKeyGenerator } from 'express-rate-limit';
+import cookieParser from 'cookie-parser';
+import morgan from 'morgan';
+import cron from 'node-cron';
+import pool from './config/database';
+import logger from './utils/logger';
+import * as smsService from './services/smsService';
+import * as socketModule from './socket';
+import { REQUEST_TIMEOUT_MS, RATE_LIMIT_API_MAX } from './utils/constants';
 
 // Public R2 base URL for redirecting legacy /uploads/* paths (trailing slash stripped).
 const R2_PUBLIC_URL = (process.env.R2_PUBLIC_URL || "").replace(/\/$/, "");
@@ -87,7 +87,7 @@ app.use(helmet({
 }));
 
 // Rate limiting
-const { rateLimitKeyWithLogging, logRateLimitEvent } = require('./utils/rateLimitHelpers');
+import { rateLimitKeyWithLogging, logRateLimitEvent } from './utils/rateLimitHelpers';
 
 const apiLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -184,7 +184,10 @@ const otpLimiter = rateLimit({
   // Always key on valid phone when present; fall back to IP for missing/invalid phone
   keyGenerator: (req) => {
     const phone = req.body?.phone;
-    return (phone && /^01[3-9]\d{8}$/.test(phone.trim())) ? phone.trim() : ipKeyGenerator(req);
+    // NOTE(pre-existing): ipKeyGenerator(req) — v8 expects an IP string; the
+    // whole req object is returned unchanged, so anonymous OTP traffic keys on
+    // "[object Object]". Preserved as-is (see utils/rateLimitHelpers note).
+    return (phone && /^01[3-9]\d{8}$/.test(phone.trim())) ? phone.trim() : ipKeyGenerator(req as any);
   },
   message: { error: "Too many OTP requests. Please wait 5 minutes." },
 });

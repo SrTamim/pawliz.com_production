@@ -1,5 +1,5 @@
 import logger from './logger';
-import r2 from './r2';
+import * as r2 from './r2';
 
 /**
  * Delete a file from R2 — async, non-blocking. Handles every stored path shape

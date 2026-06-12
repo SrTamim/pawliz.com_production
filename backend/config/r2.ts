@@ -1,5 +1,6 @@
-const { S3Client } = require("@aws-sdk/client-s3");
-require("dotenv").config();
+import { S3Client } from '@aws-sdk/client-s3';
+import dotenv from 'dotenv';
+dotenv.config();
 
 /**
  * Cloudflare R2 configuration.
@@ -22,32 +23,28 @@ const {
   R2_PUBLIC_URL,
 } = process.env;
 
-const isConfigured = Boolean(
+export const isConfigured = Boolean(
   R2_ACCOUNT_ID && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY && R2_BUCKET_NAME
 );
 
 // Fail fast in production if R2 is not fully configured — uploads would silently break otherwise.
-if (process.env.NODE_ENV === "production" && !isConfigured) {
-  throw new Error("R2 storage is not configured (missing R2_* env vars)");
+if (process.env.NODE_ENV === 'production' && !isConfigured) {
+  throw new Error('R2 storage is not configured (missing R2_* env vars)');
 }
 
-const client = isConfigured
+export const client: S3Client | null = isConfigured
   ? new S3Client({
-      region: "auto",
+      region: 'auto',
       endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
       credentials: {
-        accessKeyId: R2_ACCESS_KEY_ID,
-        secretAccessKey: R2_SECRET_ACCESS_KEY,
+        accessKeyId: R2_ACCESS_KEY_ID as string,
+        secretAccessKey: R2_SECRET_ACCESS_KEY as string,
       },
     })
   : null;
 
-module.exports = {
-  client,
-  isConfigured,
-  PUBLIC_BUCKET: R2_BUCKET_NAME,
-  // Private bucket falls back to the public bucket name only if unset; in
-  // practice R2_PRIVATE_BUCKET must be a separate bucket with no public access.
-  PRIVATE_BUCKET: R2_PRIVATE_BUCKET || R2_BUCKET_NAME,
-  PUBLIC_URL: R2_PUBLIC_URL ? R2_PUBLIC_URL.replace(/\/$/, "") : "",
-};
+export const PUBLIC_BUCKET = R2_BUCKET_NAME as string;
+// Private bucket falls back to the public bucket name only if unset; in
+// practice R2_PRIVATE_BUCKET must be a separate bucket with no public access.
+export const PRIVATE_BUCKET = (R2_PRIVATE_BUCKET || R2_BUCKET_NAME) as string;
+export const PUBLIC_URL = R2_PUBLIC_URL ? R2_PUBLIC_URL.replace(/\/$/, '') : '';

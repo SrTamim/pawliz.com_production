@@ -1,6 +1,13 @@
-const logger = require('./logger');
+import type { Request, Response } from 'express';
+import logger from './logger';
 
-const ERROR_CODES = {
+interface ErrorDef {
+  code: number;
+  status: number;
+  message: string;
+}
+
+export const ERROR_CODES: Record<string, ErrorDef> = {
   // Auth errors (4000-4099)
   INVALID_CREDENTIALS: { code: 4001, status: 401, message: 'Invalid credentials' },
   EXPIRED_TOKEN: { code: 4002, status: 401, message: 'Token expired' },
@@ -46,8 +53,13 @@ const ERROR_CODES = {
   TIMEOUT: { code: 5101, status: 504, message: 'Request timeout' },
 };
 
-class AppError extends Error {
-  constructor(errorType, details = {}) {
+export class AppError extends Error {
+  code: number;
+  status: number;
+  details: unknown;
+  type: string;
+
+  constructor(errorType: string, details: unknown = {}) {
     const error = ERROR_CODES[errorType] || ERROR_CODES.INTERNAL_SERVER_ERROR;
     super(error.message);
     this.code = error.code;
@@ -57,19 +69,20 @@ class AppError extends Error {
   }
 }
 
-function handleError(err, req, res) {
+export function handleError(err: any, req: Request, res: Response): void {
   const isProduction = process.env.NODE_ENV === 'production';
 
   if (err instanceof AppError) {
     if (err.status >= 500) {
       logger.error(`${err.type} (${err.code}):`, err);
     }
-    return res.status(err.status).json({
+    res.status(err.status).json({
       error: err.message,
       code: err.code,
       ...(req.user && { userId: req.user.id }),
       ...(!isProduction && { details: err.details }),
     });
+    return;
   }
 
   // Unknown error
@@ -84,9 +97,3 @@ function handleError(err, req, res) {
     ...(!isProduction && { stack: err.stack }),
   });
 }
-
-module.exports = {
-  ERROR_CODES,
-  AppError,
-  handleError,
-};

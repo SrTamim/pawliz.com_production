@@ -1,14 +1,14 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
-const pool = require("../config/database");
-const { authenticate, requirePermission, requireAnyPermission } = require("../middleware/auth");
-const logger = require("../utils/logger");
+import pool from '../config/database';
+import { authenticate, requirePermission, requireAnyPermission } from '../middleware/auth';
+import logger from '../utils/logger';
 
 // GET /api/v1/admin/pets
 // Serves Manage Pets + Lost Pets + Adoptable Pets sections (filtered) — allow any.
 router.get("/pets", authenticate, requireAnyPermission("pets", "lost-pets-mgmt", "adoptable-pets"), async (req, res) => {
-  const page = Math.max(1, parseInt(req.query.page) || 1);
-  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
   const offset = (page - 1) * limit;
   const { search, type, filter } = req.query;
   try {
@@ -132,8 +132,8 @@ router.delete("/pets/:id", authenticate, requirePermission("pets.delete"), async
 
 // GET /api/v1/admin/found-pets
 router.get("/found-pets", authenticate, requirePermission("found-pets"), async (req, res) => {
-  const page = Math.max(1, parseInt(req.query.page) || 1);
-  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
   const offset = (page - 1) * limit;
   const { search } = req.query;
   try {
@@ -201,8 +201,8 @@ router.delete("/found-pets/:id", authenticate, requirePermission("found-pets.del
 
 // GET /api/v1/admin/rescue-pets
 router.get("/rescue-pets", authenticate, requirePermission("rescue-pets"), async (req, res) => {
-  const page = Math.max(1, parseInt(req.query.page) || 1);
-  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
   const offset = (page - 1) * limit;
   const { search } = req.query;
   try {
@@ -269,4 +269,4 @@ router.delete("/rescue-pets/:id", authenticate, requirePermission("rescue-pets.d
   }
 });
 
-module.exports = router;
+export = router;

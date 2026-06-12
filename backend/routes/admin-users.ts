@@ -1,17 +1,17 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
-const bcrypt = require("bcryptjs");
-const pool = require("../config/database");
-const { authenticate, requirePermission, requireAnyPermission, evictUser } = require("../middleware/auth");
-const { hasPermission } = require("../utils/permissions");
-const { body } = require("express-validator");
-const validate = require("../middleware/validate");
-const { logActivity } = require("../utils/activityLogger");
+import bcrypt from 'bcryptjs';
+import pool from '../config/database';
+import { authenticate, requirePermission, requireAnyPermission, evictUser } from '../middleware/auth';
+import { hasPermission } from '../utils/permissions';
+import { body } from 'express-validator';
+import validate from '../middleware/validate';
+import { logActivity } from '../utils/activityLogger';
 
 // GET /api/v1/admin/users
 router.get("/", authenticate, requirePermission("users"), async (req, res) => {
-  const page = Math.max(1, parseInt(req.query.page) || 1);
-  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
   const offset = (page - 1) * limit;
   const { search } = req.query;
   try {
@@ -166,4 +166,4 @@ router.delete("/:id", authenticate, requireAnyPermission("users.deactivate", "us
   }
 });
 
-module.exports = router;
+export = router;

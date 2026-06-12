@@ -1,11 +1,11 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
-const pool = require("../config/database");
-const { authenticate, requirePermission } = require("../middleware/auth");
-const { hasPermission } = require("../utils/permissions");
-const { logActivity } = require("../utils/activityLogger");
-const logger = require("../utils/logger");
-const vetsCache = require("../utils/vetsCache");
+import pool from '../config/database';
+import { authenticate, requirePermission } from '../middleware/auth';
+import { hasPermission } from '../utils/permissions';
+import { logActivity } from '../utils/activityLogger';
+import logger from '../utils/logger';
+import * as vetsCache from '../utils/vetsCache';
 
 // POST /api/v1/admin/vets
 router.post("/", authenticate, requirePermission("vets.create"), async (req, res) => {
@@ -53,8 +53,8 @@ router.post("/", authenticate, requirePermission("vets.create"), async (req, res
 
 // GET /api/v1/admin/vets
 router.get("/", authenticate, requirePermission("vets"), async (req, res) => {
-  const page = Math.max(1, parseInt(req.query.page) || 1);
-  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 50));
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 50));
   const offset = (page - 1) * limit;
   const { search, approval_status, include_inactive, active } = req.query;
   try {
@@ -356,4 +356,4 @@ router.delete("/clinic-vets/:clinicVetId", authenticate, requirePermission("vets
   }
 });
 
-module.exports = router;
+export = router;

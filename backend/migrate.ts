@@ -23,4 +23,15 @@ if (process.env.NODE_ENV === 'production' && !/sslmode=/.test(process.env.DATABA
 
 import { execSync } from 'child_process';
 const args = process.argv.slice(2).join(' ') || 'up';
-execSync(`npx node-pg-migrate ${args}`, { stdio: 'inherit', env: process.env });
+
+// Source migrations are TypeScript. When running from source (tsx), inject the
+// tsx loader into the subprocess so node-pg-migrate can import .ts migrations.
+// The compiled build (dist/migrate.js) points at dist/migrations (plain JS) —
+// no loader, no tsx dependency at runtime.
+const isCompiled = __filename.endsWith('.js');
+const migrationsDir = isCompiled ? 'dist/migrations' : 'migrations';
+const env = { ...process.env };
+if (!isCompiled) {
+  env.NODE_OPTIONS = [env.NODE_OPTIONS, '--import tsx'].filter(Boolean).join(' ');
+}
+execSync(`npx node-pg-migrate ${args} -m ${migrationsDir}`, { stdio: 'inherit', env });

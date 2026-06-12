@@ -1,3 +1,4 @@
+import type { MigrationBuilder } from 'node-pg-migrate';
 /**
  * Migration: add partial index on notifications(user_id) WHERE is_read = false
  *
@@ -16,7 +17,7 @@
  *     millions in a full composite index.
  */
 
-exports.up = (pgm) => {
+export const up = (pgm: MigrationBuilder): void => {
   pgm.sql(`
     CREATE INDEX IF NOT EXISTS idx_notifications_user_unread
     ON notifications(user_id)
@@ -24,6 +25,6 @@ exports.up = (pgm) => {
   `);
 };
 
-exports.down = (pgm) => {
+export const down = (pgm: MigrationBuilder): void => {
   pgm.sql(`DROP INDEX IF EXISTS idx_notifications_user_unread`);
 };

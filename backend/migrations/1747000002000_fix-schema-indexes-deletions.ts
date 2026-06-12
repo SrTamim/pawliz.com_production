@@ -1,8 +1,9 @@
+import type { MigrationBuilder } from 'node-pg-migrate';
 'use strict';
 
-exports.shorthands = undefined;
+export const shorthands = undefined;
 
-exports.up = (pgm) => {
+export const up = (pgm: MigrationBuilder): void => {
   // Task 4: Rename donations.qr_code_image → qr_code_image_path
   pgm.renameColumn('donations', 'qr_code_image', 'qr_code_image_path');
 
@@ -11,7 +12,7 @@ exports.up = (pgm) => {
     user_id: {
       type: 'integer',
       references: 'users(id)',
-      onDelete: 'cascade',
+      onDelete: 'cascade' as any, // runtime accepts lowercase; v8 type wants 'CASCADE'
       notNull: false,
     },
   });
@@ -60,7 +61,7 @@ exports.up = (pgm) => {
   });
 };
 
-exports.down = (pgm) => {
+export const down = (pgm: MigrationBuilder): void => {
   pgm.renameColumn('donations', 'qr_code_image_path', 'qr_code_image');
   pgm.dropColumn('adoption_posts', 'user_id');
   pgm.sql(`DROP INDEX IF EXISTS idx_adoption_posts_user_id CASCADE`);

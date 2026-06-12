@@ -1,8 +1,9 @@
+import type { MigrationBuilder } from 'node-pg-migrate';
 'use strict';
 
-exports.shorthands = undefined;
+export const shorthands = undefined;
 
-exports.up = (pgm) => {
+export const up = (pgm: MigrationBuilder): void => {
   pgm.sql(`CREATE EXTENSION IF NOT EXISTS pg_trgm`);
 
   pgm.sql(`
@@ -411,7 +412,7 @@ exports.up = (pgm) => {
   pgm.sql(`INSERT INTO site_settings (key, value) VALUES ('logo_image', NULL) ON CONFLICT (key) DO NOTHING`);
 };
 
-exports.down = (pgm) => {
+export const down = (pgm: MigrationBuilder): void => {
   pgm.sql(`DROP TABLE IF EXISTS clinic_vet_qualifications CASCADE`);
   pgm.sql(`DROP TABLE IF EXISTS clinic_vets CASCADE`);
   pgm.sql(`DROP TABLE IF EXISTS clinic_contacts CASCADE`);

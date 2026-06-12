@@ -1,10 +1,11 @@
+import type { MigrationBuilder } from 'node-pg-migrate';
 /**
  * Migration: add contact_request notification type
  * - Drops and recreates the CHECK constraint on notifications.type
  * - Creates contact_notifications table to store contact messages tied to posts
  */
 
-exports.up = (pgm) => {
+export const up = (pgm: MigrationBuilder): void => {
   // Drop old CHECK constraint and add contact_request type
   pgm.sql(`ALTER TABLE notifications DROP CONSTRAINT IF EXISTS notifications_type_check`);
   pgm.sql(`ALTER TABLE notifications ADD CONSTRAINT notifications_type_check CHECK (type IN ('comment_on_post', 'post_commented', 'post_reunited', 'follow', 'contact_request'))`);
@@ -25,7 +26,7 @@ exports.up = (pgm) => {
   pgm.sql(`CREATE INDEX IF NOT EXISTS idx_contact_notifications_post ON contact_notifications(post_id, post_type)`);
 };
 
-exports.down = (pgm) => {
+export const down = (pgm: MigrationBuilder): void => {
   pgm.sql(`DROP TABLE IF EXISTS contact_notifications CASCADE`);
   pgm.sql(`ALTER TABLE notifications DROP CONSTRAINT IF EXISTS notifications_type_check`);
   pgm.sql(`ALTER TABLE notifications ADD CONSTRAINT notifications_type_check CHECK (type IN ('comment_on_post', 'post_commented', 'post_reunited', 'follow'))`);

@@ -15,12 +15,15 @@ function backendOrigins() {
 // Rationale for each relaxed directive is documented in the implementation plan.
 function buildCsp() {
   const { http, ws } = backendOrigins();
+  // Next.js dev runtime (react-refresh/HMR, eval source maps) requires
+  // 'unsafe-eval'. Dev-only — production CSP stays eval-free.
+  const devEval = process.env.NODE_ENV !== "production" ? " 'unsafe-eval'" : "";
   return [
     "default-src 'self'",
     // 'unsafe-inline': _document injects a FOUC theme script via dangerouslySetInnerHTML (no nonce in pages-router)
     // Tawk.to live chat injects its widget from embed.tawk.to + *.tawk.to
     // cdn.jsdelivr.net: Tawk.to emoji picker (emojione) loads from jsDelivr
-    "script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com https://embed.tawk.to https://*.tawk.to https://static.cloudflareinsights.com https://cdn.jsdelivr.net",
+    `script-src 'self' 'unsafe-inline'${devEval} https://va.vercel-scripts.com https://embed.tawk.to https://*.tawk.to https://static.cloudflareinsights.com https://cdn.jsdelivr.net`,
     // 'unsafe-inline': app uses inline style={{}} objects + inline <style> + onLoad font swap
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.tawk.to",
     "font-src 'self' https://fonts.gstatic.com https://*.tawk.to",

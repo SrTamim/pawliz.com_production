@@ -1,6 +1,6 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
-const logger = require("../utils/logger");
+import logger from '../utils/logger';
 
 /**
  * POST /api/v1/client-error
@@ -18,4 +18,4 @@ router.post("/", (req, res) => {
   res.status(204).send();
 });
 
-module.exports = router;
+export = router;

@@ -1,12 +1,12 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
-const { body } = require("express-validator");
-const pool = require("../config/database");
-const { optionalAuth } = require("../middleware/auth");
-const { createNotification } = require("../services/notificationService");
-const validate = require("../middleware/validate");
-const logger = require("../utils/logger");
-const { normalizePhone } = require("../utils/phoneUtils");
+import { body } from 'express-validator';
+import pool from '../config/database';
+import { optionalAuth } from '../middleware/auth';
+import { createNotification } from '../services/notificationService';
+import validate from '../middleware/validate';
+import logger from '../utils/logger';
+import { normalizePhone } from '../utils/phoneUtils';
 
 /**
  * POST /api/v1/contact-post
@@ -121,4 +121,4 @@ router.post(
   },
 );
 
-module.exports = router;
+export = router;

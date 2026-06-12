@@ -1,11 +1,11 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
-const { body, validationResult } = require("express-validator");
-const pool = require("../config/database");
-const { authenticate } = require("../middleware/auth");
-const { createNotification } = require("../services/notificationService");
-const validate = require("../middleware/validate");
-const logger = require("../utils/logger");
+import { body, validationResult } from 'express-validator';
+import pool from '../config/database';
+import { authenticate } from '../middleware/auth';
+import { createNotification } from '../services/notificationService';
+import validate from '../middleware/validate';
+import logger from '../utils/logger';
 
 // ==================== GET NOTIFICATIONS ====================
 
@@ -18,9 +18,9 @@ const logger = require("../utils/logger");
  */
 router.get("/", authenticate, async (req, res) => {
   try {
-    const page = Math.max(1, parseInt(req.query.page) || 1);
-    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
-    const offset = req.query.offset !== undefined ? parseInt(req.query.offset) : (page - 1) * limit;
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
+    const offset = req.query.offset !== undefined ? parseInt(req.query.offset as string) : (page - 1) * limit;
     const { is_read, type } = req.query;
     const isReadFilter = is_read !== undefined ? is_read === "true" : null;
 
@@ -195,7 +195,7 @@ router.put("/preferences/settings", authenticate, [
 ], validate, async (req, res) => {
   try {
     const { notifications_enabled, notifications_email, notification_types } = req.body;
-    const updates = {};
+    const updates: Record<string, any> = {};
     if (notifications_enabled !== undefined) updates.notifications_enabled = notifications_enabled;
     if (notifications_email !== undefined) updates.notifications_email = notifications_email;
     if (notification_types) updates.notification_types = notification_types;
@@ -236,4 +236,4 @@ router.put("/sound-pause", authenticate, [
   }
 });
 
-module.exports = router;
+export = router;

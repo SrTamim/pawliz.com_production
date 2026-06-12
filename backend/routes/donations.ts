@@ -1,10 +1,10 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const pool = require('../config/database');
-const { authenticate, requirePermission } = require('../middleware/auth');
-const { body, validationResult } = require('express-validator');
-const upload = require('../middleware/upload');
-const { deleteUploadedFile } = require('../utils/fileUtils');
+import pool from '../config/database';
+import { authenticate, requirePermission } from '../middleware/auth';
+import { body, validationResult } from 'express-validator';
+import upload from '../middleware/upload';
+import { deleteUploadedFile } from '../utils/fileUtils';
 
 const donationValidation = [
   body('title').optional().trim().isLength({ max: 200 }).withMessage('Title too long'),
@@ -77,4 +77,4 @@ router.post('/', authenticate, requirePermission('donation.edit'), (req, res, ne
   }
 });
 
-module.exports = router;
+export = router;

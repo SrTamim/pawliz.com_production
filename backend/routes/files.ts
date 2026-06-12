@@ -1,9 +1,9 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
-const pool = require("../config/database");
-const { authenticate } = require("../middleware/auth");
-const logger = require("../utils/logger");
-const r2 = require("../utils/r2");
+import pool from '../config/database';
+import { authenticate } from '../middleware/auth';
+import logger from '../utils/logger';
+import * as r2 from '../utils/r2';
 
 // GET /api/v1/files/:filename — serve private files (vet docs, etc.) from R2.
 // The object lives in the PRIVATE bucket (no public access); bytes are streamed
@@ -61,4 +61,4 @@ router.get("/:filename", authenticate, async (req, res) => {
   }
 });
 
-module.exports = router;
+export = router;

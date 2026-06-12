@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 'use strict';
 
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 
 if (!process.env.DATABASE_URL) {
   const { DB_USER, DB_PASSWORD, DB_HOST = 'localhost', DB_PORT = 5432, DB_NAME } = process.env;
-  process.env.DATABASE_URL = `postgresql://${DB_USER}:${encodeURIComponent(DB_PASSWORD)}@${DB_HOST}:${DB_PORT}/${DB_NAME}`;
+  process.env.DATABASE_URL = `postgresql://${DB_USER}:${encodeURIComponent(DB_PASSWORD as string)}@${DB_HOST}:${DB_PORT}/${DB_NAME}`;
 }
 
 // Managed Postgres (Supabase/Render) requires SSL. The app pool sets ssl in code,
@@ -20,6 +21,6 @@ if (process.env.NODE_ENV === 'production' && !/sslmode=/.test(process.env.DATABA
   process.env.DATABASE_URL += `${sep}sslmode=no-verify`;
 }
 
-const { execSync } = require('child_process');
+import { execSync } from 'child_process';
 const args = process.argv.slice(2).join(' ') || 'up';
 execSync(`npx node-pg-migrate ${args}`, { stdio: 'inherit', env: process.env });

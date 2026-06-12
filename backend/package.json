@@ -17,10 +17,11 @@
     "dev": "tsx watch server.ts",
     "seed": "tsx database/seed.ts",
     "test": "jest",
-    "migrate": "node migrate.js up",
-    "migrate:down": "node migrate.js down",
-    "migrate:status": "node migrate.js status",
-    "migrate:create": "node migrate.js create"
+    "migrate": "tsx migrate.ts up",
+    "migrate:prod": "node dist/migrate.js up",
+    "migrate:down": "tsx migrate.ts down",
+    "migrate:status": "tsx migrate.ts status",
+    "migrate:create": "tsx migrate.ts create"
   },
   "node-pg-migrate": {
     "migrations-dir": "migrations",

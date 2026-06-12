@@ -15,7 +15,7 @@
     "restart:pm2": "pm2 restart pawliz",
     "logs:pm2": "pm2 logs pawliz",
     "dev": "tsx watch server.ts",
-    "seed": "node database/seed.js",
+    "seed": "tsx database/seed.ts",
     "test": "jest",
     "migrate": "node migrate.js up",
     "migrate:down": "node migrate.js down",

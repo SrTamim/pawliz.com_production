@@ -7,8 +7,8 @@
  * Without --write it only reports; with --write it rewrites the JSON in place
  * (after backing up to real-vets-data.json.bak).
  */
-const fs = require("fs");
-const path = require("path");
+import fs from 'fs';
+import path from 'path';
 
 // Reverse map for cp1252's 0x80-0x9F printable codepoints -> original byte.
 const CP1252 = {

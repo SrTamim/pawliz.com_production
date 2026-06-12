@@ -11,9 +11,9 @@
 
 require("dotenv").config({ path: require("path").join(__dirname, "../.env") });
 
-const { Pool } = require("pg");
-const path = require("path");
-const fs = require("fs");
+import { Pool } from 'pg';
+import path from 'path';
+import fs from 'fs';
 
 const pool = process.env.DATABASE_URL
   ? new Pool({

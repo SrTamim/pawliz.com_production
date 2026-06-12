@@ -1,5 +1,5 @@
 require("dotenv").config({ path: require("path").join(__dirname, "../.env") });
-const { Pool } = require("pg");
+import { Pool } from 'pg';
 
 const DRY_RUN = process.argv.includes("--dry-run");
 

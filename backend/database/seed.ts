@@ -1,6 +1,6 @@
 require("dotenv").config({ path: require("path").join(__dirname, "../.env") });
-const pool = require("../config/database");
-const bcrypt = require("bcryptjs");
+import pool from '../config/database';
+import bcrypt from 'bcryptjs';
 
 const vets = [
   {

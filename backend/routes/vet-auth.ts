@@ -1,11 +1,11 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { body, validationResult } = require('express-validator');
-const pool = require('../config/database');
-const { setCookies, createTokens, hashPassword } = require('../utils/authHelpers');
-const logger = require('../utils/logger');
-const { VET_PASSWORD_PATTERN } = require('../utils/constants');
-const smsService = require('../services/smsService');
+import { body, validationResult } from 'express-validator';
+import pool from '../config/database';
+import { setCookies, createTokens, hashPassword } from '../utils/authHelpers';
+import logger from '../utils/logger';
+import { VET_PASSWORD_PATTERN } from '../utils/constants';
+import * as smsService from '../services/smsService';
 
 const normalizePhone = (phone) => {
   const p = (phone || '').trim();
@@ -228,4 +228,4 @@ router.post('/:vetId/claim', [
   }
 });
 
-module.exports = router;
+export = router;

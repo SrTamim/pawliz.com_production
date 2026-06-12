@@ -1,15 +1,15 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const bcrypt = require('bcryptjs');
-const { body, validationResult } = require('express-validator');
-const pool = require('../config/database');
-const { authenticate, requireVet } = require('../middleware/auth');
-const upload = require('../middleware/upload');
-const { deleteUploadedFile } = require('../utils/fileUtils');
-const logger = require('../utils/logger');
-const { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN } = require('../utils/constants');
-const { getOwnedVet } = require('../utils/vetHelpers');
-const vetsCache = require('../utils/vetsCache');
+import bcrypt from 'bcryptjs';
+import { body, validationResult } from 'express-validator';
+import pool from '../config/database';
+import { authenticate, requireVet } from '../middleware/auth';
+import upload from '../middleware/upload';
+import { deleteUploadedFile } from '../utils/fileUtils';
+import logger from '../utils/logger';
+import { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN } from '../utils/constants';
+import { getOwnedVet } from '../utils/vetHelpers';
+import * as vetsCache from '../utils/vetsCache';
 
 router.use(authenticate, requireVet);
 
@@ -98,7 +98,7 @@ async function updateVetProfile(req, res) {
     const values = [];
     let p = 1;
 
-    const fields = {
+    const fields: Record<string, any> = {
       name, address, email, website, description,
       clinic_reg_number,
       checkup_start, checkup_end, account_owner_name,
@@ -242,4 +242,4 @@ async function uploadVetImage(req, res) {
 
 router.post('/vet-image', uploadMiddleware, uploadVetImage);
 
-module.exports = router;
+export = router;

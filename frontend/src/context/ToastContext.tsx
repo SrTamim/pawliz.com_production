@@ -5,7 +5,7 @@ import { createContext, useContext, useState, useCallback, type ReactNode } from
  * Shows success/error messages at bottom-right, auto-dismiss after 3.5s
  */
 
-type ToastType = 'success' | 'error';
+type ToastType = 'success' | 'error' | 'info';
 
 interface ToastContextValue {
   toast: (msg: string, type?: ToastType) => void;

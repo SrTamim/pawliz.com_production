@@ -1,15 +1,15 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { body } = require('express-validator');
-const bcrypt = require('bcryptjs');
-const pool = require('../config/database');
-const { authenticate, optionalAuth } = require('../middleware/auth');
-const validate = require('../middleware/validate');
-const { logActivity } = require('../utils/activityLogger');
-const logger = require('../utils/logger');
-const { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN } = require('../utils/constants');
-const { setCookies, clearCookies, createTokens, hashPassword, verifyPassword } = require('../utils/authHelpers');
-const smsService = require('../services/smsService');
+import { body } from 'express-validator';
+import bcrypt from 'bcryptjs';
+import pool from '../config/database';
+import { authenticate, optionalAuth } from '../middleware/auth';
+import validate from '../middleware/validate';
+import { logActivity } from '../utils/activityLogger';
+import logger from '../utils/logger';
+import { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN } from '../utils/constants';
+import { setCookies, clearCookies, createTokens, hashPassword, verifyPassword } from '../utils/authHelpers';
+import * as smsService from '../services/smsService';
 
 // Pre-computed hash for constant-time comparison when user not found (timing oracle prevention)
 const DUMMY_HASH = '$2b$12$invalidhashfortimingprotectionxxxxxxxxxxxxxxxxxxxxxxxx';
@@ -282,4 +282,4 @@ router.post('/forgot-password/reset', [
   }
 });
 
-module.exports = router;
+export = router;

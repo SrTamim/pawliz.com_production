@@ -27,6 +27,14 @@
     "migrations-dir": "migrations",
     "database-url-var": "DATABASE_URL"
   },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": ["**/tests/**/*.test.[jt]s"],
+    "testTimeout": 15000,
+    "transform": {
+      "^.+\\.[jt]s$": ["ts-jest", { "tsconfig": "tsconfig.test.json" }]
+    }
+  },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1058.0",
     "@aws-sdk/s3-request-presigner": "^3.1058.0",

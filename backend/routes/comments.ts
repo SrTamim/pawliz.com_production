@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import pool from '../config/database';
@@ -23,7 +24,7 @@ router.post(
   "/:id/report",
   authenticate,
   [body("reason").isIn(VALID_REASONS).withMessage("Invalid reason")],
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty())
       return res.status(400).json({ errors: errors.array() });
@@ -42,15 +43,15 @@ router.post(
       if (!commentCheck.rows[0])
         return res.status(404).json({ error: "Comment not found" });
 
-      if (commentCheck.rows[0].user_id === req.user.id)
+      if (commentCheck.rows[0].user_id === req.user!.id)
         return res.status(400).json({ error: "Cannot report your own comment" });
 
       try {
         await pool.query(
           "INSERT INTO comment_reports (comment_id, user_id, reason) VALUES ($1, $2, $3)",
-          [commentId, req.user.id, reason]
+          [commentId, req.user!.id, reason]
         );
-      } catch (uniqueErr) {
+      } catch (uniqueErr: any) {
         if (uniqueErr.code === "23505")
           return res.status(409).json({ error: "Already reported" });
         throw uniqueErr;

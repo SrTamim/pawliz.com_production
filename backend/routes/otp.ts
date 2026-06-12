@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 import { body, validationResult } from 'express-validator';
 import * as smsService from '../services/smsService';
@@ -13,7 +14,7 @@ const phoneValidation = body("phone")
 router.post(
   "/send",
   phoneValidation,
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -37,7 +38,7 @@ router.post(
   "/verify",
   phoneValidation,
   body("otp").trim().matches(/^\d{6}$/).withMessage("OTP must be 6 digits"),
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });

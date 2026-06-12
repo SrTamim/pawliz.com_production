@@ -24,7 +24,7 @@ import type { MigrationBuilder } from 'node-pg-migrate';
 // Helper SQL: rebuild permissions.ui by replacing `oldKey` with the elements of
 // `newKeys` (a JSONB array literal), de-duplicated, only for roles that actually
 // contain oldKey. pages array is preserved untouched.
-function remap(pgm, oldKey, newKeysJsonbArray) {
+function remap(pgm: MigrationBuilder, oldKey: string, newKeysJsonbArray: string): void {
   pgm.sql(`
     UPDATE roles r
     SET permissions = jsonb_set(

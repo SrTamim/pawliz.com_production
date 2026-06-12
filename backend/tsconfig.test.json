@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "strict": false,
+    "noEmit": true
+  },
+  "include": ["tests/**/*.ts", "types/**/*.d.ts", "**/*.ts"],
+  "exclude": ["node_modules", "dist", "uploads", "coverage", "logs", "ecosystem.config.js"]
+}

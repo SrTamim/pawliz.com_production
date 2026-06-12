@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import bcrypt from 'bcryptjs';
@@ -11,13 +12,13 @@ import { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN } from '../utils/constants';
 import { createTokens, setCookies } from '../utils/authHelpers';
 
 // GET /api/profile - Full profile with pets
-router.get("/", authenticate, async (req, res) => {
+router.get("/", authenticate, async (req: Request, res: Response) => {
   try {
     const userResult = await pool.query(
       `SELECT id, name, phone, email, role, dob, address, occupation,
         (SELECT COUNT(*) FROM pets WHERE user_id=u.id AND is_active=true) AS pet_count,
         profile_picture, created_at FROM users u WHERE u.id = $1`,
-      [req.user.id],
+      [req.user!.id],
     );
     const petsResult = await pool.query(
       `SELECT p.*,
@@ -30,10 +31,10 @@ router.get("/", authenticate, async (req, res) => {
        )
        WHERE p.user_id = $1 AND p.is_active = true
        ORDER BY p.created_at ASC`,
-      [req.user.id],
+      [req.user!.id],
     );
     res.json({ user: userResult.rows[0], pets: petsResult.rows });
-  } catch (err) {
+  } catch (err: any) {
     logger.error("Get profile error:", err);
     res.status(500).json({ error: "Server error" });
   }
@@ -67,7 +68,7 @@ router.put(
         return true;
       }),
   ],
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty())
       return res.status(400).json({ errors: errors.array() });
@@ -82,7 +83,7 @@ router.put(
       if (email) {
         const emailCheck = await pool.query(
           "SELECT id FROM users WHERE email = $1 AND id != $2",
-          [email, req.user.id],
+          [email, req.user!.id],
         );
         if (emailCheck.rows.length > 0)
           return res.status(409).json({ error: "Email already in use" });
@@ -103,14 +104,14 @@ router.put(
           dob || null,
           address || null,
           occupation !== undefined ? occupation || null : null,
-          req.user.id,
+          req.user!.id,
         ],
       );
       res.json({
         message: "Profile updated successfully",
         user: result.rows[0],
       });
-    } catch (err) {
+    } catch (err: any) {
       if (err.code === "23505") return res.status(409).json({ error: "Email already in use" });
       logger.error("Update profile error:", err);
       res.status(500).json({ error: "Server error" });
@@ -137,7 +138,7 @@ router.put(
       return true;
     }),
   ],
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty())
       return res.status(400).json({ errors: errors.array() });
@@ -147,7 +148,7 @@ router.put(
     try {
       const result = await pool.query(
         "SELECT password FROM users WHERE id = $1",
-        [req.user.id],
+        [req.user!.id],
       );
       const valid = await bcrypt.compare(
         current_password,
@@ -159,15 +160,15 @@ router.put(
       const hashed = await bcrypt.hash(new_password, 12);
       await pool.query(
         "UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2",
-        [hashed, req.user.id],
+        [hashed, req.user!.id],
       );
       // Invalidate all other sessions — stolen device/token cannot be reused
-      await pool.query("DELETE FROM refresh_tokens WHERE user_id = $1", [req.user.id]);
+      await pool.query("DELETE FROM refresh_tokens WHERE user_id = $1", [req.user!.id]);
       // Re-issue tokens for current device so user stays logged in
-      const { accessToken, refreshToken } = await createTokens(req.user.id);
+      const { accessToken, refreshToken } = await createTokens(req.user!.id);
       setCookies(res, accessToken, refreshToken);
       res.json({ message: "Password updated successfully" });
-    } catch (err) {
+    } catch (err: any) {
       logger.error("Update password error:", err);
       res.status(500).json({ error: "Server error" });
     }
@@ -175,7 +176,7 @@ router.put(
 );
 
 // GET /api/profile/completion - Profile completion percentage
-router.get("/completion", authenticate, async (req, res) => {
+router.get("/completion", authenticate, async (req: Request, res: Response) => {
   try {
     const result = await pool.query(
       `SELECT
@@ -213,7 +214,7 @@ router.get("/completion", authenticate, async (req, res) => {
          WHERE user_id = u.id AND is_active = true
        ) p ON true
        WHERE u.id = $1`,
-      [req.user.id],
+      [req.user!.id],
     );
 
     const row = result.rows[0];
@@ -224,7 +225,7 @@ router.get("/completion", authenticate, async (req, res) => {
       percentage >= 80 ? "diamond" : percentage >= 50 ? "gold" : "bronze";
 
     res.json({ percentage, badge, filled, total });
-  } catch (err) {
+  } catch (err: any) {
     logger.error("Completion error:", err);
     res.status(500).json({ error: "Server error" });
   }
@@ -234,11 +235,11 @@ router.get("/completion", authenticate, async (req, res) => {
 router.post(
   "/picture",
   authenticate,
-  (req, res, next) => {
+  (req: Request, res: Response, next: NextFunction) => {
     req.uploadDir = "public";
     upload.single("image")(req, res, next);
   },
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No image file provided" });
@@ -247,14 +248,14 @@ router.post(
       // Get old profile picture to delete it
       const oldPictureResult = await pool.query(
         "SELECT profile_picture FROM users WHERE id = $1",
-        [req.user.id],
+        [req.user!.id],
       );
       const oldPicture = oldPictureResult.rows[0]?.profile_picture;
 
-      const imagePath = `/uploads/public/${req.file.filename}`;
+      const imagePath = `/uploads/public/${req.file!.filename}`;
       const result = await pool.query(
         "UPDATE users SET profile_picture = $1, updated_at = NOW() WHERE id = $2 RETURNING id, name, profile_picture",
-        [imagePath, req.user.id],
+        [imagePath, req.user!.id],
       );
 
       // Delete old file after database update succeeds
@@ -266,9 +267,9 @@ router.post(
         message: "Profile picture uploaded successfully",
         user: result.rows[0],
       });
-    } catch (err) {
+    } catch (err: any) {
       logger.error("Upload profile picture error:", err);
-      deleteUploadedFile(`/uploads/public/${req.file.filename}`);
+      deleteUploadedFile(`/uploads/public/${req.file!.filename}`);
       res.status(500).json({ error: "Server error" });
     }
   },

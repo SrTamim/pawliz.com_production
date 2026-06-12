@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import pool from '../config/database';
@@ -13,7 +14,7 @@ const FULL_COLS = `SELECT v.id, v.name, v.location_name, v.latitude, v.longitude
  * served from in-memory cache with slim columns + ETag/304 + Cache-Control.
  * Search/location/paginated cursor paths bypass cache and return full columns.
  */
-router.get("/", async (req, res) => {
+router.get("/", async (req: Request, res: Response) => {
   const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 50));
   const { location, search } = req.query;
 
@@ -107,7 +108,7 @@ router.get("/", async (req, res) => {
  * GET /api/v1/vets/locations
  * Get distinct location names for filter
  */
-router.get("/locations", async (req, res) => {
+router.get("/locations", async (req: Request, res: Response) => {
   try {
     const result = await pool.query(
       "SELECT DISTINCT location_name FROM vets WHERE is_active = true AND (approval_status = 'approved' OR approval_status IS NULL) AND location_name IS NOT NULL ORDER BY location_name",
@@ -122,7 +123,7 @@ router.get("/locations", async (req, res) => {
  * GET /api/v1/vets/nearby?lat=&lng=&radius=10&limit=20
  * Server-side Haversine distance filter. No PostGIS required.
  */
-router.get("/nearby", async (req, res) => {
+router.get("/nearby", async (req: Request, res: Response) => {
   const lat = parseFloat(req.query.lat as string);
   const lng = parseFloat(req.query.lng as string);
   if (isNaN(lat) || isNaN(lng)) {
@@ -163,7 +164,7 @@ router.get("/nearby", async (req, res) => {
  */
 const MAP_COLS = `SELECT v.id, v.name, v.location_name, v.latitude, v.longitude, v.vet_type, v.avg_rating, v.review_count, v.status, v.approval_status, v.user_id`;
 
-router.get("/map", async (req, res) => {
+router.get("/map", async (req: Request, res: Response) => {
   const cacheKey = "map:all";
   const cached = vetsCache.get(cacheKey);
   if (cached) {
@@ -196,7 +197,7 @@ router.get("/map", async (req, res) => {
  * GET /api/v1/vets/:id/reviews
  * Paginated reviews for a vet
  */
-router.get("/:id/reviews", async (req, res) => {
+router.get("/:id/reviews", async (req: Request, res: Response) => {
   try {
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
@@ -227,7 +228,7 @@ router.get("/:id/reviews", async (req, res) => {
  * GET /api/v1/vets/:id
  * Get single vet details with reviews, qualifications, documents
  */
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req: Request, res: Response) => {
   try {
     const vetResult = await pool.query(
       `SELECT v.id, v.name, v.location_name, v.latitude, v.longitude, v.address, v.contact, v.email, v.website, v.image, v.cover_image, v.description, v.services, v.clinic_reg_number, v.vet_type, v.checkup_start, v.checkup_end, v.weekly_holidays, v.social_facebook, v.social_instagram, v.social_linkedin, v.social_whatsapp, v.is_active, v.created_at, v.updated_at, v.status, v.approval_status, v.user_id, COALESCE(AVG(r.rating), 0)::DECIMAL(3,2) AS avg_rating, COUNT(r.id)::INTEGER AS review_count FROM vets v LEFT JOIN reviews r ON v.id = r.vet_id AND r.is_active = true WHERE v.id = $1 AND v.is_active = true AND (v.approval_status = 'approved' OR v.approval_status IS NULL) GROUP BY v.id`,

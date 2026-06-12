@@ -6,8 +6,7 @@
     "moduleResolution": "nodenext",
     "rootDir": ".",
     "outDir": "dist",
-    "allowJs": true,
-    "checkJs": false,
+    "allowJs": false,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
@@ -15,16 +14,17 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "isolatedModules": true,
-    "strict": false,
+    "strict": true,
     "types": ["node", "jest"]
   },
-  "include": ["**/*.ts", "**/*.js", "types/**/*.d.ts"],
+  "include": ["**/*.ts", "types/**/*.d.ts"],
   "exclude": [
     "node_modules",
     "dist",
     "uploads",
     "coverage",
     "logs",
+    "tests",
     "ecosystem.config.js"
   ]
 }

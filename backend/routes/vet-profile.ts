@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import bcrypt from 'bcryptjs';
@@ -16,9 +17,9 @@ router.use(authenticate, requireVet);
 /**
  * GET vet profile
  */
-async function getVetProfile(req, res) {
+async function getVetProfile(req: Request, res: Response) {
   try {
-    const vet = await getOwnedVet(req.user.id);
+    const vet = await getOwnedVet(req.user!.id);
     if (!vet) return res.status(404).json({ error: 'Vet profile not found' });
 
     const [docsResult, contactsResult, clinicVetsResult, reviewsResult, claimedVetResult, ownerResult] = await Promise.all([
@@ -38,11 +39,11 @@ async function getVetProfile(req, res) {
       ),
       pool.query(
         `SELECT id, name, status, approval_status, claim_requested_at, claimed_at FROM vets WHERE claimed_by = $1 LIMIT 1`,
-        [req.user.id]
+        [req.user!.id]
       ),
       pool.query(
         `SELECT name, email, phone FROM users WHERE id = $1 LIMIT 1`,
-        [req.user.id]
+        [req.user!.id]
       ),
     ]);
 
@@ -78,11 +79,11 @@ const updateVetProfileValidation = [
   body('social_whatsapp').optional().isLength({ max: 255 }).withMessage('WhatsApp link max 255 chars'),
 ];
 
-async function updateVetProfile(req, res) {
+async function updateVetProfile(req: Request, res: Response) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
   try {
-    const vet = await getOwnedVet(req.user.id);
+    const vet = await getOwnedVet(req.user!.id);
     if (!vet) return res.status(404).json({ error: 'Vet profile not found' });
 
     const {
@@ -139,7 +140,7 @@ router.put('/profile', updateVetProfileValidation, updateVetProfile);
 /**
  * PUT password
  */
-async function updateVetPassword(req, res) {
+async function updateVetPassword(req: Request, res: Response) {
   const errors = validationResult(req);
   if (!errors.isEmpty())
     return res.status(400).json({ errors: errors.array() });
@@ -149,7 +150,7 @@ async function updateVetPassword(req, res) {
   try {
     const userResult = await pool.query(
       'SELECT password FROM users WHERE id = $1',
-      [req.user.id],
+      [req.user!.id],
     );
     if (!userResult.rows[0])
       return res.status(404).json({ error: 'User not found' });
@@ -164,7 +165,7 @@ async function updateVetPassword(req, res) {
     const hashed = await bcrypt.hash(new_password, 12);
     await pool.query(
       'UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2',
-      [hashed, req.user.id],
+      [hashed, req.user!.id],
     );
     res.json({ message: 'Password updated successfully' });
   } catch (err) {
@@ -194,10 +195,10 @@ router.put('/profile/password', passwordValidation, updateVetPassword);
 /**
  * POST cover-image
  */
-async function uploadCoverImage(req, res) {
+async function uploadCoverImage(req: Request, res: Response) {
   if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
   try {
-    const vet = await getOwnedVet(req.user.id);
+    const vet = await getOwnedVet(req.user!.id);
     if (!vet) return res.status(404).json({ error: 'Vet profile not found' });
 
     const oldImage = vet.cover_image;
@@ -212,7 +213,7 @@ async function uploadCoverImage(req, res) {
   }
 }
 
-const uploadMiddleware = (req, res, next) => {
+const uploadMiddleware = (req: Request, res: Response, next: NextFunction) => {
   req.uploadDir = 'public';
   upload.single('image')(req, res, next);
 };
@@ -222,10 +223,10 @@ router.post('/cover-image', uploadMiddleware, uploadCoverImage);
 /**
  * POST vet-image
  */
-async function uploadVetImage(req, res) {
+async function uploadVetImage(req: Request, res: Response) {
   if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
   try {
-    const vet = await getOwnedVet(req.user.id);
+    const vet = await getOwnedVet(req.user!.id);
     if (!vet) return res.status(404).json({ error: 'Vet profile not found' });
 
     const oldImage = vet.image;

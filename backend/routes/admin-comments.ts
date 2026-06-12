@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import pool from '../config/database';
@@ -6,7 +7,7 @@ import { logActivity } from '../utils/activityLogger';
 import logger from '../utils/logger';
 
 // GET /api/v1/admin/comments/reported
-router.get("/reported", authenticate, requirePermission("comments"), async (req, res) => {
+router.get("/reported", authenticate, requirePermission("comments"), async (req: Request, res: Response) => {
   try {
     const result = await pool.query(
       `SELECT pc.id, pc.post_id, pc.post_type, pc.comment_text, pc.report_count,
@@ -28,7 +29,7 @@ router.get("/reported", authenticate, requirePermission("comments"), async (req,
 });
 
 // DELETE /api/v1/admin/comments/:id
-router.delete("/:id", authenticate, requirePermission("comments.delete"), async (req, res) => {
+router.delete("/:id", authenticate, requirePermission("comments.delete"), async (req: Request, res: Response) => {
   const commentId = parseInt(req.params.id);
   if (isNaN(commentId)) return res.status(400).json({ error: "Invalid comment ID" });
   try {
@@ -37,7 +38,7 @@ router.delete("/:id", authenticate, requirePermission("comments.delete"), async 
       [commentId]
     );
     if (!result.rows[0]) return res.status(404).json({ error: "Comment not found" });
-    logActivity(req.user.id, 'comment_deleted_admin', { postId: commentId, postType: 'comment' });
+    logActivity(req.user!.id, 'comment_deleted_admin', { postId: commentId, postType: 'comment' });
     res.json({ message: "Comment deleted" });
   } catch (err) {
     logger.error("Admin delete comment error:", err);
@@ -46,7 +47,7 @@ router.delete("/:id", authenticate, requirePermission("comments.delete"), async 
 });
 
 // POST /api/v1/admin/comments/:id/dismiss
-router.post("/:id/dismiss", authenticate, requirePermission("comments.delete"), async (req, res) => {
+router.post("/:id/dismiss", authenticate, requirePermission("comments.delete"), async (req: Request, res: Response) => {
   const commentId = parseInt(req.params.id);
   if (isNaN(commentId)) return res.status(400).json({ error: "Invalid comment ID" });
   try {

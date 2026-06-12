@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import pool from '../config/database';
@@ -26,7 +27,7 @@ router.post(
     body("description").optional().isLength({ max: 2000 }),
     body("image").optional().isLength({ max: 255 }),
   ],
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty())
       return res.status(400).json({ errors: errors.array() });
@@ -85,7 +86,7 @@ router.put("/:id", authenticate, requirePermission("vets.edit"), [
   body("email").optional({ checkFalsy: true }).isEmail().withMessage("Valid email required"),
   body("website").optional({ checkFalsy: true }).isURL().withMessage("Valid URL required"),
   body("is_active").optional().isBoolean(),
-], async (req, res) => {
+], async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
   const allowed = ["name", "location_name", "latitude", "longitude", "address", "contact", "email", "website", "image", "description", "services", "is_active"];
@@ -118,7 +119,7 @@ router.put("/:id", authenticate, requirePermission("vets.edit"), [
  * DELETE /api/v1/vets-admin/:id
  * Soft delete vet (admin only)
  */
-router.delete("/:id", authenticate, requirePermission("vets.delete"), async (req, res) => {
+router.delete("/:id", authenticate, requirePermission("vets.delete"), async (req: Request, res: Response) => {
   try {
     const vetCheck = await pool.query("SELECT image FROM vets WHERE id = $1", [
       req.params.id,
@@ -150,7 +151,7 @@ router.post(
   authenticate,
   requirePermission("vets.edit"),
   upload.single("image"),
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     if (!req.file) return res.status(400).json({ error: "No image uploaded" });
     try {
       const vetCheck = await pool.query(

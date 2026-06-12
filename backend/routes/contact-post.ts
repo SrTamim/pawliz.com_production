@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import { body } from 'express-validator';
@@ -24,7 +25,7 @@ router.post(
     body("message").trim().notEmpty().withMessage("Message is required").isLength({ max: 500 }).withMessage("Message max 500 chars"),
   ],
   validate,
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     const { post_id, post_type, message } = req.body;
     // Normalize phone to 01XXXXXXXXX — prevents rate limit bypass via +8801... vs 01... variants
     const sender_phone = normalizePhone(req.body.sender_phone);

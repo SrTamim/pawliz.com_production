@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import { body } from 'express-validator';
@@ -21,9 +22,9 @@ import * as petService from '../services/petService';
  * GET /api/v1/pets
  * List authenticated user's pets
  */
-router.get("/", authenticate, async (req, res) => {
+router.get("/", authenticate, async (req: Request, res: Response) => {
   try {
-    const pets = await petService.listUserPets(req.user.id);
+    const pets = await petService.listUserPets(req.user!.id);
     res.json({ pets });
   } catch (err) {
     logger.error("Get pets error:", err);
@@ -31,7 +32,7 @@ router.get("/", authenticate, async (req, res) => {
   }
 });
 
-router.get("/public/:petId/qr", async (req, res) => {
+router.get("/public/:petId/qr", async (req: Request, res: Response) => {
   try {
     const raw = (process.env.FRONTEND_URL || "http://localhost:3000")
       .split(",")[0]
@@ -51,7 +52,7 @@ router.get("/public/:petId/qr", async (req, res) => {
   }
 });
 
-router.get("/public/:petId", async (req, res) => {
+router.get("/public/:petId", async (req: Request, res: Response) => {
   try {
     const pet = await petService.getPublicPet(req.params.petId);
     if (!pet) return res.status(404).json({ error: "Pet not found" });
@@ -72,9 +73,9 @@ router.post("/", authenticate, [
   body("temperament").optional().isLength({ max: 1000 }).withMessage("Temperament max 1000 chars"),
   body("special_notes").optional().isLength({ max: 1000 }).withMessage("Special notes max 1000 chars"),
   body("gender").optional().isIn(["male", "female", "unknown"]).withMessage("Gender must be male, female, or unknown"),
-], validate, async (req, res) => {
+], validate, async (req: Request, res: Response) => {
   try {
-    const pet = await petService.createPet(req.user.id, req.body);
+    const pet = await petService.createPet(req.user!.id, req.body);
     res.status(201).json({ message: "Pet created successfully", pet });
   } catch (err) {
     logger.error("Create pet error:", err);
@@ -93,11 +94,11 @@ router.put("/:id", authenticate, [
   body("temperament").optional().isLength({ max: 1000 }).withMessage("Temperament max 1000 chars"),
   body("special_notes").optional().isLength({ max: 1000 }).withMessage("Special notes max 1000 chars"),
   body("gender").optional().isIn(["male", "female", "unknown"]).withMessage("Gender must be male, female, or unknown"),
-], validate, async (req, res) => {
+], validate, async (req: Request, res: Response) => {
   const petDbId = parseInt(req.params.id);
   if (isNaN(petDbId)) return res.status(400).json({ error: "Invalid pet ID" });
   try {
-    const pet = await petService.updatePet(petDbId, req.user.id, req.body);
+    const pet = await petService.updatePet(petDbId, req.user!.id, req.body);
     if (!pet) return res.status(404).json({ error: "Pet not found" });
     res.json({ message: "Pet updated successfully", pet });
   } catch (err) {
@@ -106,11 +107,11 @@ router.put("/:id", authenticate, [
   }
 });
 
-router.delete("/:id", authenticate, async (req, res) => {
+router.delete("/:id", authenticate, async (req: Request, res: Response) => {
   const petDbId = parseInt(req.params.id);
   if (isNaN(petDbId)) return res.status(400).json({ error: "Invalid pet ID" });
   try {
-    const deleted = await petService.deletePet(petDbId, req.user.id);
+    const deleted = await petService.deletePet(petDbId, req.user!.id);
     if (!deleted) return res.status(404).json({ error: "Pet not found" });
     res.json({ message: "Pet removed successfully" });
   } catch (err) {

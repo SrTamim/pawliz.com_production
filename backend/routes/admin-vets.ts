@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import pool from '../config/database';
@@ -8,7 +9,7 @@ import logger from '../utils/logger';
 import * as vetsCache from '../utils/vetsCache';
 
 // POST /api/v1/admin/vets
-router.post("/", authenticate, requirePermission("vets.create"), async (req, res) => {
+router.post("/", authenticate, requirePermission("vets.create"), async (req: Request, res: Response) => {
   const {
     name, location_name, latitude, longitude, address, contact, email, website,
     description, services, vet_type,
@@ -40,9 +41,9 @@ router.post("/", authenticate, requirePermission("vets.create"), async (req, res
       ]
     );
     vetsCache.bust();
-    logActivity(req.user.id, 'vet_created', { details: { vetId: result.rows[0].id, name } });
+    logActivity(req.user!.id, 'vet_created', { details: { vetId: result.rows[0].id, name } });
     res.status(201).json({ vet: result.rows[0] });
-  } catch (err) {
+  } catch (err: any) {
     if (err.code === '23505') {
       return res.status(409).json({ error: "A vet clinic with this name and address already exists." });
     }
@@ -52,7 +53,7 @@ router.post("/", authenticate, requirePermission("vets.create"), async (req, res
 });
 
 // GET /api/v1/admin/vets
-router.get("/", authenticate, requirePermission("vets"), async (req, res) => {
+router.get("/", authenticate, requirePermission("vets"), async (req: Request, res: Response) => {
   const page = Math.max(1, parseInt(req.query.page as string) || 1);
   const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 50));
   const offset = (page - 1) * limit;
@@ -94,14 +95,14 @@ router.get("/", authenticate, requirePermission("vets"), async (req, res) => {
     const countParams = params.slice(0, -2);
     const count = await pool.query(`SELECT COUNT(*) FROM vets v ${where}`, countParams);
     res.json({ vets: result.rows, total: parseInt(count.rows[0].count), page, limit });
-  } catch (err) {
+  } catch (err: any) {
     logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
 // GET /api/v1/admin/vets/claim-requests
-router.get("/claim-requests", authenticate, requirePermission("claim-requests"), async (req, res) => {
+router.get("/claim-requests", authenticate, requirePermission("claim-requests"), async (req: Request, res: Response) => {
   try {
     const result = await pool.query(
       `SELECT v.id, v.name, v.name AS clinic_name, v.claim_requested_at,
@@ -118,14 +119,14 @@ router.get("/claim-requests", authenticate, requirePermission("claim-requests"),
        ORDER BY v.claim_requested_at DESC`
     );
     res.json({ claims: result.rows });
-  } catch (err) {
+  } catch (err: any) {
     logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
 // PATCH /api/v1/admin/vets/claim-requests/:vetId/approve
-router.patch("/claim-requests/:vetId/approve", authenticate, requirePermission("claim-requests.edit"), async (req, res) => {
+router.patch("/claim-requests/:vetId/approve", authenticate, requirePermission("claim-requests.edit"), async (req: Request, res: Response) => {
   try {
     const result = await pool.query(
       `UPDATE vets SET status='claimed', claimed_at=NOW(), approval_status='approved', is_active=true,
@@ -135,16 +136,16 @@ router.patch("/claim-requests/:vetId/approve", authenticate, requirePermission("
     );
     if (!result.rows[0]) return res.status(404).json({ error: "Claim request not found" });
     vetsCache.bust();
-    logActivity(req.user.id, 'vet_claim_approved', { details: { vetId: req.params.vetId } });
+    logActivity(req.user!.id, 'vet_claim_approved', { details: { vetId: req.params.vetId } });
     res.json({ message: "Claim approved" });
-  } catch (err) {
+  } catch (err: any) {
     logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
 // PATCH /api/v1/admin/vets/claim-requests/:vetId/reject
-router.patch("/claim-requests/:vetId/reject", authenticate, requirePermission("claim-requests.edit"), async (req, res) => {
+router.patch("/claim-requests/:vetId/reject", authenticate, requirePermission("claim-requests.edit"), async (req: Request, res: Response) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -170,7 +171,7 @@ router.patch("/claim-requests/:vetId/reject", authenticate, requirePermission("c
     await client.query('COMMIT');
     vetsCache.bust();
     res.json({ message: "Claim rejected" });
-  } catch (err) {
+  } catch (err: any) {
     await client.query('ROLLBACK');
     logger.error(err);
     res.status(500).json({ error: "Server error" });
@@ -180,7 +181,7 @@ router.patch("/claim-requests/:vetId/reject", authenticate, requirePermission("c
 });
 
 // PUT /api/v1/admin/vets/:id/approve
-router.put("/:id/approve", authenticate, requirePermission("vets.approve"), async (req, res) => {
+router.put("/:id/approve", authenticate, requirePermission("vets.approve"), async (req: Request, res: Response) => {
   try {
     const result = await pool.query(
       `UPDATE vets SET approval_status='approved', rejection_reason=NULL, is_active=true, updated_at=CURRENT_TIMESTAMP WHERE id=$1 RETURNING id, name, approval_status`,
@@ -188,16 +189,16 @@ router.put("/:id/approve", authenticate, requirePermission("vets.approve"), asyn
     );
     if (!result.rows[0]) return res.status(404).json({ error: "Vet not found" });
     vetsCache.bust();
-    logActivity(req.user.id, 'vet_approved', { details: { vetId: req.params.id } });
+    logActivity(req.user!.id, 'vet_approved', { details: { vetId: req.params.id } });
     res.json({ vet: result.rows[0], message: "Vet approved" });
-  } catch (err) {
+  } catch (err: any) {
     logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
 // PUT /api/v1/admin/vets/:id/reject
-router.put("/:id/reject", authenticate, requirePermission("vets.approve"), async (req, res) => {
+router.put("/:id/reject", authenticate, requirePermission("vets.approve"), async (req: Request, res: Response) => {
   const { reason } = req.body;
   try {
     const result = await pool.query(
@@ -206,16 +207,16 @@ router.put("/:id/reject", authenticate, requirePermission("vets.approve"), async
     );
     if (!result.rows[0]) return res.status(404).json({ error: "Vet not found" });
     vetsCache.bust();
-    logActivity(req.user.id, 'vet_rejected', { details: { vetId: req.params.id, reason } });
+    logActivity(req.user!.id, 'vet_rejected', { details: { vetId: req.params.id, reason } });
     res.json({ vet: result.rows[0], message: "Vet rejected" });
-  } catch (err) {
+  } catch (err: any) {
     logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
 // GET /api/v1/admin/vets/:id
-router.get("/:id", authenticate, requirePermission("vets"), async (req, res) => {
+router.get("/:id", authenticate, requirePermission("vets"), async (req: Request, res: Response) => {
   try {
     const [vetResult, qualsResult, docsResult, contactsResult, clinicVetsResult] = await Promise.all([
       pool.query(
@@ -244,14 +245,14 @@ router.get("/:id", authenticate, requirePermission("vets"), async (req, res) => 
       clinic_contacts: contactsResult.rows,
       clinic_vets: clinicVetsResult.rows,
     });
-  } catch (err) {
+  } catch (err: any) {
     logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
 // PUT /api/v1/admin/vets/:id
-router.put("/:id", authenticate, requirePermission("vets.edit"), async (req, res) => {
+router.put("/:id", authenticate, requirePermission("vets.edit"), async (req: Request, res: Response) => {
   const {
     name, location_name, latitude, longitude, address, contact, email, website,
     image, cover_image, description, services, is_active, approval_status,
@@ -297,14 +298,14 @@ router.put("/:id", authenticate, requirePermission("vets.edit"), async (req, res
     if (!result.rows[0]) return res.status(404).json({ error: "Vet not found" });
     vetsCache.bust();
     res.json({ vet: result.rows[0] });
-  } catch (err) {
+  } catch (err: any) {
     logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
 // DELETE /api/v1/admin/vets/:id (soft delete — sets is_active=false, preserves all data)
-router.delete("/:id", authenticate, requirePermission("vets.delete"), async (req, res) => {
+router.delete("/:id", authenticate, requirePermission("vets.delete"), async (req: Request, res: Response) => {
   try {
     const result = await pool.query(
       `UPDATE vets SET is_active = false, updated_at = NOW() WHERE id = $1 RETURNING id, name`,
@@ -312,45 +313,45 @@ router.delete("/:id", authenticate, requirePermission("vets.delete"), async (req
     );
     if (!result.rows[0]) return res.status(404).json({ error: "Vet not found" });
     vetsCache.bust();
-    logActivity(req.user.id, 'vet_deactivated', { details: { vetId: req.params.id, name: result.rows[0].name } });
+    logActivity(req.user!.id, 'vet_deactivated', { details: { vetId: req.params.id, name: result.rows[0].name } });
     res.json({ message: "Vet deactivated" });
-  } catch (err) {
+  } catch (err: any) {
     logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
 // DELETE /api/v1/admin/vet-qualifications/:qualId
-router.delete("/vet-qualifications/:qualId", authenticate, requirePermission("vets.delete"), async (req, res) => {
+router.delete("/vet-qualifications/:qualId", authenticate, requirePermission("vets.delete"), async (req: Request, res: Response) => {
   try {
     const r = await pool.query('DELETE FROM vet_qualifications WHERE id = $1 RETURNING id', [req.params.qualId]);
     if (!r.rows[0]) return res.status(404).json({ error: "Qualification not found" });
     res.json({ message: "Qualification deleted" });
-  } catch (err) {
+  } catch (err: any) {
     logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
 // DELETE /api/v1/admin/clinic-contacts/:contactId
-router.delete("/clinic-contacts/:contactId", authenticate, requirePermission("vets.delete"), async (req, res) => {
+router.delete("/clinic-contacts/:contactId", authenticate, requirePermission("vets.delete"), async (req: Request, res: Response) => {
   try {
     const r = await pool.query('DELETE FROM clinic_contacts WHERE id = $1 RETURNING id', [req.params.contactId]);
     if (!r.rows[0]) return res.status(404).json({ error: "Contact not found" });
     res.json({ message: "Contact deleted" });
-  } catch (err) {
+  } catch (err: any) {
     logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
 // DELETE /api/v1/admin/clinic-vets/:clinicVetId
-router.delete("/clinic-vets/:clinicVetId", authenticate, requirePermission("vets.delete"), async (req, res) => {
+router.delete("/clinic-vets/:clinicVetId", authenticate, requirePermission("vets.delete"), async (req: Request, res: Response) => {
   try {
     const r = await pool.query('DELETE FROM clinic_vets WHERE id = $1 RETURNING id', [req.params.clinicVetId]);
     if (!r.rows[0]) return res.status(404).json({ error: "Clinic vet not found" });
     res.json({ message: "Clinic vet removed" });
-  } catch (err) {
+  } catch (err: any) {
     logger.error(err);
     res.status(500).json({ error: "Server error" });
   }

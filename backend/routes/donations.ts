@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import pool from '../config/database';
@@ -12,7 +13,7 @@ const donationValidation = [
 ];
 
 // GET /api/donations - Get active donation info
-router.get('/', async (req, res) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     const result = await pool.query(
       'SELECT id, title, message, qr_code_image_path FROM donations WHERE is_active = true ORDER BY id DESC LIMIT 1'
@@ -28,10 +29,10 @@ router.get('/', async (req, res) => {
 });
 
 // PUT /api/donations/:id - Admin: Update donation info
-router.put('/:id', authenticate, requirePermission('donation.edit'), (req, res, next) => {
+router.put('/:id', authenticate, requirePermission('donation.edit'), (req: Request, res: Response, next: NextFunction) => {
   req.uploadDir = 'public';
   upload.single('qr_code_image')(req, res, next);
-}, donationValidation, async (req, res) => {
+}, donationValidation, async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
   const { title, message } = req.body;
@@ -57,10 +58,10 @@ router.put('/:id', authenticate, requirePermission('donation.edit'), (req, res, 
 });
 
 // POST /api/donations - Admin: Create donation entry
-router.post('/', authenticate, requirePermission('donation.edit'), (req, res, next) => {
+router.post('/', authenticate, requirePermission('donation.edit'), (req: Request, res: Response, next: NextFunction) => {
   req.uploadDir = 'public';
   upload.single('qr_code_image')(req, res, next);
-}, donationValidation, async (req, res) => {
+}, donationValidation, async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
   const { title, message } = req.body;

@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import pool from '../config/database';
@@ -12,11 +13,11 @@ router.use(authenticate, requireVet);
  * POST /api/v1/vet-qualifications
  * Add vet qualification
  */
-router.post('/', async (req, res) => {
+router.post('/', async (req: Request, res: Response) => {
   const { qualification, institute } = req.body;
   if (!qualification) return res.status(400).json({ error: 'Qualification is required' });
   try {
-    const vet = await getOwnedVet(req.user.id);
+    const vet = await getOwnedVet(req.user!.id);
     if (!vet) return res.status(404).json({ error: 'Vet profile not found' });
 
     const result = await pool.query(
@@ -34,9 +35,9 @@ router.post('/', async (req, res) => {
  * DELETE /api/v1/vet-qualifications/:id
  * Remove vet qualification
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const vet = await getOwnedVet(req.user.id);
+    const vet = await getOwnedVet(req.user!.id);
     if (!vet) return res.status(404).json({ error: 'Vet profile not found' });
 
     const result = await pool.query(

@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import { body, validationResult } from 'express-validator';
@@ -24,7 +25,7 @@ import validate from '../middleware/validate';
  * GET /api/v1/rescue-adoption/rescue
  * Get rescue posts with pagination and filters
  */
-router.get("/rescue", async (req, res) => {
+router.get("/rescue", async (req: Request, res: Response) => {
   try {
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
@@ -61,7 +62,7 @@ router.get("/rescue", async (req, res) => {
 });
 
 // GET /api/rescue-adoption/rescue/:id - Get rescue post details
-router.get("/rescue/:id", async (req, res) => {
+router.get("/rescue/:id", async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.id);
     if (isNaN(postId)) return res.status(400).json({ error: "Invalid post ID" });
@@ -99,7 +100,7 @@ router.post(
     body("urgency").optional().isIn(["low", "medium", "high", "critical"]).withMessage("urgency must be low, medium, high, or critical"),
   ],
   validate,
-  async (req, res) => {
+  async (req: Request, res: Response) => {
 
     const {
       pet_type, color, gender, breed,
@@ -108,9 +109,9 @@ router.post(
     } = req.body;
 
     try {
-      let imagePaths = [];
-      if (req.files && req.files.length > 0) {
-        imagePaths = req.files.map((f) => `/uploads/public/${f.filename}`);
+      let imagePaths: string[] = [];
+      if (req.files && (req.files as Express.Multer.File[]).length > 0) {
+        imagePaths = (req.files as Express.Multer.File[]).map((f) => `/uploads/public/${f.filename}`);
       }
 
       const result = await pool.query(
@@ -119,7 +120,7 @@ router.post(
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
         RETURNING *`,
         [
-          req.user.id, pet_type,
+          req.user!.id, pet_type,
           color || null, gender || null, breed || null,
           rescue_location_name || null,
           rescue_latitude ? parseFloat(rescue_latitude) : null,
@@ -134,14 +135,14 @@ router.post(
       pool.query(
         `INSERT INTO activity_logs (event_type, post_id, post_type, pet_type, pet_color, pet_gender, pet_breed, user_id, location_name, event_date, additional_details)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
-        ['rescue_report', result.rows[0].id, 'rescue', pet_type, color || null, gender || null, breed || null, req.user.id, rescue_location_name || null, rescue_date, description || null],
+        ['rescue_report', result.rows[0].id, 'rescue', pet_type, color || null, gender || null, breed || null, req.user!.id, rescue_location_name || null, rescue_date, description || null],
       ).catch((err) => logger.error('Activity log insert failed:', err));
 
       res.status(201).json({ message: "Rescue post created successfully", post: result.rows[0] });
     } catch (err) {
       logger.error("Create rescue post error:", err);
-      if (req.files && req.files.length > 0) {
-        try { deleteUploadedFiles(req.files.map((f) => `/uploads/public/${f.filename}`)); } catch {}
+      if (req.files && (req.files as Express.Multer.File[]).length > 0) {
+        try { deleteUploadedFiles((req.files as Express.Multer.File[]).map((f) => `/uploads/public/${f.filename}`)); } catch {}
       }
       res.status(500).json({ error: "Server error" });
     }
@@ -160,21 +161,21 @@ router.put(
     body("urgency").optional().isIn(["low", "medium", "high", "critical"]).withMessage("urgency must be low, medium, high, or critical"),
   ],
   validate,
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     const postId = parseInt(req.params.id);
     if (isNaN(postId)) return res.status(400).json({ error: "Invalid post ID" });
 
   try {
     const check = await pool.query(
       "SELECT images FROM rescue_posts WHERE id = $1 AND user_id = $2 AND is_active = true",
-      [postId, req.user.id],
+      [postId, req.user!.id],
     );
     if (!check.rows[0]) return res.status(404).json({ error: "Post not found" });
 
     let images = check.rows[0].images || [];
 
-    if (req.files && req.files.length > 0) {
-      const newImages = req.files.map((f) => `/uploads/public/${f.filename}`);
+    if (req.files && (req.files as Express.Multer.File[]).length > 0) {
+      const newImages = (req.files as Express.Multer.File[]).map((f) => `/uploads/public/${f.filename}`);
       images = [...images, ...newImages].slice(-3);
     }
 
@@ -204,7 +205,7 @@ router.put(
         images.length > 0 ? JSON.stringify(images) : null,
         description || null,
         urgency || null, status || null,
-        postId, req.user.id,
+        postId, req.user!.id,
       ],
     );
 
@@ -216,15 +217,15 @@ router.put(
 });
 
 // DELETE /api/rescue-adoption/rescue/:id - Delete rescue post (owner or admin)
-router.delete("/rescue/:id", authenticate, async (req, res) => {
+router.delete("/rescue/:id", authenticate, async (req: Request, res: Response) => {
   const postId = parseInt(req.params.id);
   if (isNaN(postId)) return res.status(400).json({ error: "Invalid post ID" });
 
   try {
-    const isAdmin = req.user.role === "admin";
+    const isAdmin = req.user!.role === "admin";
     const check = await pool.query(
       "SELECT images FROM rescue_posts WHERE id = $1" + (isAdmin ? "" : " AND user_id = $2"),
-      isAdmin ? [postId] : [postId, req.user.id],
+      isAdmin ? [postId] : [postId, req.user!.id],
     );
     if (!check.rows[0]) return res.status(404).json({ error: "Post not found" });
 
@@ -244,7 +245,7 @@ router.delete("/rescue/:id", authenticate, async (req, res) => {
     pool.query(
       `INSERT INTO activity_logs (event_type, post_id, post_type, user_id)
        VALUES ('rescue_report_deleted', $1, 'rescue', $2)`,
-      [postId, req.user.id],
+      [postId, req.user!.id],
     ).catch((err) => logger.error('Activity log insert failed:', err));
 
     res.json({ message: "Post deleted successfully" });
@@ -257,7 +258,7 @@ router.delete("/rescue/:id", authenticate, async (req, res) => {
 // ==================== ADOPTION FEED ====================
 
 // GET /api/rescue-adoption/adoption - Get adoptable pets with filters
-router.get("/adoption", async (req, res) => {
+router.get("/adoption", async (req: Request, res: Response) => {
   try {
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
@@ -296,7 +297,7 @@ router.get("/adoption", async (req, res) => {
 });
 
 // GET /api/rescue-adoption/adoption/:id - Get adoption post details
-router.get("/adoption/:id", async (req, res) => {
+router.get("/adoption/:id", async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.id);
     if (isNaN(postId)) return res.status(400).json({ error: "Invalid post ID" });
@@ -328,12 +329,12 @@ router.post(
     body("adoption_requirements").optional().isLength({ max: 1000 }).withMessage("Adoption requirements max 1000 chars"),
   ],
   validate,
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     const { pet_id, adoption_requirements } = req.body;
     try {
       const petCheck = await pool.query(
         "SELECT id FROM pets WHERE id = $1 AND user_id = $2 AND is_active = true",
-        [pet_id, req.user.id]
+        [pet_id, req.user!.id]
       );
       if (!petCheck.rows[0]) return res.status(404).json({ error: "Pet not found" });
 
@@ -341,7 +342,7 @@ router.post(
         `INSERT INTO adoption_posts (pet_id, user_id, adoption_requirements, status)
          VALUES ($1, $2, $3, 'available')
          RETURNING *`,
-        [pet_id, req.user.id, adoption_requirements || null]
+        [pet_id, req.user!.id, adoption_requirements || null]
       );
       res.status(201).json({ message: "Adoption post created", post: result.rows[0] });
     } catch (err) {
@@ -352,16 +353,16 @@ router.post(
 );
 
 // DELETE /api/rescue-adoption/adoption/:id - Delete adoption post (owner or admin)
-router.delete("/adoption/:id", authenticate, async (req, res) => {
+router.delete("/adoption/:id", authenticate, async (req: Request, res: Response) => {
   const postId = parseInt(req.params.id);
   if (isNaN(postId)) return res.status(400).json({ error: "Invalid post ID" });
 
   try {
-    const isAdmin = req.user.role === "admin";
+    const isAdmin = req.user!.role === "admin";
     const check = await pool.query(
       `SELECT ap.id FROM adoption_posts ap
        WHERE ap.id = $1` + (isAdmin ? "" : " AND ap.user_id = $2"),
-      isAdmin ? [postId] : [postId, req.user.id]
+      isAdmin ? [postId] : [postId, req.user!.id]
     );
     if (!check.rows[0]) return res.status(404).json({ error: "Post not found" });
 
@@ -378,7 +379,7 @@ router.delete("/adoption/:id", authenticate, async (req, res) => {
     pool.query(
       `INSERT INTO activity_logs (event_type, post_id, post_type, user_id)
        VALUES ('adoption_post_closed', $1, 'adoption', $2)`,
-      [postId, req.user.id]
+      [postId, req.user!.id]
     ).catch((err) => logger.error('Activity log insert failed:', err));
 
     res.json({ message: "Adoption post deleted" });
@@ -399,7 +400,7 @@ router.post(
     body("post_type").isIn(["rescue", "adoption"]).withMessage("Invalid post type"),
     body("comment_text").trim().notEmpty().withMessage("Comment cannot be empty"),
   ],
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty())
       return res.status(400).json({ errors: errors.array() });
@@ -419,15 +420,15 @@ router.post(
            )
            SELECT i.*, u.name, u.profile_picture
            FROM inserted i JOIN users u ON u.id = i.user_id`,
-          [post_id, post_type, req.user.id, comment_text],
+          [post_id, post_type, req.user!.id, comment_text],
         ),
         pool.query(ownerQuery, [post_id]),
       ]);
 
       if (ownerResult.rows[0]) {
         const { user_id: postOwnerId } = ownerResult.rows[0];
-        if (postOwnerId !== req.user.id) {
-          const commenterName = req.user.name || "Someone";
+        if (postOwnerId !== req.user!.id) {
+          const commenterName = req.user!.name || "Someone";
           await createNotification(
             postOwnerId,
             "comment_on_post",
@@ -435,7 +436,7 @@ router.post(
             `${commenterName} commented: "${comment_text.substring(0, 50)}${comment_text.length > 50 ? "..." : ""}"`,
             post_id,
             post_type,
-            req.user.id,
+            req.user!.id,
             `/rescue?post=${post_id}&type=${post_type}`,
           );
         }
@@ -450,7 +451,7 @@ router.post(
 );
 
 // GET /api/rescue-adoption/comments/:postType/:postId - Get comments for a post
-router.get("/comments/:postType/:postId", async (req, res) => {
+router.get("/comments/:postType/:postId", async (req: Request, res: Response) => {
   try {
     const { postType, postId } = req.params;
 
@@ -485,7 +486,7 @@ router.get("/comments/:postType/:postId", async (req, res) => {
 });
 
 // DELETE /api/rescue-adoption/comments/:id - Delete a comment
-router.delete("/comments/:id", authenticate, async (req, res) => {
+router.delete("/comments/:id", authenticate, async (req: Request, res: Response) => {
   const commentId = parseInt(req.params.id);
   if (isNaN(commentId)) return res.status(400).json({ error: "Invalid comment ID" });
 
@@ -493,7 +494,7 @@ router.delete("/comments/:id", authenticate, async (req, res) => {
     const check = await pool.query("SELECT user_id FROM post_comments WHERE id = $1", [commentId]);
     if (!check.rows[0]) return res.status(404).json({ error: "Comment not found" });
 
-    if (check.rows[0].user_id !== req.user.id) {
+    if (check.rows[0].user_id !== req.user!.id) {
       return res.status(403).json({ error: "Unauthorized" });
     }
 

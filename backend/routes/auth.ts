@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import { body } from 'express-validator';
@@ -47,7 +48,7 @@ router.post('/register', [
       if (d.getFullYear() < minYear) throw new Error('Invalid date of birth');
       return true;
     }),
-], validate, async (req, res) => {
+], validate, async (req: Request, res: Response) => {
   const { name, phone, email, password, dob, address } = req.body;
   try {
     const smsEnabled = await smsService.getSmsEnabled();
@@ -92,7 +93,7 @@ router.post('/register', [
 router.post('/login', [
   body('phone').trim().notEmpty().withMessage('Phone number is required'),
   body('password').notEmpty().withMessage('Password is required'),
-], validate, async (req, res) => {
+], validate, async (req: Request, res: Response) => {
   const { phone, password, rememberMe } = req.body;
   try {
     const result = await pool.query(
@@ -126,7 +127,7 @@ router.post('/login', [
 // Session probe: returns 200 { user } when authenticated, 200 { user: null } when not.
 // Uses optionalAuth (not authenticate) so a logged-out visitor gets 200 instead of a
 // 401 that clutters the browser console on every page load.
-router.get('/me', optionalAuth, async (req, res) => {
+router.get('/me', optionalAuth, async (req: Request, res: Response) => {
   if (!req.user) return res.json({ user: null });
   try {
     const result = await pool.query(
@@ -136,7 +137,7 @@ router.get('/me', optionalAuth, async (req, res) => {
        FROM users u
        LEFT JOIN roles r ON r.name = u.role
        WHERE u.id = $1`,
-      [req.user.id]
+      [req.user!.id]
     );
     const row = result.rows[0];
     if (!row) return res.json({ user: null });
@@ -152,7 +153,7 @@ router.get('/me', optionalAuth, async (req, res) => {
 });
 
 // POST /api/v1/auth/refresh
-router.post('/refresh', async (req, res) => {
+router.post('/refresh', async (req: Request, res: Response) => {
   const token = req.cookies?.pawliz_refresh;
   if (!token) return res.status(401).json({ error: 'No refresh token' });
 
@@ -199,7 +200,7 @@ router.post('/refresh', async (req, res) => {
 });
 
 // POST /api/v1/auth/logout
-router.post('/logout', async (req, res) => {
+router.post('/logout', async (req: Request, res: Response) => {
   const token = req.cookies?.pawliz_refresh;
   if (token) {
     await pool.query('DELETE FROM refresh_tokens WHERE token = $1', [token]).catch(() => {});
@@ -209,9 +210,9 @@ router.post('/logout', async (req, res) => {
 });
 
 // POST /api/v1/auth/logout-all
-router.post('/logout-all', authenticate, async (req, res) => {
+router.post('/logout-all', authenticate, async (req: Request, res: Response) => {
   try {
-    await pool.query('DELETE FROM refresh_tokens WHERE user_id = $1', [req.user.id]);
+    await pool.query('DELETE FROM refresh_tokens WHERE user_id = $1', [req.user!.id]);
     clearCookies(res);
     res.json({ message: 'Logged out from all devices' });
   } catch {
@@ -222,7 +223,7 @@ router.post('/logout-all', authenticate, async (req, res) => {
 // POST /api/v1/auth/forgot-password/send-otp
 router.post('/forgot-password/send-otp', [
   body('phone').trim().matches(/^01[3-9]\d{8}$/).withMessage('Valid BD phone number required'),
-], validate, async (req, res) => {
+], validate, async (req: Request, res: Response) => {
   const { phone } = req.body;
   try {
     const userResult = await pool.query(
@@ -251,7 +252,7 @@ router.post('/forgot-password/reset', [
   body('new_password')
     .isLength({ min: PASSWORD_MIN_LENGTH }).withMessage(`Password must be at least ${PASSWORD_MIN_LENGTH} characters`)
     .matches(/^(?=.*[A-Za-z])(?=.*\d).{8,}$/).withMessage('Password must contain letters and numbers'),
-], validate, async (req, res) => {
+], validate, async (req: Request, res: Response) => {
   const { phone, otp, new_password } = req.body;
   try {
     const smsEnabled = await smsService.getSmsEnabled();

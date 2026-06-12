@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import pool from '../config/database';
@@ -9,7 +10,7 @@ import { logActivity } from '../utils/activityLogger';
 const ALLOWED_SETTINGS_KEYS = ['logo_text', 'logo_image'];
 
 // GET /api/v1/admin/stats
-router.get("/stats", authenticate, requirePermission("overview"), async (req, res) => {
+router.get("/stats", authenticate, requirePermission("overview"), async (req: Request, res: Response) => {
   try {
     const [users, vets, reviews, pets, lostPets, foundReports, rescueReports, adoptionPosts, totalComments, spamReports] = await Promise.all([
       pool.query("SELECT COUNT(*) FROM users WHERE role = 'user' AND is_active = true"),
@@ -41,10 +42,10 @@ router.get("/stats", authenticate, requirePermission("overview"), async (req, re
 });
 
 // GET /api/v1/admin/settings
-router.get("/settings", authenticate, requirePermission("settings"), async (req, res) => {
+router.get("/settings", authenticate, requirePermission("settings"), async (req: Request, res: Response) => {
   try {
     const result = await pool.query("SELECT * FROM site_settings");
-    const settings = {};
+    const settings: Record<string, any> = {};
     result.rows.forEach((r) => (settings[r.key] = r.value));
     res.json({ settings });
   } catch {
@@ -53,7 +54,7 @@ router.get("/settings", authenticate, requirePermission("settings"), async (req,
 });
 
 // PUT /api/v1/admin/settings
-router.put("/settings", authenticate, requirePermission("settings.edit"), async (req, res) => {
+router.put("/settings", authenticate, requirePermission("settings.edit"), async (req: Request, res: Response) => {
   const { settings } = req.body;
   if (!settings || typeof settings !== "object") {
     return res.status(400).json({ error: "settings object required" });
@@ -74,7 +75,7 @@ router.put("/settings", authenticate, requirePermission("settings.edit"), async 
         [key, value],
       )
     ));
-    logActivity(req.user.id, "admin_settings_update", { details: { keys: filteredEntries.map(([k]) => k) } });
+    logActivity(req.user!.id, "admin_settings_update", { details: { keys: filteredEntries.map(([k]) => k) } });
     res.json({ message: "Settings updated" });
   } catch {
     res.status(500).json({ error: "Server error" });
@@ -82,7 +83,7 @@ router.put("/settings", authenticate, requirePermission("settings.edit"), async 
 });
 
 // GET /api/v1/admin/activity-logs
-router.get("/activity-logs", authenticate, requirePermission("overview"), async (req, res) => {
+router.get("/activity-logs", authenticate, requirePermission("overview"), async (req: Request, res: Response) => {
   const page = Math.max(1, parseInt(req.query.page as string) || 1);
   const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 50));
   const offset = (page - 1) * limit;

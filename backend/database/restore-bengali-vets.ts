@@ -67,7 +67,7 @@ async function run() {
     }
   } catch (e) {
     await tgt.query("ROLLBACK").catch(() => {});
-    console.error("FAILED — rolled back:", e.message);
+    console.error("FAILED — rolled back:", (e as Error).message);
     process.exit(1);
   } finally {
     src.release();

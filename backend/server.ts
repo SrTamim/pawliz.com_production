@@ -77,7 +77,7 @@ app.use(helmet({
       formAction: ["'self'"],
       frameOptions: ["DENY"],
       upgradeInsecureRequests: isProduction ? [] : null,
-      reportUri: [isProduction && process.env.APP_URL ? `${process.env.APP_URL}/api/v1/csp-report` : null].filter(Boolean),
+      reportUri: [isProduction && process.env.APP_URL ? `${process.env.APP_URL}/api/v1/csp-report` : null].filter(Boolean) as string[],
     },
   },
   referrerPolicy: { policy: "strict-origin-when-cross-origin" },
@@ -247,7 +247,7 @@ app.get("/api/health", async (req, res) => {
 app.use((req, res) => res.status(404).json({ error: "Route not found" }));
 
 // Error handler
-app.use((err, req, res, next) => {
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   logger.error(err.message, { stack: err.stack });
   if (isProduction) {
     res.status(500).json({ error: "Internal server error" });
@@ -263,13 +263,13 @@ cron.schedule("0 3 * * *", () => {
 });
 
 // Batched delete to avoid long locks / WAL bloat on large tables
-async function batchedDelete(label, sql) {
+async function batchedDelete(label: string, sql: string): Promise<void> {
   let total = 0, deleted;
   try {
     do {
       const r = await pool.query(sql);
       deleted = r.rowCount;
-      total += deleted;
+      total += deleted!;
     } while (deleted === 5000);
     logger.info(`${label}: removed ${total} rows`);
   } catch (err) {

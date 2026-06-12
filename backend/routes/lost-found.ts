@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import { body, validationResult } from 'express-validator';
@@ -22,7 +23,7 @@ import pool from '../config/database';
  * GET /api/v1/lost-found/lost
  * Get lost pet posts with pagination and filters
  */
-router.get("/lost", async (req, res) => {
+router.get("/lost", async (req: Request, res: Response) => {
   try {
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
@@ -40,7 +41,7 @@ router.get("/lost", async (req, res) => {
   }
 });
 
-router.get("/lost/:id", async (req, res) => {
+router.get("/lost/:id", async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.id);
     if (isNaN(postId)) return res.status(400).json({ error: "Invalid post ID" });
@@ -54,7 +55,7 @@ router.get("/lost/:id", async (req, res) => {
   }
 });
 
-router.put("/lost/:id", authenticate, async (req, res) => {
+router.put("/lost/:id", authenticate, async (req: Request, res: Response) => {
   const reportId = parseInt(req.params.id);
   if (isNaN(reportId)) return res.status(400).json({ error: "Invalid report ID" });
 
@@ -63,7 +64,7 @@ router.put("/lost/:id", authenticate, async (req, res) => {
       `SELECT lpr.id FROM lost_pet_reports lpr
        JOIN pets p ON p.id = lpr.pet_id
        WHERE lpr.id = $1 AND p.user_id = $2 AND lpr.is_active = true`,
-      [reportId, req.user.id],
+      [reportId, req.user!.id],
     );
     if (!check.rows[0]) return res.status(404).json({ error: "Report not found" });
 
@@ -91,7 +92,7 @@ router.put("/lost/:id", authenticate, async (req, res) => {
   }
 });
 
-router.delete("/lost/:id", authenticate, async (req, res) => {
+router.delete("/lost/:id", authenticate, async (req: Request, res: Response) => {
   const reportId = parseInt(req.params.id);
   if (isNaN(reportId)) return res.status(400).json({ error: "Invalid report ID" });
 
@@ -100,7 +101,7 @@ router.delete("/lost/:id", authenticate, async (req, res) => {
       `SELECT lpr.id FROM lost_pet_reports lpr
        JOIN pets p ON p.id = lpr.pet_id
        WHERE lpr.id = $1 AND p.user_id = $2 AND lpr.is_active = true`,
-      [reportId, req.user.id],
+      [reportId, req.user!.id],
     );
     if (!check.rows[0]) return res.status(404).json({ error: "Report not found" });
 
@@ -116,7 +117,7 @@ router.delete("/lost/:id", authenticate, async (req, res) => {
 });
 
 // PUT /api/v1/lost-found/lost/:id/found — Mark lost pet as reunited/found
-router.put("/lost/:id/found", authenticate, async (req, res) => {
+router.put("/lost/:id/found", authenticate, async (req: Request, res: Response) => {
   const reportId = parseInt(req.params.id);
   if (isNaN(reportId)) return res.status(400).json({ error: "Invalid report ID" });
 
@@ -126,7 +127,7 @@ router.put("/lost/:id/found", authenticate, async (req, res) => {
       `SELECT lpr.id, lpr.pet_id FROM lost_pet_reports lpr
        JOIN pets p ON p.id = lpr.pet_id
        WHERE lpr.id = $1 AND p.user_id = $2 AND lpr.is_active = true AND lpr.is_found = false`,
-      [reportId, req.user.id],
+      [reportId, req.user!.id],
     );
     if (!check.rows[0]) return res.status(404).json({ error: "Active lost report not found" });
 
@@ -150,7 +151,7 @@ router.put("/lost/:id/found", authenticate, async (req, res) => {
 
 // ==================== FOUND PET FEED ====================
 
-router.get("/found", async (req, res) => {
+router.get("/found", async (req: Request, res: Response) => {
   try {
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
@@ -168,7 +169,7 @@ router.get("/found", async (req, res) => {
   }
 });
 
-router.get("/found/:id", async (req, res) => {
+router.get("/found/:id", async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.id);
     if (isNaN(postId)) return res.status(400).json({ error: "Invalid post ID" });
@@ -196,14 +197,14 @@ router.post(
     body("found_longitude").optional({ nullable: true, checkFalsy: true }).isFloat({ min: -180, max: 180 }).withMessage("Longitude must be between -180 and 180"),
     body("description").optional().isLength({ max: 2000 }).withMessage("Description max 2000 chars"),
   ],
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     const imagePaths = req.files ? (req.files as Express.Multer.File[]).map((f) => `/uploads/public/${f.filename}`) : [];
 
     try {
-      const post = await lostFoundService.createFoundReport(req.user.id, req.body, imagePaths);
+      const post = await lostFoundService.createFoundReport(req.user!.id, req.body, imagePaths);
       res.status(201).json({ message: "Found pet report created successfully", post });
     } catch (err) {
       logger.error("Create found pet error:", err);
@@ -215,14 +216,14 @@ router.post(
   },
 );
 
-router.put("/found/:id", authenticate, upload.array("images", 3), async (req, res) => {
+router.put("/found/:id", authenticate, upload.array("images", 3), async (req: Request, res: Response) => {
   const postId = parseInt(req.params.id);
   if (isNaN(postId)) return res.status(400).json({ error: "Invalid post ID" });
 
   const newImagePaths = req.files ? (req.files as Express.Multer.File[]).map((f) => `/uploads/public/${f.filename}`) : [];
 
   try {
-    const post = await lostFoundService.updateFoundReport(postId, req.user.id, req.body, newImagePaths);
+    const post = await lostFoundService.updateFoundReport(postId, req.user!.id, req.body, newImagePaths);
     if (!post) return res.status(404).json({ error: "Post not found" });
     res.json({ message: "Post updated successfully", post });
   } catch (err) {
@@ -231,12 +232,12 @@ router.put("/found/:id", authenticate, upload.array("images", 3), async (req, re
   }
 });
 
-router.delete("/found/:id", authenticate, async (req, res) => {
+router.delete("/found/:id", authenticate, async (req: Request, res: Response) => {
   const postId = parseInt(req.params.id);
   if (isNaN(postId)) return res.status(400).json({ error: "Invalid post ID" });
 
   try {
-    const deleted = await lostFoundService.deleteFoundReport(postId, req.user.id);
+    const deleted = await lostFoundService.deleteFoundReport(postId, req.user!.id);
     if (!deleted) return res.status(404).json({ error: "Post not found" });
 
     pool.query(
@@ -261,13 +262,13 @@ router.post(
     body("post_type").isIn(["lost", "found"]).withMessage("Invalid post type"),
     body("comment_text").trim().notEmpty().withMessage("Comment cannot be empty").isLength({ max: 1000 }).withMessage("Comment max 1000 chars"),
   ],
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     const { post_id, post_type, comment_text } = req.body;
     try {
-      const comment = await lostFoundService.addComment(post_id, post_type, req.user.id, comment_text, req.user.name);
+      const comment = await lostFoundService.addComment(post_id, post_type, req.user!.id, comment_text, req.user!.name);
       res.status(201).json({ message: "Comment added successfully", comment });
     } catch (err) {
       logger.error("Add comment error:", err);
@@ -276,7 +277,7 @@ router.post(
   },
 );
 
-router.get("/comments/:postType/:postId", async (req, res) => {
+router.get("/comments/:postType/:postId", async (req: Request, res: Response) => {
   try {
     const { postType, postId } = req.params;
     if (!["lost", "found"].includes(postType))
@@ -292,12 +293,12 @@ router.get("/comments/:postType/:postId", async (req, res) => {
   }
 });
 
-router.delete("/comments/:id", authenticate, async (req, res) => {
+router.delete("/comments/:id", authenticate, async (req: Request, res: Response) => {
   const commentId = parseInt(req.params.id);
   if (isNaN(commentId)) return res.status(400).json({ error: "Invalid comment ID" });
 
   try {
-    const result = await lostFoundService.deleteComment(commentId, req.user.id);
+    const result = await lostFoundService.deleteComment(commentId, req.user!.id);
     if (result === "not_found") return res.status(404).json({ error: "Comment not found" });
     if (result === "forbidden") return res.status(403).json({ error: "Unauthorized" });
     res.json({ message: "Comment deleted successfully" });

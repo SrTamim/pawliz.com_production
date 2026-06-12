@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import bcrypt from 'bcryptjs';
@@ -9,7 +10,7 @@ import validate from '../middleware/validate';
 import { logActivity } from '../utils/activityLogger';
 
 // GET /api/v1/admin/users
-router.get("/", authenticate, requirePermission("users"), async (req, res) => {
+router.get("/", authenticate, requirePermission("users"), async (req: Request, res: Response) => {
   const page = Math.max(1, parseInt(req.query.page as string) || 1);
   const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
   const offset = (page - 1) * limit;
@@ -51,7 +52,7 @@ router.put("/:id", authenticate, requireAnyPermission("users.reset_password", "u
   body("role").optional().trim().notEmpty().withMessage("Invalid role"),
   body("is_active").optional().isBoolean(),
   body("new_password").optional().isLength({ min: 6 }).withMessage("Password must be at least 6 characters").matches(/^(?=.*[A-Za-z])(?=.*\d).{6,}$/).withMessage("Password must contain letters and numbers"),
-], validate, async (req, res) => {
+], validate, async (req: Request, res: Response) => {
   const { name, email, role, dob, address, is_active, new_password } = req.body;
   try {
     const updates = [];
@@ -60,7 +61,7 @@ router.put("/:id", authenticate, requireAnyPermission("users.reset_password", "u
     // Profile fields (name/email/dob/address) have no per-page staff flag — only
     // the admin superuser may edit them. Non-admin staff → 403 (default-deny).
     const editsProfile = [name, email, dob, address].some((v) => v !== undefined);
-    if (editsProfile && req.user.role !== "admin") {
+    if (editsProfile && req.user!.role !== "admin") {
       return res.status(403).json({ error: "Insufficient permissions" });
     }
     if (name !== undefined) { updates.push(`name=$${p++}`); values.push(name); }
@@ -85,7 +86,7 @@ router.put("/:id", authenticate, requireAnyPermission("users.reset_password", "u
       }
       updates.push(`role=$${p++}`); values.push(target);
       evictUser(parseInt(req.params.id));
-      logActivity(req.user.id, 'role_changed', { details: { targetUserId: req.params.id, newRole: target } });
+      logActivity(req.user!.id, 'role_changed', { details: { targetUserId: req.params.id, newRole: target } });
     }
     if (dob !== undefined) { updates.push(`dob=$${p++}`); values.push(dob); }
     if (address !== undefined) { updates.push(`address=$${p++}`); values.push(address); }
@@ -97,7 +98,7 @@ router.put("/:id", authenticate, requireAnyPermission("users.reset_password", "u
       }
       updates.push(`is_active=$${p++}`); values.push(is_active);
       if (is_active === false) {
-        logActivity(req.user.id, 'user_deactivated', { details: { targetUserId: req.params.id } });
+        logActivity(req.user!.id, 'user_deactivated', { details: { targetUserId: req.params.id } });
         evictUser(parseInt(req.params.id));
       }
     }
@@ -126,12 +127,12 @@ router.put("/:id", authenticate, requireAnyPermission("users.reset_password", "u
 // DELETE /api/v1/admin/users/:id
 // Soft delete (deactivate) needs users.deactivate; permanent delete needs the
 // stronger users.delete. Base allows either; the permanent branch is guarded below.
-router.delete("/:id", authenticate, requireAnyPermission("users.deactivate", "users.delete"), async (req, res) => {
+router.delete("/:id", authenticate, requireAnyPermission("users.deactivate", "users.delete"), async (req: Request, res: Response) => {
   const permanent = req.query.permanent === 'true';
   const userId = parseInt(req.params.id);
 
   if (isNaN(userId)) return res.status(400).json({ error: "Invalid user ID" });
-  if (userId === req.user.id) return res.status(400).json({ error: "You cannot delete your own account" });
+  if (userId === req.user!.id) return res.status(400).json({ error: "You cannot delete your own account" });
   // Permanent (hard) delete requires users.delete specifically.
   if (permanent && !hasPermission(req.user, "users.delete")) {
     return res.status(403).json({ error: "Insufficient permissions" });
@@ -142,9 +143,9 @@ router.delete("/:id", authenticate, requireAnyPermission("users.deactivate", "us
       const client = await pool.connect();
       try {
         await client.query('BEGIN');
-        await logActivity(req.user.id, 'user_deleted_permanent', { details: { targetUserId: userId } });
+        await logActivity(req.user!.id, 'user_deleted_permanent', { details: { targetUserId: userId } });
         // id != $2 is defense-in-depth: DB enforces the no-self-delete rule even if the early check is ever removed
-        await client.query('DELETE FROM users WHERE id = $1 AND id != $2', [userId, req.user.id]);
+        await client.query('DELETE FROM users WHERE id = $1 AND id != $2', [userId, req.user!.id]);
         evictUser(userId);
         await client.query('COMMIT');
         res.json({ message: "User permanently deleted (all related posts and data deleted)" });
@@ -155,10 +156,10 @@ router.delete("/:id", authenticate, requireAnyPermission("users.deactivate", "us
         client.release();
       }
     } else {
-      if (userId === req.user.id) return res.status(400).json({ error: "You cannot delete your own account" });
+      if (userId === req.user!.id) return res.status(400).json({ error: "You cannot delete your own account" });
       await pool.query("UPDATE users SET is_active = false WHERE id = $1", [userId]);
       evictUser(userId);
-      logActivity(req.user.id, 'user_deactivated', { details: { targetUserId: userId } });
+      logActivity(req.user!.id, 'user_deactivated', { details: { targetUserId: userId } });
       res.json({ message: "User deactivated" });
     }
   } catch (err) {

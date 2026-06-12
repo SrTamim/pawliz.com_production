@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import pool from '../config/database';
@@ -21,7 +22,7 @@ const NAME_RE = /^[a-z0-9_-]{2,50}$/;
 const SYSTEM_NAMES = new Set(['admin', 'user', 'vet']);
 
 // GET /admin/roles — list roles + user counts
-router.get('/', authenticate, requireSuperAdmin, async (req, res) => {
+router.get('/', authenticate, requireSuperAdmin, async (req: Request, res: Response) => {
   try {
     const result = await pool.query(`
       SELECT r.name, r.description, r.permissions, r.is_system,
@@ -39,7 +40,7 @@ router.get('/', authenticate, requireSuperAdmin, async (req, res) => {
 
 // GET /admin/roles/registry — permission registry for the role editor.
 // Excludes the reserved (adminOnly) roles page so it can't be granted.
-router.get('/registry', authenticate, requireSuperAdmin, (req, res) => {
+router.get('/registry', authenticate, requireSuperAdmin, (req: Request, res: Response) => {
   res.json({ pages: ASSIGNABLE_PAGES });
 });
 
@@ -54,7 +55,7 @@ router.post(
     body('description').optional({ checkFalsy: true }).trim().isLength({ max: 200 }),
   ],
   validate,
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     const name = req.body.name.trim().toLowerCase();
     const { description = null, permissions } = req.body;
 
@@ -75,9 +76,9 @@ router.post(
          VALUES ($1, $2, $3, false) RETURNING name, description, permissions, is_system`,
         [name, description, JSON.stringify(safe)],
       );
-      logActivity(req.user.id, 'role_created', { details: { name, permissions: safe } });
+      logActivity(req.user!.id, 'role_created', { details: { name, permissions: safe } });
       res.status(201).json({ role: result.rows[0] });
-    } catch (err) {
+    } catch (err: any) {
       if (err.code === '23505') return res.status(409).json({ error: 'Role already exists' });
       res.status(500).json({ error: 'Server error' });
     }
@@ -91,7 +92,7 @@ router.put(
   requireSuperAdmin,
   [body('description').optional({ checkFalsy: true }).trim().isLength({ max: 200 })],
   validate,
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     const name = String(req.params.name).toLowerCase();
     const { description, permissions } = req.body;
 
@@ -130,7 +131,7 @@ router.put(
       );
       // Propagate new perms: evict every cached user holding this role (L4).
       await evictUsersByRole(name);
-      logActivity(req.user.id, 'role_updated', { details: { name } });
+      logActivity(req.user!.id, 'role_updated', { details: { name } });
       res.json({ role: result.rows[0] });
     } catch {
       res.status(500).json({ error: 'Server error' });
@@ -139,7 +140,7 @@ router.put(
 );
 
 // DELETE /admin/roles/:name — delete a custom role (must be unused)
-router.delete('/:name', authenticate, requireSuperAdmin, async (req, res) => {
+router.delete('/:name', authenticate, requireSuperAdmin, async (req: Request, res: Response) => {
   const name = String(req.params.name).toLowerCase();
   if (SYSTEM_NAMES.has(name)) {
     return res.status(403).json({ error: 'System roles cannot be deleted' });
@@ -155,7 +156,7 @@ router.delete('/:name', authenticate, requireSuperAdmin, async (req, res) => {
       return res.status(409).json({ error: 'Role is assigned to users; reassign them first' });
     }
     await pool.query('DELETE FROM roles WHERE name = $1', [name]);
-    logActivity(req.user.id, 'role_deleted', { details: { name } });
+    logActivity(req.user!.id, 'role_deleted', { details: { name } });
     res.json({ message: 'Role deleted' });
   } catch {
     res.status(500).json({ error: 'Server error' });

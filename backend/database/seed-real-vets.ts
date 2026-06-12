@@ -106,7 +106,7 @@ async function seedRealVets() {
     console.log(`⏭️  Skipped (duplicate/incomplete): ${skipped}`);
   } catch (err) {
     await client.query("ROLLBACK");
-    console.error("❌ Seed failed:", err.message);
+    console.error("❌ Seed failed:", (err as Error).message);
     process.exit(1);
   } finally {
     client.release();

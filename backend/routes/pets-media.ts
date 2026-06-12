@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import pool from '../config/database';
@@ -7,7 +8,7 @@ import { deleteUploadedFile, deleteUploadedFiles } from '../utils/fileUtils';
 import logger from '../utils/logger';
 
 // POST /api/v1/pets/:id/images
-router.post("/:id/images", authenticate, upload.array("images", 3), async (req, res) => {
+router.post("/:id/images", authenticate, upload.array("images", 3), async (req: Request, res: Response) => {
   const petDbId = parseInt(req.params.id);
   if (isNaN(petDbId)) return res.status(400).json({ error: "Invalid pet ID" });
   try {
@@ -16,7 +17,7 @@ router.post("/:id/images", authenticate, upload.array("images", 3), async (req, 
     }
     const check = await pool.query(
       "SELECT images FROM pets WHERE id = $1 AND user_id = $2 AND is_active = true",
-      [petDbId, req.user.id],
+      [petDbId, req.user!.id],
     );
     if (!check.rows[0]) return res.status(404).json({ error: "Pet not found" });
 
@@ -41,7 +42,7 @@ router.post("/:id/images", authenticate, upload.array("images", 3), async (req, 
 });
 
 // DELETE /api/v1/pets/:id/images/:imageIndex
-router.delete("/:id/images/:imageIndex", authenticate, async (req, res) => {
+router.delete("/:id/images/:imageIndex", authenticate, async (req: Request, res: Response) => {
   const petDbId = parseInt(req.params.id);
   const imageIndex = parseInt(req.params.imageIndex);
   if (isNaN(petDbId) || isNaN(imageIndex)) {
@@ -50,7 +51,7 @@ router.delete("/:id/images/:imageIndex", authenticate, async (req, res) => {
   try {
     const check = await pool.query(
       "SELECT images FROM pets WHERE id = $1 AND user_id = $2 AND is_active = true",
-      [petDbId, req.user.id],
+      [petDbId, req.user!.id],
     );
     if (!check.rows[0]) return res.status(404).json({ error: "Pet not found" });
 

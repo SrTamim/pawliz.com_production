@@ -11,7 +11,7 @@ import fs from 'fs';
 import path from 'path';
 
 // Reverse map for cp1252's 0x80-0x9F printable codepoints -> original byte.
-const CP1252 = {
+const CP1252: Record<number, number> = {
   0x20ac: 0x80, 0x201a: 0x82, 0x0192: 0x83, 0x201e: 0x84, 0x2026: 0x85,
   0x2020: 0x86, 0x2021: 0x87, 0x02c6: 0x88, 0x2030: 0x89, 0x0160: 0x8a,
   0x2039: 0x8b, 0x0152: 0x8c, 0x017d: 0x8e, 0x2018: 0x91, 0x2019: 0x92,
@@ -20,11 +20,11 @@ const CP1252 = {
   0x017e: 0x9e, 0x0178: 0x9f,
 };
 
-function fix(s) {
+function fix(s: any): any {
   if (typeof s !== "string") return s;
   const bytes = [...s].map((c) => {
-    const cp = c.codePointAt(0);
-    return CP1252[cp] !== undefined ? CP1252[cp] : cp;
+    const cp = c.codePointAt(0)!;
+    return CP1252[cp as number] !== undefined ? CP1252[cp as number] : cp;
   });
   // If any "byte" is outside 0-255 it wasn't latin1/cp1252 mojibake — leave as-is.
   if (bytes.some((b) => b > 0xff)) return s;
@@ -38,11 +38,11 @@ function fix(s) {
   }
 }
 
-function fixDeep(v) {
+function fixDeep(v: any): any {
   if (typeof v === "string") return fix(v);
   if (Array.isArray(v)) return v.map(fixDeep);
   if (v && typeof v === "object") {
-    const out = {};
+    const out: Record<string, any> = {};
     for (const k of Object.keys(v)) out[k] = fixDeep(v[k]);
     return out;
   }

@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import { body, validationResult } from 'express-validator';
@@ -7,7 +8,7 @@ import logger from '../utils/logger';
 import { VET_PASSWORD_PATTERN } from '../utils/constants';
 import * as smsService from '../services/smsService';
 
-const normalizePhone = (phone) => {
+const normalizePhone = (phone: any) => {
   const p = (phone || '').trim();
   if (/^88(01[3-9]\d{8})$/.test(p)) return p.slice(2);
   return p;
@@ -23,7 +24,7 @@ router.post('/register', [
   body('address').trim().notEmpty().withMessage('Address is required'),
   body('clinic_name').trim().notEmpty().withMessage('Clinic name is required'),
   body('account_owner_name').trim().notEmpty().withMessage('Account owner name is required'),
-], async (req, res) => {
+], async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
@@ -134,7 +135,7 @@ router.post('/:vetId/claim', [
   body('clinic_name').trim().notEmpty().withMessage('Clinic name is required'),
   body('account_owner_name').trim().notEmpty().withMessage('Account owner name is required'),
   body('clinic_otp').trim().matches(/^\d{6}$/).withMessage('Clinic OTP must be 6 digits'),
-], async (req, res) => {
+], async (req: Request, res: Response) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 

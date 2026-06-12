@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import pool from '../config/database';
@@ -5,7 +6,7 @@ import { authenticate, requirePermission } from '../middleware/auth';
 import * as smsService from '../services/smsService';
 
 // GET /api/v1/admin/sms/balance
-router.get("/balance", authenticate, requirePermission("sms-settings"), async (req, res) => {
+router.get("/balance", authenticate, requirePermission("sms-settings"), async (req: Request, res: Response) => {
   try {
     const data = await smsService.getBalance();
     res.json({ balance: data });
@@ -15,7 +16,7 @@ router.get("/balance", authenticate, requirePermission("sms-settings"), async (r
 });
 
 // GET /api/v1/admin/sms/settings
-router.get("/settings", authenticate, requirePermission("sms-settings"), async (req, res) => {
+router.get("/settings", authenticate, requirePermission("sms-settings"), async (req: Request, res: Response) => {
   try {
     const result = await pool.query(
       "SELECT key, value FROM site_settings WHERE key IN ('sms_enabled', 'admin_phone')",
@@ -34,7 +35,7 @@ router.get("/settings", authenticate, requirePermission("sms-settings"), async (
 });
 
 // PATCH /api/v1/admin/sms/settings
-router.patch("/settings", authenticate, requirePermission("sms-settings.edit"), async (req, res) => {
+router.patch("/settings", authenticate, requirePermission("sms-settings.edit"), async (req: Request, res: Response) => {
   try {
     const { sms_enabled, admin_phone } = req.body;
     const updates = [];

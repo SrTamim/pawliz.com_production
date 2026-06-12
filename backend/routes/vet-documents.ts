@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import pool from '../config/database';
@@ -13,10 +14,10 @@ router.use(authenticate, requireVet);
  * POST /api/v1/vet-documents
  * Upload vet document (certificate, license, etc.) — stored privately
  */
-router.post('/', (req, res, next) => {
+router.post('/', (req: Request, res: Response, next: NextFunction) => {
   req.uploadDir = 'private';
   upload.single('file')(req, res, next);
-}, async (req, res) => {
+}, async (req: Request, res: Response) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   const { doc_type } = req.body;
   const validTypes = ['reg_certificate', 'clinic_certificate', 'trade_licence', 'vat_certificate', 'tin_certificate', 'vet_image'];
@@ -25,7 +26,7 @@ router.post('/', (req, res, next) => {
     return res.status(400).json({ error: 'Invalid doc_type' });
   }
   try {
-    const vet = await getOwnedVet(req.user.id);
+    const vet = await getOwnedVet(req.user!.id);
     if (!vet) {
       deleteUploadedFile(`/uploads/private/${req.file.filename}`);
       return res.status(404).json({ error: 'Vet profile not found' });
@@ -48,9 +49,9 @@ router.post('/', (req, res, next) => {
  * DELETE /api/v1/vet-documents/:id
  * Remove vet document
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const vet = await getOwnedVet(req.user.id);
+    const vet = await getOwnedVet(req.user!.id);
     if (!vet) return res.status(404).json({ error: 'Vet profile not found' });
 
     if (vet.approval_status === 'approved') {

@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 import pool from '../config/database';
 import { authenticate, requireVet } from '../middleware/auth';
@@ -6,7 +7,7 @@ import { deleteUploadedFile } from '../utils/fileUtils';
 import logger from '../utils/logger';
 import { getOwnedVet } from '../utils/vetHelpers';
 
-function parseHolidays(value) {
+function parseHolidays(value: any): any {
   if (!value) return [];
   if (Array.isArray(value)) return value;
   try { return JSON.parse(value); } catch { return []; }
@@ -15,11 +16,11 @@ function parseHolidays(value) {
 /**
  * Add clinic contact (phone, email, etc.)
  */
-async function addClinicContact(req, res) {
+async function addClinicContact(req: Request, res: Response) {
   const { contact_type, contact_value } = req.body;
   if (!contact_value) return res.status(400).json({ error: 'contact_value is required' });
   try {
-    const vet = await getOwnedVet(req.user.id);
+    const vet = await getOwnedVet(req.user!.id);
     if (!vet) return res.status(404).json({ error: 'Vet profile not found' });
     if (vet.vet_type !== 'clinic') return res.status(403).json({ error: 'Only clinics can manage contacts' });
 
@@ -37,9 +38,9 @@ async function addClinicContact(req, res) {
 /**
  * Remove clinic contact
  */
-async function deleteClinicContact(req, res) {
+async function deleteClinicContact(req: Request, res: Response) {
   try {
-    const vet = await getOwnedVet(req.user.id);
+    const vet = await getOwnedVet(req.user!.id);
     if (!vet) return res.status(404).json({ error: 'Vet profile not found' });
 
     const result = await pool.query(
@@ -57,11 +58,11 @@ async function deleteClinicContact(req, res) {
 /**
  * Add clinic vet staff member
  */
-async function addClinicVet(req, res) {
+async function addClinicVet(req: Request, res: Response) {
   const { name, designation, bvc_reg_number, bmdc_reg_number, checkup_start, checkup_end, weekly_holidays } = req.body;
   if (!name) return res.status(400).json({ error: 'Name is required' });
   try {
-    const vet = await getOwnedVet(req.user.id);
+    const vet = await getOwnedVet(req.user!.id);
     if (!vet) return res.status(404).json({ error: 'Vet profile not found' });
     if (vet.vet_type !== 'clinic') return res.status(403).json({ error: 'Only clinics can manage clinic vets' });
 
@@ -95,9 +96,9 @@ vetsRouter.post('/', upload.single('vet_image'), addClinicVet);
 /**
  * Update clinic vet staff member
  */
-async function updateClinicVet(req, res) {
+async function updateClinicVet(req: Request, res: Response) {
   try {
-    const vet = await getOwnedVet(req.user.id);
+    const vet = await getOwnedVet(req.user!.id);
     if (!vet) return res.status(404).json({ error: 'Vet profile not found' });
 
     const existing = await pool.query(
@@ -149,9 +150,9 @@ vetsRouter.put('/:id', upload.single('vet_image'), updateClinicVet);
 /**
  * Remove clinic vet staff member (soft delete)
  */
-async function deleteClinicVet(req, res) {
+async function deleteClinicVet(req: Request, res: Response) {
   try {
-    const vet = await getOwnedVet(req.user.id);
+    const vet = await getOwnedVet(req.user!.id);
     if (!vet) return res.status(404).json({ error: 'Vet profile not found' });
 
     const result = await pool.query(
@@ -171,11 +172,11 @@ vetsRouter.delete('/:id', deleteClinicVet);
 /**
  * Add clinic vet qualification
  */
-async function addClinicVetQualification(req, res) {
+async function addClinicVetQualification(req: Request, res: Response) {
   const { qualification, institute } = req.body;
   if (!qualification) return res.status(400).json({ error: 'Qualification is required' });
   try {
-    const vet = await getOwnedVet(req.user.id);
+    const vet = await getOwnedVet(req.user!.id);
     if (!vet) return res.status(404).json({ error: 'Vet profile not found' });
 
     const cvCheck = await pool.query(
@@ -200,9 +201,9 @@ vetsRouter.post('/:id/qualifications', addClinicVetQualification);
 /**
  * Remove clinic vet qualification
  */
-async function deleteClinicVetQualification(req, res) {
+async function deleteClinicVetQualification(req: Request, res: Response) {
   try {
-    const vet = await getOwnedVet(req.user.id);
+    const vet = await getOwnedVet(req.user!.id);
     if (!vet) return res.status(404).json({ error: 'Vet profile not found' });
 
     const cvCheck = await pool.query(

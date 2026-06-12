@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import { body } from 'express-validator';
@@ -10,14 +11,14 @@ import { logActivity } from '../utils/activityLogger';
 // POST /api/v1/pets/:id/lost
 router.post("/:id/lost", authenticate, [
   body("lost_date").notEmpty().withMessage("Lost date is required"),
-], validate, async (req, res) => {
+], validate, async (req: Request, res: Response) => {
   const petDbId = parseInt(req.params.id);
   const { lost_date, lost_location_name, lost_latitude, lost_longitude, additional_details } = req.body;
   const client = await pool.connect();
   try {
     const check = await client.query(
       "SELECT id, pet_id, name, type FROM pets WHERE id = $1 AND user_id = $2 AND is_active = true",
-      [petDbId, req.user.id],
+      [petDbId, req.user!.id],
     );
     if (!check.rows[0]) return res.status(404).json({ error: "Pet not found" });
 
@@ -39,7 +40,7 @@ router.post("/:id/lost", authenticate, [
     await client.query("COMMIT");
 
     const pi = check.rows[0];
-    logActivity(req.user.id, 'pet_marked_lost', {
+    logActivity(req.user!.id, 'pet_marked_lost', {
       postId: lostInsert.rows[0].id, postType: 'lost',
       petDbId, petUid: pi.pet_id, petName: pi.name, petType: pi.type,
     });
@@ -55,13 +56,13 @@ router.post("/:id/lost", authenticate, [
 });
 
 // PUT /api/v1/pets/:id/found
-router.put("/:id/found", authenticate, async (req, res) => {
+router.put("/:id/found", authenticate, async (req: Request, res: Response) => {
   const petDbId = parseInt(req.params.id);
   const client = await pool.connect();
   try {
     const check = await client.query(
       "SELECT id FROM pets WHERE id = $1 AND user_id = $2 AND is_active = true",
-      [petDbId, req.user.id],
+      [petDbId, req.user!.id],
     );
     if (!check.rows[0]) return res.status(404).json({ error: "Pet not found" });
 
@@ -79,7 +80,7 @@ router.put("/:id/found", authenticate, async (req, res) => {
       ).catch((err) => logger.error("Cleanup lost-post notifications failed:", err.message));
     }
 
-    logActivity(req.user.id, 'pet_marked_found', { petDbId });
+    logActivity(req.user!.id, 'pet_marked_found', { petDbId });
 
     res.json({ message: "Pet marked as found" });
   } catch (err) {
@@ -92,14 +93,14 @@ router.put("/:id/found", authenticate, async (req, res) => {
 });
 
 // POST /api/v1/pets/:id/adoption
-router.post("/:id/adoption", authenticate, async (req, res) => {
+router.post("/:id/adoption", authenticate, async (req: Request, res: Response) => {
   const petDbId = parseInt(req.params.id);
   const { reason, adoption_requirements, contact_preference } = req.body;
   const client = await pool.connect();
   try {
     const check = await client.query(
       "SELECT id, name FROM pets WHERE id = $1 AND user_id = $2 AND is_active = true",
-      [petDbId, req.user.id],
+      [petDbId, req.user!.id],
     );
     if (!check.rows[0]) return res.status(404).json({ error: "Pet not found" });
 
@@ -118,7 +119,7 @@ router.post("/:id/adoption", authenticate, async (req, res) => {
 
     await client.query("COMMIT");
 
-    logActivity(req.user.id, 'pet_marked_for_adoption', { petDbId, petName: check.rows[0].name });
+    logActivity(req.user!.id, 'pet_marked_for_adoption', { petDbId, petName: check.rows[0].name });
 
     res.json({ message: "Pet marked for adoption" });
   } catch (err) {
@@ -131,11 +132,11 @@ router.post("/:id/adoption", authenticate, async (req, res) => {
 });
 
 // PUT /api/v1/pets/:id/adopted
-router.put("/:id/adopted", authenticate, async (req, res) => {
+router.put("/:id/adopted", authenticate, async (req: Request, res: Response) => {
   const petDbId = parseInt(req.params.id);
   const client = await pool.connect();
   try {
-    const check = await client.query("SELECT id FROM pets WHERE id = $1 AND user_id = $2 AND is_active = true", [petDbId, req.user.id]);
+    const check = await client.query("SELECT id FROM pets WHERE id = $1 AND user_id = $2 AND is_active = true", [petDbId, req.user!.id]);
     if (!check.rows[0]) return res.status(404).json({ error: "Pet not found" });
 
     await client.query("BEGIN");

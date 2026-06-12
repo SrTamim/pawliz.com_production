@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import pool from '../config/database';
@@ -9,7 +10,7 @@ import * as r2 from '../utils/r2';
 // The object lives in the PRIVATE bucket (no public access); bytes are streamed
 // through this authed endpoint after an ownership check. The R2 URL is never
 // exposed to the client.
-router.get("/:filename", authenticate, async (req, res) => {
+router.get("/:filename", authenticate, async (req: Request, res: Response) => {
   try {
     const { filename } = req.params;
 
@@ -19,7 +20,7 @@ router.get("/:filename", authenticate, async (req, res) => {
       return res.status(400).json({ error: "Invalid filename" });
     }
 
-    const isAdmin = req.user.role === "admin";
+    const isAdmin = req.user!.role === "admin";
 
     if (!isAdmin) {
       // Exact-match ownership check (file_path stored as /api/v1/files/<filename>)
@@ -27,7 +28,7 @@ router.get("/:filename", authenticate, async (req, res) => {
         `SELECT vd.id FROM vet_documents vd
          JOIN vets v ON v.id = vd.vet_id
          WHERE vd.file_path = $1 AND v.user_id = $2`,
-        [`/api/v1/files/${filename}`, req.user.id]
+        [`/api/v1/files/${filename}`, req.user!.id]
       );
       if (docCheck.rows.length === 0) {
         return res.status(403).json({ error: "Access denied" });
@@ -39,7 +40,7 @@ router.get("/:filename", authenticate, async (req, res) => {
     let object;
     try {
       object = await r2.getObjectStream(`/api/v1/files/${filename}`);
-    } catch (err) {
+    } catch (err: any) {
       if (err.name === "NoSuchKey" || err.$metadata?.httpStatusCode === 404) {
         return res.status(404).json({ error: "File not found" });
       }
@@ -55,7 +56,7 @@ router.get("/:filename", authenticate, async (req, res) => {
       else res.destroy(err);
     });
     object.body.pipe(res);
-  } catch (err) {
+  } catch (err: any) {
     logger.error(err);
     if (!res.headersSent) res.status(500).json({ error: "Server error" });
   }

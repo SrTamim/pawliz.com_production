@@ -1,3 +1,4 @@
+import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import logger from '../utils/logger';
@@ -7,7 +8,7 @@ import logger from '../utils/logger';
  * Receives frontend React ErrorBoundary reports.
  * Logs via winston — no DB write, non-blocking.
  */
-router.post("/", (req, res) => {
+router.post("/", (req: Request, res: Response) => {
   const { error, stack, info, url } = req.body || {};
   logger.error("Client-side React error", {
     error: error ? String(error).substring(0, 500) : "unknown",

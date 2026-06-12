@@ -1,0 +1,12 @@
+{
+  // Editor-facing project for test files. backend/tsconfig.json (strict app
+  // config) excludes tests/, so without this VSCode assigns test files to an
+  // inferred project with no jest types. ts-jest uses ../tsconfig.test.json,
+  // which this mirrors via extends.
+  "extends": "../tsconfig.test.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "types": ["node", "jest"]
+  },
+  "include": ["./**/*.ts", "../types/**/*.d.ts"]
+}

@@ -1,11 +1,11 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
-const { body, validationResult } = require("express-validator");
-const { authenticate } = require("../middleware/auth");
-const upload = require("../middleware/upload");
-const lostFoundService = require("../services/lostFoundService");
-const logger = require("../utils/logger");
-const pool = require("../config/database");
+import { body, validationResult } from 'express-validator';
+import { authenticate } from '../middleware/auth';
+import upload from '../middleware/upload';
+import * as lostFoundService from '../services/lostFoundService';
+import logger from '../utils/logger';
+import pool from '../config/database';
 
 /**
  * Lost & Found Pet routes
@@ -24,13 +24,13 @@ const pool = require("../config/database");
  */
 router.get("/lost", async (req, res) => {
   try {
-    const page = Math.max(1, parseInt(req.query.page) || 1);
-    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
-    const offset = req.query.offset !== undefined ? parseInt(req.query.offset) : (page - 1) * limit;
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
+    const offset = req.query.offset !== undefined ? parseInt(req.query.offset as string) : (page - 1) * limit;
     const { pet_type, location } = req.query;
 
     const { posts, total } = await lostFoundService.getLostFeed(
-      { pet_type, location },
+      { pet_type: pet_type as string, location: location as string },
       { page, limit, offset },
     );
     res.json({ posts, total, page, limit });
@@ -152,13 +152,13 @@ router.put("/lost/:id/found", authenticate, async (req, res) => {
 
 router.get("/found", async (req, res) => {
   try {
-    const page = Math.max(1, parseInt(req.query.page) || 1);
-    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
-    const offset = req.query.offset !== undefined ? parseInt(req.query.offset) : (page - 1) * limit;
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
+    const offset = req.query.offset !== undefined ? parseInt(req.query.offset as string) : (page - 1) * limit;
     const { pet_type, location } = req.query;
 
     const { posts, total } = await lostFoundService.getFoundFeed(
-      { pet_type, location },
+      { pet_type: pet_type as string, location: location as string },
       { page, limit, offset },
     );
     res.json({ posts, total, page, limit });
@@ -200,7 +200,7 @@ router.post(
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-    const imagePaths = req.files ? req.files.map((f) => `/uploads/public/${f.filename}`) : [];
+    const imagePaths = req.files ? (req.files as Express.Multer.File[]).map((f) => `/uploads/public/${f.filename}`) : [];
 
     try {
       const post = await lostFoundService.createFoundReport(req.user.id, req.body, imagePaths);
@@ -219,7 +219,7 @@ router.put("/found/:id", authenticate, upload.array("images", 3), async (req, re
   const postId = parseInt(req.params.id);
   if (isNaN(postId)) return res.status(400).json({ error: "Invalid post ID" });
 
-  const newImagePaths = req.files ? req.files.map((f) => `/uploads/public/${f.filename}`) : [];
+  const newImagePaths = req.files ? (req.files as Express.Multer.File[]).map((f) => `/uploads/public/${f.filename}`) : [];
 
   try {
     const post = await lostFoundService.updateFoundReport(postId, req.user.id, req.body, newImagePaths);
@@ -282,8 +282,8 @@ router.get("/comments/:postType/:postId", async (req, res) => {
     if (!["lost", "found"].includes(postType))
       return res.status(400).json({ error: "Invalid post type" });
 
-    const limit = Math.min(parseInt(req.query.limit) || 20, 50);
-    const offset = parseInt(req.query.offset) || 0;
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+    const offset = parseInt(req.query.offset as string) || 0;
     const { rows, total } = await lostFoundService.getComments(postType, postId, limit, offset);
     res.json({ comments: rows, total, hasMore: offset + rows.length < total });
   } catch (err) {
@@ -307,4 +307,4 @@ router.delete("/comments/:id", authenticate, async (req, res) => {
   }
 });
 
-module.exports = router;
+export = router;

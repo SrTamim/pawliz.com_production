@@ -1,13 +1,13 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
-const { body, validationResult } = require("express-validator");
-const pool = require("../config/database");
-const { authenticate } = require("../middleware/auth");
-const upload = require("../middleware/upload");
-const { deleteUploadedFiles } = require("../utils/fileUtils");
-const { createNotification } = require("../services/notificationService");
-const logger = require("../utils/logger");
-const validate = require("../middleware/validate");
+import { body, validationResult } from 'express-validator';
+import pool from '../config/database';
+import { authenticate } from '../middleware/auth';
+import upload from '../middleware/upload';
+import { deleteUploadedFiles } from '../utils/fileUtils';
+import { createNotification } from '../services/notificationService';
+import logger from '../utils/logger';
+import validate from '../middleware/validate';
 
 /**
  * Rescue & Adoption routes
@@ -26,9 +26,9 @@ const validate = require("../middleware/validate");
  */
 router.get("/rescue", async (req, res) => {
   try {
-    const page = Math.max(1, parseInt(req.query.page) || 1);
-    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
-    const offset = req.query.offset !== undefined ? parseInt(req.query.offset) : (page - 1) * limit;
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
+    const offset = req.query.offset !== undefined ? parseInt(req.query.offset as string) : (page - 1) * limit;
     const { pet_type, location } = req.query;
     const baseFrom = `FROM rescue_posts rp
       JOIN users u ON u.id = rp.user_id`;
@@ -259,9 +259,9 @@ router.delete("/rescue/:id", authenticate, async (req, res) => {
 // GET /api/rescue-adoption/adoption - Get adoptable pets with filters
 router.get("/adoption", async (req, res) => {
   try {
-    const page = Math.max(1, parseInt(req.query.page) || 1);
-    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
-    const offset = req.query.offset !== undefined ? parseInt(req.query.offset) : (page - 1) * limit;
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
+    const offset = req.query.offset !== undefined ? parseInt(req.query.offset as string) : (page - 1) * limit;
     const { pet_type, location } = req.query;
     const baseFrom = `FROM adoption_posts ap
       JOIN pets p ON p.id = ap.pet_id
@@ -458,8 +458,8 @@ router.get("/comments/:postType/:postId", async (req, res) => {
       return res.status(400).json({ error: "Invalid post type" });
     }
 
-    const limit = Math.min(parseInt(req.query.limit) || 20, 50);
-    const offset = parseInt(req.query.offset) || 0;
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
+    const offset = parseInt(req.query.offset as string) || 0;
 
     const [result, countResult] = await Promise.all([
       pool.query(
@@ -505,4 +505,4 @@ router.delete("/comments/:id", authenticate, async (req, res) => {
   }
 });
 
-module.exports = router;
+export = router;

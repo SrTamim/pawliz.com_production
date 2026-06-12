@@ -25,7 +25,7 @@ export default function PasswordStrengthChecker({ password = "", t, namespace = 
             { key: "letter", label: "A-Z / a-z", ok: checks.letter },
             { key: "number", label: "0-9", ok: checks.number },
             { key: "length", label: "min 8 chars", ok: passwordLength },
-          ].map(({ key, label, ok }) => (
+          ].map(({ key, label, ok }: any) => (
             <span
               key={key}
               style={{

@@ -38,7 +38,7 @@ async function tryRefresh(): Promise<boolean> {
   _refreshing = fetch(`${API_BASE}/auth/refresh`, {
     method: "POST",
     credentials: "include",
-  }).then((r) => {
+  }).then((r: any) => {
     _refreshing = null;
     if (!r.ok) {
       // 401/403: refresh failed, logout only once
@@ -115,7 +115,7 @@ async function request(
     throw new Error(msg);
   }
   return data;
-  } catch (err) {
+  } catch (err: any) {
     if ((err as Error).name === "AbortError") {
       throw new Error(`Request timeout (${REQUEST_TIMEOUT_MS / 1000}s)`);
     }
@@ -285,7 +285,7 @@ export const petsAPI = {
   markAdopted: (id: number | string) => request(`/pets/${id}/adopted`, "PUT"),
   uploadImages: (id: number | string, files: File[]) => {
     const fd = new FormData();
-    files.forEach((file) => fd.append("images", file));
+    files.forEach((file: any) => fd.append("images", file));
     return request(`/pets/${id}/images`, "POST", fd, true);
   },
   deleteImage: (id: number | string, imageIndex: number) =>
@@ -300,12 +300,12 @@ export function getNearbyVets<T extends { latitude: any; longitude: any }>(
   radiusKm = 10,
 ): (T & { distance: number })[] {
   return vets
-    .map((vet) => ({
+    .map((vet: any) => ({
       ...vet,
       distance: haversine(userLat, userLng, vet.latitude, vet.longitude),
     }))
-    .filter((v) => v.distance <= radiusKm)
-    .sort((a, b) => a.distance - b.distance);
+    .filter((v: any) => v.distance <= radiusKm)
+    .sort((a: any, b: any) => a.distance - b.distance);
 }
 
 export function fetchNearbyVets(lat: number, lng: number, radius = 10, limit = 20): Promise<any> {
@@ -339,7 +339,7 @@ export const lostFoundAPI = {
   getFoundPetDetails: (id: number | string) => request(`/lost-found/found/${id}`),
   createFoundPet: (data: Params) => {
     const fd = new FormData();
-    Object.keys(data).forEach((key) => {
+    Object.keys(data).forEach((key: any) => {
       if (key === "images" && Array.isArray(data[key])) {
         data[key].forEach((file: File) => fd.append("images", file));
       } else if (data[key] !== null && data[key] !== undefined && data[key] !== "") {
@@ -350,7 +350,7 @@ export const lostFoundAPI = {
   },
   updateFoundPet: (id: number | string, data: Params) => {
     const fd = new FormData();
-    Object.keys(data).forEach((key) => {
+    Object.keys(data).forEach((key: any) => {
       if (key === "images" && Array.isArray(data[key])) {
         data[key].forEach((file: File) => fd.append("images", file));
       } else if (data[key] !== null && data[key] !== undefined && data[key] !== "") {
@@ -382,7 +382,7 @@ export const rescueAdoptionAPI = {
   getRescuePostDetails: (id: number | string) => request(`/rescue-adoption/rescue/${id}`),
   createRescuePost: (data: Params) => {
     const fd = new FormData();
-    Object.keys(data).forEach((key) => {
+    Object.keys(data).forEach((key: any) => {
       if (key === "images" && Array.isArray(data[key])) {
         data[key].forEach((file: File) => fd.append("images", file));
       } else if (data[key] !== null && data[key] !== undefined && data[key] !== "") {
@@ -393,7 +393,7 @@ export const rescueAdoptionAPI = {
   },
   updateRescuePost: (id: number | string, data: Params) => {
     const fd = new FormData();
-    Object.keys(data).forEach((key) => {
+    Object.keys(data).forEach((key: any) => {
       if (key === "images" && Array.isArray(data[key])) {
         data[key].forEach((file: File) => fd.append("images", file));
       } else if (data[key] !== null && data[key] !== undefined && data[key] !== "") {
@@ -457,7 +457,7 @@ export const vetDashboardAPI = {
   deleteClinicContact: (id: number | string) => request(`/vet-dashboard/clinic-contacts/${id}`, "DELETE"),
   addClinicVet: (data: Params, imageFile?: File | null) => {
     const fd = new FormData();
-    Object.keys(data).forEach((key) => {
+    Object.keys(data).forEach((key: any) => {
       if (key === "weekly_holidays" && Array.isArray(data[key])) {
         fd.append(key, JSON.stringify(data[key]));
       } else if (data[key] !== null && data[key] !== undefined) {
@@ -469,7 +469,7 @@ export const vetDashboardAPI = {
   },
   updateClinicVet: (id: number | string, data: Params, imageFile?: File | null) => {
     const fd = new FormData();
-    Object.keys(data).forEach((key) => {
+    Object.keys(data).forEach((key: any) => {
       if (key === "weekly_holidays" && Array.isArray(data[key])) {
         fd.append(key, JSON.stringify(data[key]));
       } else if (data[key] !== null && data[key] !== undefined) {

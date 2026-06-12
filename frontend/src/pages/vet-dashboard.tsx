@@ -14,9 +14,9 @@ export default function VetDashboardPage() {
   const router = useRouter();
   const { t } = useTranslation("vet");
   const [section, setSection] = useState("overview");
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<any>(null);
   const [loadingData, setLoadingData] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<any>(null);
 
   useEffect(() => {
     if (!authLoading) {
@@ -35,7 +35,7 @@ export default function VetDashboardPage() {
       const res = await vetDashboardAPI.getProfile();
       setData(res);
       setError(null);
-    } catch (e) {
+    } catch (e: any) {
       setError(e.message);
     } finally {
       setLoadingData(false);

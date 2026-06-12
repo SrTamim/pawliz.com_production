@@ -77,7 +77,7 @@ function readVetsFromLocalStorage() {
   }
 }
 
-function writeVetsToLocalStorage(vets) {
+function writeVetsToLocalStorage(vets: any) {
   if (typeof window === "undefined" || !vets?.length) return;
   try {
     localStorage.setItem(VETS_LS_KEY, JSON.stringify({ v: vets, t: Date.now() }));
@@ -99,13 +99,13 @@ export async function getStaticProps() {
   }
 }
 
-export default function Home({ initialVets = [] }) {
+export default function Home({ initialVets = [] }: any) {
   const { theme } = useNavbar();
   const { t } = useTranslation("home");
   // Map pins: ALL approved vets, slim payload (from /vets/map). Always shown
   // unless nearbyMode is active, which temporarily filters the map to nearby.
   const [mapVets, setMapVets] = useState(initialVets || []);
-  const [nearbyVets, setNearbyVets] = useState([]);
+  const [nearbyVets, setNearbyVets] = useState<any[]>([]);
   // Sidebar list: paginated/cursor via useVets hook (server-side search + infinite scroll).
   const {
     vets,
@@ -116,14 +116,14 @@ export default function Home({ initialVets = [] }) {
     loadMore,
     loadLocations,
   } = useVets();
-  const [selectedVetId, setSelectedVetId] = useState(null);
-  const [detailVetId, setDetailVetId] = useState(null);
+  const [selectedVetId, setSelectedVetId] = useState<any>(null);
+  const [detailVetId, setDetailVetId] = useState<any>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [authTab, setAuthTab] = useState("login");
   const [donateOpen, setDonateOpen] = useState(false);
   const [nearbyMode, setNearbyMode] = useState(false);
-  const [userLocation, setUserLocation] = useState(null);
+  const [userLocation, setUserLocation] = useState<any>(null);
   const [isMobile, setIsMobile] = useState(false);
   // Map facade: show the static preview <img> as the LCP element first, then
   // mount the interactive Leaflet map once idle or on interaction (whichever
@@ -145,7 +145,7 @@ export default function Home({ initialVets = [] }) {
   // still get the live map ~1.5s after paint, without it gating LCP).
   useEffect(() => {
     if (mapActivated) return;
-    let idleId;
+    let idleId: any;
     let timeoutId;
     const activate = () => setMapActivated(true);
     if (typeof window !== "undefined" && "requestIdleCallback" in window) {
@@ -176,7 +176,7 @@ export default function Home({ initialVets = [] }) {
       writeVetsToLocalStorage(fresh);
     } catch {
       if (!background) {
-        setMapVets((prev) => (prev?.length ? prev : DEMO_VETS));
+        setMapVets((prev: any) => (prev?.length ? prev : DEMO_VETS));
         toast(t("map.backendOffline"), "error");
       }
     }
@@ -222,11 +222,11 @@ export default function Home({ initialVets = [] }) {
   }, []);
 
   // Handlers
-  const handleSelectVet = (vet) => {
+  const handleSelectVet = (vet: any) => {
     setSelectedVetId(vet.id);
   };
 
-  const handleVetClick = (vet, openDetail = false) => {
+  const handleVetClick = (vet: any, openDetail = false) => {
     setSelectedVetId(vet.id);
     if (openDetail) {
       setDetailVetId(vet.id);
@@ -286,7 +286,7 @@ export default function Home({ initialVets = [] }) {
       <Head>
         <title>Pawliz — Veterinary Platform Bangladesh</title>
         {/* Preload the static map preview so it's the fast-path LCP element. */}
-        <link rel="preload" as="image" href="/map-preview.svg" type="image/svg+xml" fetchpriority="high" />
+        <link rel="preload" as="image" href="/map-preview.svg" type="image/svg+xml" fetchPriority="high" />
         <meta
           name="description"
           content="Find the best veterinary clinics across Bangladesh on Pawliz. Browse the map, read reviews, and get expert care for your pets."
@@ -354,10 +354,10 @@ export default function Home({ initialVets = [] }) {
                       : "rgba(255,255,255,0.95)",
                   backdropFilter: "blur(10px)",
                 }}
-                onChange={(e) => {
+                onChange={(e: any) => {
                   const val = e.target.value;
-                  clearTimeout(window.__mobileSearchTimer);
-                  window.__mobileSearchTimer = setTimeout(
+                  clearTimeout((window as any).__mobileSearchTimer);
+                  (window as any).__mobileSearchTimer = setTimeout(
                     () => loadVets(val),
                     400,
                   );
@@ -421,8 +421,8 @@ export default function Home({ initialVets = [] }) {
             loading={loading}
             locations={locations}
             onSelectVet={handleSelectVet}
-            onSearch={(q, loc) => loadVets(q, loc)}
-            onFilterLocation={(loc, q) => loadVets(q, loc)}
+            onSearch={(q: any, loc: any) => loadVets(q, loc)}
+            onFilterLocation={(loc: any, q: any) => loadVets(q, loc)}
             selectedVetId={selectedVetId}
             onNearbyVets={handleNearbyVets}
             nearbyMode={nearbyMode}

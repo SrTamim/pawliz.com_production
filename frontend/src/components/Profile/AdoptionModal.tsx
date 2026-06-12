@@ -24,7 +24,7 @@ export default function AdoptionModal({ pet, open, onClose, onMarkedForAdoption 
 
   if (!open || !pet) return null;
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     setSaving(true);
     try {
@@ -36,7 +36,7 @@ export default function AdoptionModal({ pet, open, onClose, onMarkedForAdoption 
       onMarkedForAdoption(pet.id);
       setForm({ reason: "", adoption_requirements: "" });
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to list for adoption", "error");
     } finally {
       setSaving(false);
@@ -62,7 +62,7 @@ export default function AdoptionModal({ pet, open, onClose, onMarkedForAdoption 
       }}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e: any) => e.stopPropagation()}
         style={{
           background: "var(--bg-card)",
           border: "1px solid var(--border)",
@@ -107,7 +107,7 @@ export default function AdoptionModal({ pet, open, onClose, onMarkedForAdoption 
               placeholder={t("adoptionModal.reasonPlaceholder")}
               value={form.reason}
               maxLength={1000}
-              onChange={(e) => setForm((f) => ({ ...f, reason: e.target.value }))}
+              onChange={(e: any) => setForm((f: any) => ({ ...f, reason: e.target.value }))}
               style={{ resize: "vertical", minHeight: 80 }}
             />
             <div style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "right", marginTop: 4 }}>
@@ -123,7 +123,7 @@ export default function AdoptionModal({ pet, open, onClose, onMarkedForAdoption 
               placeholder={t("adoptionModal.requirementsPlaceholder")}
               value={form.adoption_requirements}
               maxLength={1000}
-              onChange={(e) => setForm((f) => ({ ...f, adoption_requirements: e.target.value }))}
+              onChange={(e: any) => setForm((f: any) => ({ ...f, adoption_requirements: e.target.value }))}
               style={{ resize: "vertical", minHeight: 80 }}
             />
             <div style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "right", marginTop: 4 }}>

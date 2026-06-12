@@ -10,7 +10,7 @@ export default function DonateModal({ open, onClose }: any) {
     if (!open) return;
     donationsAPI
       .get()
-      .then((r) => setDonation(r.donation))
+      .then((r: any) => setDonation(r.donation))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [open]);
@@ -71,7 +71,7 @@ export default function DonateModal({ open, onClose }: any) {
             { icon: "💉", text: "Cover emergency vet expenses" },
             { icon: "🏠", text: "Provide shelter and food to strays" },
             { icon: "❤️", text: "Support long-term pet wellbeing programs" },
-          ].map(({ icon, text }) => (
+          ].map(({ icon, text }: any) => (
             <div
               key={text}
               style={{

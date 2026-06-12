@@ -19,8 +19,8 @@ export default function ProfilePage() {
   const { t } = useTranslation(["profile", "common"]);
 
   const [isDesktop, setIsDesktop] = useState(false);
-  const [profile, setProfile] = useState(null);
-  const [pets, setPets] = useState([]);
+  const [profile, setProfile] = useState<any>(null);
+  const [pets, setPets] = useState<any[]>([]);
   const [completion, setCompletion] = useState({
     percentage: 0,
     badge: "bronze",
@@ -29,10 +29,10 @@ export default function ProfilePage() {
 
   // User form
   const [editingUser, setEditingUser] = useState(false);
-  const [userForm, setUserForm] = useState({});
+  const [userForm, setUserForm] = useState<any>({});
   const [savingUser, setSavingUser] = useState(false);
-  const [autoSaveStatus, setAutoSaveStatus] = useState(null); // null | 'saving' | 'saved'
-  const autoSaveTimer = useRef(null);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<any>(null); // null | 'saving' | 'saved'
+  const autoSaveTimer = useRef<any>(null);
 
   // Password form
   const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -50,7 +50,7 @@ export default function ProfilePage() {
 
   // Profile picture upload
   const [uploadingPicture, setUploadingPicture] = useState(false);
-  const profilePictureInputRef = useRef(null);
+  const profilePictureInputRef = useRef<any>(null);
 
   // Desktop detection
   useEffect(() => {
@@ -76,7 +76,7 @@ export default function ProfilePage() {
       setProfile(profileRes.user);
       setPets(profileRes.pets || []);
       setCompletion(completionRes);
-    } catch (err) {
+    } catch (err: any) {
       toast("Failed to load profile", "error");
     } finally {
       setLoadingProfile(false);
@@ -109,8 +109,8 @@ export default function ProfilePage() {
   };
 
   // Auto-save user profile (debounced)
-  const handleUserFormChange = (k, v) => {
-    setUserForm((f) => ({ ...f, [k]: v }));
+  const handleUserFormChange = (k: any, v: any) => {
+    setUserForm((f: any) => ({ ...f, [k]: v }));
     setAutoSaveStatus("saving");
     clearTimeout(autoSaveTimer.current);
     autoSaveTimer.current = setTimeout(async () => {
@@ -143,7 +143,7 @@ export default function ProfilePage() {
       setAutoSaveStatus(null);
       toast("Profile updated successfully!", "success");
       refreshCompletion();
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to update profile", "error");
     } finally {
       setSavingUser(false);
@@ -151,7 +151,7 @@ export default function ProfilePage() {
   };
 
   // Save password
-  const handleSavePassword = async (e) => {
+  const handleSavePassword = async (e: any) => {
     e.preventDefault();
     if (!pwForm.current_password || !pwForm.new_password) {
       toast("All password fields are required", "error");
@@ -180,40 +180,40 @@ export default function ProfilePage() {
         new_password: "",
         confirm_password: "",
       });
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to update password", "error");
     } finally {
       setSavingPw(false);
     }
   };
 
-  const handlePetCreated = (pet) => {
-    setPets((prev) => [...prev, pet]);
+  const handlePetCreated = (pet: any) => {
+    setPets((prev: any) => [...prev, pet]);
     refreshCompletion();
   };
 
-  const handlePetDeleted = (petId) => {
-    setPets((prev) => prev.filter((p) => p.id !== petId));
+  const handlePetDeleted = (petId: any) => {
+    setPets((prev: any) => prev.filter((p: any) => p.id !== petId));
     refreshCompletion();
   };
 
-  const handlePetUpdated = (updatedPet) => {
-    setPets((prev) =>
-      prev.map((p) => (p.id === updatedPet.id ? updatedPet : p)),
+  const handlePetUpdated = (updatedPet: any) => {
+    setPets((prev: any) =>
+      prev.map((p: any) => (p.id === updatedPet.id ? updatedPet : p)),
     );
     refreshCompletion();
   };
 
-  const handleUploadProfilePicture = async (file) => {
+  const handleUploadProfilePicture = async (file: any) => {
     if (!file) return;
     setUploadingPicture(true);
     try {
       const res = await profileAPI.uploadPicture(file);
-      setProfile((p) => ({ ...p, profile_picture: res.user.profile_picture }));
+      setProfile((p: any) => ({ ...p, profile_picture: res.user.profile_picture }));
       updateUser(res.user);
       toast("Profile picture updated!", "success");
       refreshCompletion();
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to upload picture", "error");
     } finally {
       setUploadingPicture(false);
@@ -322,10 +322,10 @@ export default function ProfilePage() {
                   transition: "all 0.2s",
                   position: "relative",
                 }}
-                onMouseEnter={(e) => {
+                onMouseEnter={(e: any) => {
                   e.currentTarget.style.opacity = "0.8";
                 }}
-                onMouseLeave={(e) => {
+                onMouseLeave={(e: any) => {
                   e.currentTarget.style.opacity = "1";
                 }}
               >
@@ -355,7 +355,7 @@ export default function ProfilePage() {
                 type="file"
                 accept="image/*"
                 style={{ display: "none" }}
-                onChange={(e) => {
+                onChange={(e: any) => {
                   if (e.target.files?.[0]) {
                     handleUploadProfilePicture(e.target.files[0]);
                   }
@@ -466,7 +466,7 @@ export default function ProfilePage() {
                   <input
                     className="input-field"
                     value={userForm.name}
-                    onChange={(e) =>
+                    onChange={(e: any) =>
                       handleUserFormChange("name", e.target.value)
                     }
                     placeholder={t("profile:placeholders.name")}
@@ -491,7 +491,7 @@ export default function ProfilePage() {
                     type="email"
                     className="input-field"
                     value={userForm.email}
-                    onChange={(e) =>
+                    onChange={(e: any) =>
                       handleUserFormChange("email", e.target.value)
                     }
                     placeholder={t("profile:placeholders.email")}
@@ -504,7 +504,7 @@ export default function ProfilePage() {
                     className="input-field"
                     value={userForm.dob}
                     max={new Date().toISOString().split("T")[0]}
-                    onChange={(e) =>
+                    onChange={(e: any) =>
                       handleUserFormChange("dob", e.target.value)
                     }
                   />
@@ -514,7 +514,7 @@ export default function ProfilePage() {
                   <input
                     className="input-field"
                     value={userForm.occupation}
-                    onChange={(e) =>
+                    onChange={(e: any) =>
                       handleUserFormChange("occupation", e.target.value)
                     }
                     placeholder={t("profile:placeholders.occupation")}
@@ -526,7 +526,7 @@ export default function ProfilePage() {
                     className="input-field"
                     rows={2}
                     value={userForm.address}
-                    onChange={(e) =>
+                    onChange={(e: any) =>
                       handleUserFormChange("address", e.target.value)
                     }
                     placeholder={t("profile:placeholders.address")}
@@ -550,7 +550,7 @@ export default function ProfilePage() {
                   {t("common:buttons.cancel")}
                 </button>
                 <button
-                  onClick={() => setShowPasswordForm((v) => !v)}
+                  onClick={() => setShowPasswordForm((v: any) => !v)}
                   style={{
                     ...cancelBtnStyle,
                     borderColor: "var(--border-accent)",
@@ -603,8 +603,8 @@ export default function ProfilePage() {
                           type={showPasswords.current ? "text" : "password"}
                           className="input-field"
                           value={pwForm.current_password}
-                          onChange={(e) =>
-                            setPwForm((f) => ({
+                          onChange={(e: any) =>
+                            setPwForm((f: any) => ({
                               ...f,
                               current_password: e.target.value,
                             }))
@@ -615,7 +615,7 @@ export default function ProfilePage() {
                         {pwForm.current_password && (
                           <button
                             type="button"
-                            onClick={() => setShowPasswords((s) => ({ ...s, current: !s.current }))}
+                            onClick={() => setShowPasswords((s: any) => ({ ...s, current: !s.current }))}
                             style={{
                               position: "absolute",
                               right: 12,
@@ -641,8 +641,8 @@ export default function ProfilePage() {
                           type={showPasswords.new ? "text" : "password"}
                           className="input-field"
                           value={pwForm.new_password}
-                          onChange={(e) =>
-                            setPwForm((f) => ({
+                          onChange={(e: any) =>
+                            setPwForm((f: any) => ({
                               ...f,
                               new_password: e.target.value,
                             }))
@@ -653,7 +653,7 @@ export default function ProfilePage() {
                         {pwForm.new_password && (
                           <button
                             type="button"
-                            onClick={() => setShowPasswords((s) => ({ ...s, new: !s.new }))}
+                            onClick={() => setShowPasswords((s: any) => ({ ...s, new: !s.new }))}
                             style={{
                               position: "absolute",
                               right: 12,
@@ -680,8 +680,8 @@ export default function ProfilePage() {
                           type={showPasswords.confirm ? "text" : "password"}
                           className="input-field"
                           value={pwForm.confirm_password}
-                          onChange={(e) =>
-                            setPwForm((f) => ({
+                          onChange={(e: any) =>
+                            setPwForm((f: any) => ({
                               ...f,
                               confirm_password: e.target.value,
                             }))
@@ -692,7 +692,7 @@ export default function ProfilePage() {
                         {pwForm.confirm_password && (
                           <button
                             type="button"
-                            onClick={() => setShowPasswords((s) => ({ ...s, confirm: !s.confirm }))}
+                            onClick={() => setShowPasswords((s: any) => ({ ...s, confirm: !s.confirm }))}
                             style={{
                               position: "absolute",
                               right: 12,
@@ -803,7 +803,7 @@ export default function ProfilePage() {
                     value: profile.address,
                     full: true,
                   },
-                ].map(({ icon, label, value, full }) =>
+                ].map(({ icon, label, value, full }: any) =>
                   value ? (
                     <div key={icon} style={full ? { gridColumn: "1/-1" } : {}}>
                       <div
@@ -853,7 +853,7 @@ export default function ProfilePage() {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              {pets.map((pet) => (
+              {pets.map((pet: any) => (
                 <PetCard
                   key={pet.id}
                   pet={pet}
@@ -880,7 +880,7 @@ const labelStyle = {
   letterSpacing: "0.4px",
 };
 
-const saveBtnStyle = (saving) => ({
+const saveBtnStyle = (saving: any) => ({
   flex: 2,
   padding: "10px 24px",
   borderRadius: 8,

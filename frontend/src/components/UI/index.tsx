@@ -52,17 +52,17 @@ export function Button({ children, variant = 'accent', size = 'md', loading, dis
       disabled={disabled || loading}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: 6,
-        padding: sizes[size],
+        padding: (sizes as any)[size],
         borderRadius: 8,
-        fontSize: fontSizes[size],
+        fontSize: (fontSizes as any)[size],
         fontFamily: 'DM Sans, sans-serif',
         cursor: disabled || loading ? 'not-allowed' : 'pointer',
         border: 'none',
         transition: 'all 0.2s',
         opacity: disabled ? 0.6 : 1,
         whiteSpace: 'nowrap',
-        minHeight: minHeights[size],
-        ...variants[variant],
+        minHeight: (minHeights as any)[size],
+        ...(variants as any)[variant],
         ...style,
       }}
       {...props}
@@ -105,7 +105,7 @@ export function Badge({ children, color = 'accent' }: any) {
     gray: { bg: 'var(--bg-elevated)', border: 'var(--border)', color: 'var(--text-muted)' },
     info: { bg: 'rgba(99,179,237,0.12)', border: 'rgba(99,179,237,0.3)', color: '#63b3ed' },
   };
-  const c = colors[color] || colors.accent;
+  const c = (colors as any)[color] || colors.accent;
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center',
@@ -142,7 +142,7 @@ export function StarInput({ value, onChange }: any) {
   const [hover, setHover] = useState(0);
   return (
     <div style={{ display: 'flex', gap: 4 }}>
-      {[1, 2, 3, 4, 5].map(i => (
+      {[1, 2, 3, 4, 5].map((i: any) => (
         <button
           key={i}
           onClick={() => onChange(i)}
@@ -231,7 +231,7 @@ export function Alert({ type = 'error', children }: any) {
     info: { bg: 'rgba(99,179,237,0.12)', border: 'rgba(99,179,237,0.3)', color: '#63b3ed' },
     warning: { bg: 'rgba(240,165,0,0.12)', border: 'rgba(240,165,0,0.3)', color: '#f0a500' },
   };
-  const s = styles[type];
+  const s = (styles as any)[type];
   return (
     <div style={{ padding: '10px 14px', borderRadius: 8, fontSize: 13, background: s.bg, border: `1px solid ${s.border}`, color: s.color, marginBottom: 14 }}>
       {children}

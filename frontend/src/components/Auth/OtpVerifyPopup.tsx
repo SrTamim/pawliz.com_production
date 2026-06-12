@@ -22,7 +22,7 @@ export default function OtpVerifyPopup({
   useEffect(() => {
     if (timeLeft <= 0) return;
     const timer = setInterval(() => {
-      setTimeLeft((t) => {
+      setTimeLeft((t: any) => {
         if (t <= 1) { clearInterval(timer); return 0; }
         return t - 1;
       });
@@ -33,7 +33,7 @@ export default function OtpVerifyPopup({
   const mm = String(Math.floor(timeLeft / 60)).padStart(2, "0");
   const ss = String(timeLeft % 60).padStart(2, "0");
 
-  const handleOtpChange = (e) => {
+  const handleOtpChange = (e: any) => {
     const val = e.target.value.replace(/\D/g, "").slice(0, 6);
     setOtp(val);
   };

@@ -12,7 +12,7 @@ export default function FoundPetPostCard({ post, onPostDeleted }: any) {
   const petImage = parseImages(post.images)[0] || null;
   const imageUrl = getImageUrl(petImage);
 
-  const formatDate = (dateStr) => formatShortDate(dateStr) || t("common:words.unknown");
+  const formatDate = (dateStr: any) => formatShortDate(dateStr) || t("common:words.unknown");
 
   return (
     <>
@@ -27,7 +27,7 @@ export default function FoundPetPostCard({ post, onPostDeleted }: any) {
               src={imageUrl}
               alt="Found pet"
               className="w-full h-full object-cover"
-              onError={(e) => {
+              onError={(e: any) => {
                 (e.target as any).style.display = "none";
               }}
             />
@@ -92,7 +92,7 @@ export default function FoundPetPostCard({ post, onPostDeleted }: any) {
               className="shrink-0"
             />
             <button
-              onClick={(e) => {
+              onClick={(e: any) => {
                 e.stopPropagation();
                 setDetailsOpen(true);
               }}

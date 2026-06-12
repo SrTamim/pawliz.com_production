@@ -74,9 +74,9 @@ export default function LostPetModal({ pet, open, onClose, onMarkedLost }: any) 
       maxZoom: 19,
     }).addTo(map);
 
-    map.on("click", (e) => {
+    map.on("click", (e: any) => {
       const { lat, lng } = e.latlng;
-      setForm((f) => ({
+      setForm((f: any) => ({
         ...f,
         lost_latitude: lat.toFixed(6),
         lost_longitude: lng.toFixed(6),
@@ -98,11 +98,11 @@ export default function LostPetModal({ pet, open, onClose, onMarkedLost }: any) 
     }
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      (pos: any) => {
         const { latitude, longitude } = pos.coords;
         const L = leafletRef.current;
 
-        setForm((f) => ({
+        setForm((f: any) => ({
           ...f,
           lost_latitude: latitude.toFixed(6),
           lost_longitude: longitude.toFixed(6),
@@ -129,7 +129,7 @@ export default function LostPetModal({ pet, open, onClose, onMarkedLost }: any) 
     );
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     if (!form.lost_date) {
       toast(t("lostModal.lostDate"), "error");
@@ -147,7 +147,7 @@ export default function LostPetModal({ pet, open, onClose, onMarkedLost }: any) 
       toast(t("lostModal.markedSuccess", { name: pet.name }), "success");
       onMarkedLost(pet.id);
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to mark as lost", "error");
     } finally {
       setSaving(false);
@@ -173,7 +173,7 @@ export default function LostPetModal({ pet, open, onClose, onMarkedLost }: any) 
       }}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e: any) => e.stopPropagation()}
         style={{
           background: "var(--bg-card)",
           border: "1px solid var(--border)",
@@ -234,8 +234,8 @@ export default function LostPetModal({ pet, open, onClose, onMarkedLost }: any) 
               required
               max={new Date().toISOString().split("T")[0]}
               value={form.lost_date}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, lost_date: e.target.value }))
+              onChange={(e: any) =>
+                setForm((f: any) => ({ ...f, lost_date: e.target.value }))
               }
             />
           </div>
@@ -246,8 +246,8 @@ export default function LostPetModal({ pet, open, onClose, onMarkedLost }: any) 
               className="input-field"
               placeholder={t("lostModal.locationPlaceholder")}
               value={form.lost_location_name}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, lost_location_name: e.target.value }))
+              onChange={(e: any) =>
+                setForm((f: any) => ({ ...f, lost_location_name: e.target.value }))
               }
             />
           </div>
@@ -319,8 +319,8 @@ export default function LostPetModal({ pet, open, onClose, onMarkedLost }: any) 
               placeholder={t("lostModal.detailsPlaceholder")}
               value={form.additional_details}
               maxLength={1000}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, additional_details: e.target.value }))
+              onChange={(e: any) =>
+                setForm((f: any) => ({ ...f, additional_details: e.target.value }))
               }
               style={{ resize: "vertical", minHeight: 80 }}
             />

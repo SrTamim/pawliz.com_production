@@ -12,7 +12,7 @@ export default function AdoptionPostCard({ post, onPostDeleted }: any) {
   const petImage = parseImages(post.images)[0] || null;
   const imageUrl = getImageUrl(petImage);
 
-  const formatDate = (dateStr) => formatShortDate(dateStr) || t("common:words.unknown");
+  const formatDate = (dateStr: any) => formatShortDate(dateStr) || t("common:words.unknown");
 
   return (
     <>
@@ -27,7 +27,7 @@ export default function AdoptionPostCard({ post, onPostDeleted }: any) {
               src={imageUrl}
               alt={post.name}
               className="w-full h-full object-cover"
-              onError={(e) => { (e.target as any).style.display = "none"; }}
+              onError={(e: any) => { (e.target as any).style.display = "none"; }}
             />
           </div>
         ) : (
@@ -89,7 +89,7 @@ export default function AdoptionPostCard({ post, onPostDeleted }: any) {
               className="shrink-0"
             />
             <button
-              onClick={(e) => { e.stopPropagation(); setDetailsOpen(true); }}
+              onClick={(e: any) => { e.stopPropagation(); setDetailsOpen(true); }}
               className="flex-1 px-2 sm:px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-xs sm:text-sm font-semibold hover:opacity-90 transition-all"
             >
               <span className="sm:hidden">{t("lostfound:card.details", "Details")}</span>

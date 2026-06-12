@@ -19,7 +19,7 @@ export default function FoundPetModal({ open, onClose, onCreated, editPost }: an
   const pinIconRef = useRef<any>(null);
   const isEdit = !!editPost;
 
-  const parseExistingImages = (raw) => {
+  const parseExistingImages = (raw: any) => {
     if (!raw) return [];
     if (Array.isArray(raw)) return raw;
     try {
@@ -127,9 +127,9 @@ export default function FoundPetModal({ open, onClose, onCreated, editPost }: an
       markerRef.current = L.marker([initLat, initLng], { icon: pinIconRef.current }).addTo(map);
     }
 
-    map.on("click", (e) => {
+    map.on("click", (e: any) => {
       const { lat, lng } = e.latlng;
-      setForm((f) => ({
+      setForm((f: any) => ({
         ...f,
         found_latitude: lat.toFixed(6),
         found_longitude: lng.toFixed(6),
@@ -149,11 +149,11 @@ export default function FoundPetModal({ open, onClose, onCreated, editPost }: an
     }
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      (pos: any) => {
         const { latitude, longitude } = pos.coords;
         const L = leafletRef.current;
 
-        setForm((f) => ({
+        setForm((f: any) => ({
           ...f,
           found_latitude: latitude.toFixed(6),
           found_longitude: longitude.toFixed(6),
@@ -180,7 +180,7 @@ export default function FoundPetModal({ open, onClose, onCreated, editPost }: an
     );
   };
 
-  const handleImageSelect = (e) => {
+  const handleImageSelect = (e: any) => {
     const files = Array.from(e.target.files);
     if (form.images.length + files.length > 3) {
       toast(t("form.maxImagesError"), "error");
@@ -188,24 +188,24 @@ export default function FoundPetModal({ open, onClose, onCreated, editPost }: an
     }
 
     const newImages = [...form.images, ...files].slice(0, 3);
-    setForm((f) => ({ ...f, images: newImages }));
+    setForm((f: any) => ({ ...f, images: newImages }));
 
     // Create previews
-    const previews = newImages.map((file) => URL.createObjectURL(file));
+    const previews = newImages.map((file: any) => URL.createObjectURL(file));
     setImagePreviews(previews);
   };
 
-  const handleRemoveImage = (index) => {
-    const newImages = form.images.filter((_, i) => i !== index);
-    setForm((f) => ({ ...f, images: newImages }));
+  const handleRemoveImage = (index: any) => {
+    const newImages = form.images.filter((_: any, i: any) => i !== index);
+    setForm((f: any) => ({ ...f, images: newImages }));
 
-    setImagePreviews((prev) => {
+    setImagePreviews((prev: any) => {
       URL.revokeObjectURL(prev[index]);
-      return prev.filter((_, i) => i !== index);
+      return prev.filter((_: any, i: any) => i !== index);
     });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
 
     if (!form.pet_type || !form.found_date) {
@@ -225,7 +225,7 @@ export default function FoundPetModal({ open, onClose, onCreated, editPost }: an
       }
       onCreated();
       handleClose();
-    } catch (err) {
+    } catch (err: any) {
       toast(
         err.message || (isEdit ? t("form.updateFailed") : t("form.createFailed")),
         "error",
@@ -237,7 +237,7 @@ export default function FoundPetModal({ open, onClose, onCreated, editPost }: an
 
   const handleClose = () => {
     // Cleanup previews
-    imagePreviews.forEach((preview) => URL.revokeObjectURL(preview));
+    imagePreviews.forEach((preview: any) => URL.revokeObjectURL(preview));
 
     setForm({
       pet_type: "dog",
@@ -264,7 +264,7 @@ export default function FoundPetModal({ open, onClose, onCreated, editPost }: an
       style={{ paddingTop: "calc(var(--header-height) + 16px)", paddingBottom: "calc(var(--bottom-nav-height, 64px) + 16px)" }}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e: any) => e.stopPropagation()}
         className="bg-[var(--bg-card)] border border-[var(--border)] rounded-lg w-full max-w-2xl max-h-[85vh] md:max-h-[80vh] overflow-y-auto shadow-xl mx-3 md:mx-0"
       >
         {/* Header */}
@@ -290,8 +290,8 @@ export default function FoundPetModal({ open, onClose, onCreated, editPost }: an
               </label>
               <select
                 value={form.pet_type}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, pet_type: e.target.value }))
+                onChange={(e: any) =>
+                  setForm((f: any) => ({ ...f, pet_type: e.target.value }))
                 }
                 className="input-field w-full"
                 style={{
@@ -299,7 +299,7 @@ export default function FoundPetModal({ open, onClose, onCreated, editPost }: an
                   border: "1px solid var(--border)",
                 }}
               >
-                {PET_TYPES.map((type) => (
+                {PET_TYPES.map((type: any) => (
                   <option key={type} value={type}>
                     {type.charAt(0).toUpperCase() + type.slice(1)}
                   </option>
@@ -312,8 +312,8 @@ export default function FoundPetModal({ open, onClose, onCreated, editPost }: an
               </label>
               <select
                 value={form.gender}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, gender: e.target.value }))
+                onChange={(e: any) =>
+                  setForm((f: any) => ({ ...f, gender: e.target.value }))
                 }
                 className="input-field w-full"
                 style={{
@@ -322,7 +322,7 @@ export default function FoundPetModal({ open, onClose, onCreated, editPost }: an
                 }}
               >
                 <option value="">{t("foundModal.notSpecified")}</option>
-                {GENDERS.map((gender) => (
+                {GENDERS.map((gender: any) => (
                   <option key={gender} value={gender}>
                     {gender.charAt(0).toUpperCase() + gender.slice(1)}
                   </option>
@@ -342,8 +342,8 @@ export default function FoundPetModal({ open, onClose, onCreated, editPost }: an
                 placeholder={t("foundModal.colorPlaceholder")}
                 value={form.color}
                 maxLength={100}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, color: e.target.value }))
+                onChange={(e: any) =>
+                  setForm((f: any) => ({ ...f, color: e.target.value }))
                 }
                 className="input-field w-full"
                 style={{
@@ -361,8 +361,8 @@ export default function FoundPetModal({ open, onClose, onCreated, editPost }: an
                 placeholder={t("foundModal.breedPlaceholder")}
                 value={form.breed}
                 maxLength={100}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, breed: e.target.value }))
+                onChange={(e: any) =>
+                  setForm((f: any) => ({ ...f, breed: e.target.value }))
                 }
                 className="input-field w-full"
                 style={{
@@ -381,8 +381,8 @@ export default function FoundPetModal({ open, onClose, onCreated, editPost }: an
             <input
               type="date"
               value={form.found_date}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, found_date: e.target.value }))
+              onChange={(e: any) =>
+                setForm((f: any) => ({ ...f, found_date: e.target.value }))
               }
               max={new Date().toISOString().split("T")[0]}
               className="input-field w-full"
@@ -404,8 +404,8 @@ export default function FoundPetModal({ open, onClose, onCreated, editPost }: an
               placeholder={t("foundModal.locationPlaceholder")}
               value={form.found_location_name}
               maxLength={200}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, found_location_name: e.target.value }))
+              onChange={(e: any) =>
+                setForm((f: any) => ({ ...f, found_location_name: e.target.value }))
               }
               className="input-field w-full"
               style={{
@@ -447,8 +447,8 @@ export default function FoundPetModal({ open, onClose, onCreated, editPost }: an
             <textarea
               placeholder={t("foundModal.descPlaceholder")}
               value={form.description}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, description: e.target.value }))
+              onChange={(e: any) =>
+                setForm((f: any) => ({ ...f, description: e.target.value }))
               }
               maxLength={1000}
               className="input-field w-full resize-none"
@@ -471,8 +471,8 @@ export default function FoundPetModal({ open, onClose, onCreated, editPost }: an
               </label>
               <select
                 value={form.status || "found"}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, status: e.target.value }))
+                onChange={(e: any) =>
+                  setForm((f: any) => ({ ...f, status: e.target.value }))
                 }
                 className="input-field w-full"
                 style={{
@@ -493,7 +493,7 @@ export default function FoundPetModal({ open, onClose, onCreated, editPost }: an
                 {t("foundModal.existingImages")}
               </label>
               <div className="grid grid-cols-3 gap-2">
-                {existingImages.map((img, idx) => (
+                {existingImages.map((img: any, idx: any) => (
                   <div key={idx} className="relative">
                     <img
                       src={
@@ -503,7 +503,7 @@ export default function FoundPetModal({ open, onClose, onCreated, editPost }: an
                       }
                       alt={`Existing ${idx + 1}`}
                       className="w-full h-20 object-cover rounded-lg border border-[var(--border)]"
-                      onError={(e) => {
+                      onError={(e: any) => {
                         (e.target as any).style.opacity = 0.3;
                       }}
                     />
@@ -545,7 +545,7 @@ export default function FoundPetModal({ open, onClose, onCreated, editPost }: an
             {/* Image Previews */}
             {imagePreviews.length > 0 && (
               <div className="grid grid-cols-3 gap-2 mt-4">
-                {imagePreviews.map((preview, index) => (
+                {imagePreviews.map((preview: any, index: any) => (
                   <div key={index} className="relative">
                     <img
                       src={preview}

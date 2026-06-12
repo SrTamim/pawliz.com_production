@@ -6,7 +6,7 @@ const STARS = [5, 4, 3, 2, 1];
 function StarDisplay({ rating }: any) {
   return (
     <span>
-      {[1, 2, 3, 4, 5].map((s) => (
+      {[1, 2, 3, 4, 5].map((s: any) => (
         <span key={s} style={{ color: s <= rating ? "#f0a500" : "var(--border)", fontSize: 15 }}>★</span>
       ))}
     </span>
@@ -27,11 +27,11 @@ export default function VetReviews({ reviews }: any) {
   if (!reviews) return null;
 
   const avg = reviews.length
-    ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
+    ? (reviews.reduce((s: any, r: any) => s + r.rating, 0) / reviews.length).toFixed(1)
     : null;
 
-  const dist = STARS.reduce((acc, s) => {
-    acc[s] = reviews.filter((r) => r.rating === s).length;
+  const dist = STARS.reduce((acc: any, s: any) => {
+    acc[s] = reviews.filter((r: any) => r.rating === s).length;
     return acc;
   }, {});
 
@@ -55,7 +55,7 @@ export default function VetReviews({ reviews }: any) {
               <div style={{ color: "var(--text-secondary)", fontSize: 12 }}>{t("detail.reviewsCount", { count: reviews.length })}</div>
             </div>
             <div style={{ flex: 1, minWidth: 180 }}>
-              {STARS.map((s) => (
+              {STARS.map((s: any) => (
                 <div key={s} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                   <span style={{ fontSize: 12, color: "var(--text-secondary)", width: 10 }}>{s}</span>
                   <span style={{ color: "#f0a500", fontSize: 12 }}>★</span>
@@ -73,7 +73,7 @@ export default function VetReviews({ reviews }: any) {
 
           {/* Review list */}
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {reviews.map((r) => (
+            {reviews.map((r: any) => (
               <div key={r.id} style={{
                 background: "var(--bg-card)", borderRadius: 10, padding: "16px 18px",
                 border: "1px solid var(--border)",

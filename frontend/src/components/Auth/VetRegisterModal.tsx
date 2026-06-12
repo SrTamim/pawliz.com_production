@@ -42,7 +42,7 @@ export default function VetRegisterModal({ open, onClose }: any) {
     confirm_password: "",
   });
 
-  const set = (key, val) => setForm((prev) => ({ ...prev, [key]: val }));
+  const set = (key: any, val: any) => setForm((prev: any) => ({ ...prev, [key]: val }));
 
   const passwordsMatch = form.password && form.confirm_password && form.password === form.confirm_password;
 
@@ -57,7 +57,7 @@ export default function VetRegisterModal({ open, onClose }: any) {
     ...(skipMatch ? { skipMatch: true } : {}),
   });
 
-  const doRegister = async (np) => {
+  const doRegister = async (np: any) => {
     const data = await vetAuthAPI.register(buildPayload(np));
     if (data.matchFound) {
       setOtpPhase(false);
@@ -98,20 +98,20 @@ export default function VetRegisterModal({ open, onClose }: any) {
       } else {
         setOtpPhase(true);
       }
-    } catch (e) {
+    } catch (e: any) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOtpVerify = async (otp) => {
+  const handleOtpVerify = async (otp: any) => {
     setOtpLoading(true);
     setOtpError("");
     try {
       await authAPI.verifyOtp(normalizedPhone, otp);
       await doRegister(normalizedPhone);
-    } catch (e) {
+    } catch (e: any) {
       setOtpError(e.message);
     } finally {
       setOtpLoading(false);
@@ -120,7 +120,7 @@ export default function VetRegisterModal({ open, onClose }: any) {
 
   const handleOtpResend = async () => {
     try { await authAPI.sendOtp(normalizedPhone); } catch { /* ignore */ }
-    setResendKey((k) => k + 1);
+    setResendKey((k: any) => k + 1);
   };
 
   const handleSendClinicOtp = async () => {
@@ -132,7 +132,7 @@ export default function VetRegisterModal({ open, onClose }: any) {
       await authAPI.sendOtp(normalizedContact);
       setClinicOtpSent(true);
       setClinicOtpExpired(false);
-      setClinicResendKey((k) => k + 1);
+      setClinicResendKey((k: any) => k + 1);
     } catch {
       setClinicOtpError("Failed to send OTP to clinic phone. Try again.");
     } finally {
@@ -145,7 +145,7 @@ export default function VetRegisterModal({ open, onClose }: any) {
     const normalizedContact = /^88(01[3-9]\d{8})$/.test(rawContact) ? rawContact.slice(2) : rawContact;
     try { await authAPI.sendOtp(normalizedContact); } catch { /* ignore */ }
     setClinicOtpExpired(false);
-    setClinicResendKey((k) => k + 1);
+    setClinicResendKey((k: any) => k + 1);
   };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -154,7 +154,7 @@ export default function VetRegisterModal({ open, onClose }: any) {
     setClinicOtpTimer(120);
     setClinicOtpExpired(false);
     const interval = setInterval(() => {
-      setClinicOtpTimer((t) => {
+      setClinicOtpTimer((t: any) => {
         if (t <= 1) { clearInterval(interval); setClinicOtpExpired(true); return 0; }
         return t - 1;
       });
@@ -172,7 +172,7 @@ export default function VetRegisterModal({ open, onClose }: any) {
       } else {
         window.location.href = "/vet-dashboard";
       }
-    } catch (e) {
+    } catch (e: any) {
       setError(e.message);
     } finally {
       setLoading(false);
@@ -185,7 +185,7 @@ export default function VetRegisterModal({ open, onClose }: any) {
     try {
       await vetAuthAPI.claimVet(matchResult.id, { ...buildPayload(), clinic_otp: clinicOtp });
       window.location.href = "/vet-dashboard";
-    } catch (e) {
+    } catch (e: any) {
       setError(e.message);
     } finally {
       setClaiming(false);
@@ -213,7 +213,7 @@ export default function VetRegisterModal({ open, onClose }: any) {
           <div style={{ padding: 14, background: "var(--bg-elevated)", borderRadius: 10, marginBottom: 16 }}>
             {matchResult.image && (
               <img
-                src={getImageUrl(matchResult.image)}
+                src={getImageUrl(matchResult.image) ?? undefined}
                 alt={matchResult.name || matchResult.clinic_name}
                 style={{ width: 64, height: 64, borderRadius: 8, objectFit: "cover", marginBottom: 10, display: "block" }}
               />
@@ -237,7 +237,7 @@ export default function VetRegisterModal({ open, onClose }: any) {
               </div>
               <Input
                 value={clinicOtp}
-                onChange={(e) => setClinicOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                onChange={(e: any) => setClinicOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
                 placeholder="Enter 6-digit OTP"
                 maxLength={6}
                 type="text"
@@ -289,27 +289,27 @@ export default function VetRegisterModal({ open, onClose }: any) {
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div>
               <label className="label">{t("register.clinicName")}</label>
-              <Input value={form.clinic_name} onChange={(e) => set("clinic_name", e.target.value)} placeholder="Clinic name" />
+              <Input value={form.clinic_name} onChange={(e: any) => set("clinic_name", e.target.value)} placeholder="Clinic name" />
             </div>
             <div>
               <label className="label">{t("register.accountOwnerName")}</label>
-              <Input value={form.account_owner_name} onChange={(e) => set("account_owner_name", e.target.value)} placeholder="Owner / Manager name" />
+              <Input value={form.account_owner_name} onChange={(e: any) => set("account_owner_name", e.target.value)} placeholder="Owner / Manager name" />
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div>
                 <label className="label">{t("register.phone")}</label>
-                <Input value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="01XXXXXXXXX" maxLength={13} type="tel" />
+                <Input value={form.phone} onChange={(e: any) => set("phone", e.target.value)} placeholder="01XXXXXXXXX" maxLength={13} type="tel" />
               </div>
               <div>
                 <label className="label">{t("register.email")}</label>
-                <Input value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="your@email.com" type="email" />
+                <Input value={form.email} onChange={(e: any) => set("email", e.target.value)} placeholder="your@email.com" type="email" />
               </div>
             </div>
 
             <div>
               <label className="label">{t("register.address")}</label>
-              <Input value={form.address} onChange={(e) => set("address", e.target.value)} placeholder="Full address" />
+              <Input value={form.address} onChange={(e: any) => set("address", e.target.value)} placeholder="Full address" />
             </div>
 
             <div>
@@ -317,7 +317,7 @@ export default function VetRegisterModal({ open, onClose }: any) {
               <div style={{ position: "relative" }}>
                 <Input
                   value={form.password}
-                  onChange={(e) => set("password", e.target.value)}
+                  onChange={(e: any) => set("password", e.target.value)}
                   placeholder="Min 8 characters"
                   type={showPassword ? "text" : "password"}
                   style={{ paddingRight: "40px" }}
@@ -338,7 +338,7 @@ export default function VetRegisterModal({ open, onClose }: any) {
               <div style={{ position: "relative" }}>
                 <Input
                   value={form.confirm_password}
-                  onChange={(e) => set("confirm_password", e.target.value)}
+                  onChange={(e: any) => set("confirm_password", e.target.value)}
                   placeholder="Re-enter password"
                   type={showConfirmPassword ? "text" : "password"}
                   style={{ paddingRight: "40px", borderColor: form.confirm_password ? (passwordsMatch ? "var(--accent)" : "#ef4444") : undefined }}
@@ -369,7 +369,7 @@ export default function VetRegisterModal({ open, onClose }: any) {
               <input
                 type="checkbox"
                 checked={termsAccepted}
-                onChange={(e) => setTermsAccepted(e.target.checked)}
+                onChange={(e: any) => setTermsAccepted(e.target.checked)}
                 style={{ width: 16, height: 16, accentColor: "#00e5a0", cursor: "pointer", flexShrink: 0 }}
               />
               <span>

@@ -1,5 +1,5 @@
 // One-shot icon generator from public/logo.svg → raster PWA/favicon assets.
-// Run: node scripts/gen-icons.mjs
+// Run: npx tsx scripts/gen-icons.ts
 import sharp from "sharp";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -22,7 +22,7 @@ const maskable = [
   ["icon-512.png", 512],
 ];
 
-for (const [name, size] of plain) {
+for (const [name, size] of plain as [string, number][]) {
   await sharp(svg, { density: 384 })
     .resize(size, size, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
     .png()
@@ -30,12 +30,12 @@ for (const [name, size] of plain) {
   console.log("wrote", name, `${size}x${size}`);
 }
 
-for (const [name, size] of maskable) {
+for (const [name, size] of maskable as [string, number][]) {
   const inner = Math.round(size * 0.8);
   const pad = Math.round((size - inner) / 2);
   const logo = await sharp(svg, { density: 384 }).resize(inner, inner).png().toBuffer();
   await sharp({
-    create: { width: size, height: size, channels: 4, background: { r: 16, g: 185, b: 129, alpha: 1 } },
+    create: { width: size, height: size, channels: 4 as const, background: { r: 16, g: 185, b: 129, alpha: 1 } },
   })
     .composite([{ input: logo, top: pad, left: pad }])
     .png()

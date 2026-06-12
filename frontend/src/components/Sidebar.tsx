@@ -22,24 +22,24 @@ export default function Sidebar({
   const debounceRef = useRef<any>(null);
   const { t } = useTranslation("vet");
 
-  const handleSearch = (val) => {
+  const handleSearch = (val: any) => {
     setSearchVal(val);
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => onSearch(val, activeLocation), 400);
   };
 
-  const handleLocation = (loc) => {
+  const handleLocation = (loc: any) => {
     setActiveLocation(loc);
     onFilterLocation(loc, searchVal);
   };
 
-  const handleRating = (r) => {
-    setActiveRating((prev) => (prev === r ? 0 : r));
+  const handleRating = (r: any) => {
+    setActiveRating((prev: any) => (prev === r ? 0 : r));
   };
 
   const displayed =
     activeRating > 0
-      ? vets.filter((v) => parseFloat(v.avg_rating || 0) >= activeRating)
+      ? vets.filter((v: any) => parseFloat(v.avg_rating || 0) >= activeRating)
       : vets;
 
   return (
@@ -96,7 +96,7 @@ export default function Sidebar({
             name="search"
             className="input-field"
             value={searchVal}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={(e: any) => handleSearch(e.target.value)}
             placeholder={t("search")}
             style={{ paddingLeft: 34 }}
             autoComplete="off"
@@ -145,7 +145,7 @@ export default function Sidebar({
           {t("minRating")}
         </div>
         <div style={{ display: "flex", gap: 5 }}>
-          {[0, 3, 4, 5].map((r) => (
+          {[0, 3, 4, 5].map((r: any) => (
             <button
               key={r}
               onClick={() => handleRating(r)}
@@ -199,7 +199,7 @@ export default function Sidebar({
       {/* Vet List */}
       <div
         style={{ flex: 1, overflowY: "auto", padding: "8px 12px" }}
-        onScroll={(e) => {
+        onScroll={(e: any) => {
           if (!hasMore || loading || !onLoadMore) return;
           const el = e.currentTarget;
           if (el.scrollHeight - el.scrollTop - el.clientHeight < 200) {
@@ -217,7 +217,7 @@ export default function Sidebar({
           />
         ) : (
           <>
-            {displayed.map((vet) => (
+            {displayed.map((vet: any) => (
               <VetListCard
                 key={vet.id}
                 vet={vet}
@@ -259,13 +259,13 @@ function VetListCard({ vet, selected, onClick }: any) {
         borderLeft: `3px solid ${selected ? "var(--accent)" : "transparent"}`,
         transform: selected ? "translateX(3px)" : "none",
       }}
-      onMouseEnter={(e) => {
+      onMouseEnter={(e: any) => {
         if (!selected) {
           e.currentTarget.style.borderColor = "var(--border-accent)";
           e.currentTarget.style.transform = "translateX(3px)";
         }
       }}
-      onMouseLeave={(e) => {
+      onMouseLeave={(e: any) => {
         if (!selected) {
           e.currentTarget.style.borderColor = "var(--border)";
           e.currentTarget.style.transform = "none";

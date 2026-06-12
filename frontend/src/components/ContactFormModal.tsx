@@ -13,7 +13,7 @@ export default function ContactFormModal({ open, onClose, postId, postType, owne
 
   if (!open) return null;
 
-  const handlePhoneChange = (val) => {
+  const handlePhoneChange = (val: any) => {
     setPhone(val);
     if (val && !BD_PHONE_RE.test(val.trim())) {
       setPhoneError("Enter valid BD number (e.g. 01712345678)");
@@ -22,7 +22,7 @@ export default function ContactFormModal({ open, onClose, postId, postType, owne
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     if (!BD_PHONE_RE.test(phone.trim())) {
       setPhoneError("Enter valid BD number (e.g. 01712345678)");
@@ -37,7 +37,7 @@ export default function ContactFormModal({ open, onClose, postId, postType, owne
       setMessage("");
       setPhoneError("");
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to send contact request", "error");
     } finally {
       setSubmitting(false);
@@ -50,7 +50,7 @@ export default function ContactFormModal({ open, onClose, postId, postType, owne
       className="fixed inset-0 bg-black/50 z-[70] flex items-center justify-center p-4"
     >
       <div
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e: any) => e.stopPropagation()}
         className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-6 w-full max-w-md shadow-xl"
       >
         <div className="flex items-center justify-between mb-4">
@@ -73,7 +73,7 @@ export default function ContactFormModal({ open, onClose, postId, postType, owne
             <input
               type="tel"
               value={phone}
-              onChange={(e) => handlePhoneChange(e.target.value)}
+              onChange={(e: any) => handlePhoneChange(e.target.value)}
               placeholder="e.g. 01712345678"
               maxLength={14}
               required
@@ -94,7 +94,7 @@ export default function ContactFormModal({ open, onClose, postId, postType, owne
             </label>
             <textarea
               value={message}
-              onChange={(e) => setMessage(e.target.value.slice(0, 500))}
+              onChange={(e: any) => setMessage(e.target.value.slice(0, 500))}
               placeholder="Write your message to the owner..."
               maxLength={500}
               required

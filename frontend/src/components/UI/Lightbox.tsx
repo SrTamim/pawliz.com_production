@@ -13,7 +13,7 @@ export default function Lightbox({ images = [], initialIndex = 0, isOpen, onClos
   useEffect(() => {
     if (!isOpen) return;
 
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: any) => {
       if (e.key === 'ArrowLeft') goToPrev();
       if (e.key === 'ArrowRight') goToNext();
       if (e.key === 'Escape') onClose();
@@ -24,18 +24,18 @@ export default function Lightbox({ images = [], initialIndex = 0, isOpen, onClos
   }, [currentIndex, isOpen, onClose]);
 
   const goToNext = () => {
-    setCurrentIndex((i) => (i + 1) % images.length);
+    setCurrentIndex((i: any) => (i + 1) % images.length);
   };
 
   const goToPrev = () => {
-    setCurrentIndex((i) => (i - 1 + images.length) % images.length);
+    setCurrentIndex((i: any) => (i - 1 + images.length) % images.length);
   };
 
-  const handleTouchStart = (e) => {
+  const handleTouchStart = (e: any) => {
     setTouchStart(e.touches[0].clientX);
   };
 
-  const handleTouchEnd = (e) => {
+  const handleTouchEnd = (e: any) => {
     if (!touchStart) return;
     const touchEnd = e.changedTouches[0].clientX;
     const diff = touchStart - touchEnd;
@@ -62,7 +62,7 @@ export default function Lightbox({ images = [], initialIndex = 0, isOpen, onClos
         zIndex: 1001,
         animation: 'fadeIn 0.2s ease-out',
       }}
-      onClick={(e) => {
+      onClick={(e: any) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
@@ -102,7 +102,7 @@ export default function Lightbox({ images = [], initialIndex = 0, isOpen, onClos
           justifyContent: 'center',
           overflow: 'hidden',
         }}
-        onClick={(e) => {
+        onClick={(e: any) => {
           if (e.target === e.currentTarget) onClose();
         }}
         onTouchStart={handleTouchStart}
@@ -212,7 +212,7 @@ export default function Lightbox({ images = [], initialIndex = 0, isOpen, onClos
               padding: '0 8px',
             }}
           >
-            {images.map((img, i) => (
+            {images.map((img: any, i: any) => (
               <button
                 key={i}
                 onClick={() => setCurrentIndex(i)}

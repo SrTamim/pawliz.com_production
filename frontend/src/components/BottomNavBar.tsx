@@ -10,11 +10,11 @@ export default function BottomNavBar() {
   const { openAuth } = useNavbar();
   const { t } = useTranslation("common");
 
-  const isActive = (path) => {
+  const isActive = (path: any) => {
     return router.pathname === path;
   };
 
-  const handleProfileClick = (e) => {
+  const handleProfileClick = (e: any) => {
     if (!user) {
       e.preventDefault();
       openAuth("login");
@@ -68,7 +68,7 @@ export default function BottomNavBar() {
           padding: "0 8px",
         }}
       >
-        {navItems.map((item) => (
+        {navItems.map((item: any) => (
           <Link
             key={item.path}
             href={item.path}
@@ -92,13 +92,13 @@ export default function BottomNavBar() {
                 : "var(--text-secondary)",
               gap: 4,
             }}
-            onMouseEnter={(e) => {
+            onMouseEnter={(e: any) => {
               if (!isActive(item.path)) {
                 e.currentTarget.style.background = "var(--bg-hover)";
                 e.currentTarget.style.color = "var(--text-primary)";
               }
             }}
-            onMouseLeave={(e) => {
+            onMouseLeave={(e: any) => {
               if (!isActive(item.path)) {
                 e.currentTarget.style.background = "transparent";
                 e.currentTarget.style.color = "var(--text-secondary)";

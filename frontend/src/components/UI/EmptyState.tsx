@@ -35,8 +35,8 @@ export default function EmptyState({ icon = "📭", title, description, action =
             fontSize: '14px',
             transition: 'opacity 0.2s',
           }}
-          onMouseEnter={(e) => ((e.target as any).style.opacity = '0.8')}
-          onMouseLeave={(e) => ((e.target as any).style.opacity = '1')}
+          onMouseEnter={(e: any) => ((e.target as any).style.opacity = '0.8')}
+          onMouseLeave={(e: any) => ((e.target as any).style.opacity = '1')}
         >
           {action.label}
         </button>

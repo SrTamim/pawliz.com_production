@@ -43,10 +43,10 @@ export default function PostDetailsModal({
     else setLoadingMoreComments(true);
     try {
       const data = await lostFoundAPI.getComments(postType, post.id, offset);
-      setComments((prev) => offset === 0 ? (data.comments || []) : [...prev, ...(data.comments || [])]);
+      setComments((prev: any) => offset === 0 ? (data.comments || []) : [...prev, ...(data.comments || [])]);
       setCommentsTotal(data.total || 0);
       setCommentsHasMore(data.hasMore || false);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to load comments:", err);
     } finally {
       setLoadingComments(false);
@@ -73,7 +73,7 @@ export default function PostDetailsModal({
       toast(t("details.deleteSuccess"), "success");
       if (onPostDeleted) onPostDeleted();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to delete report", "error");
     } finally {
       setDeleting(false);
@@ -82,7 +82,7 @@ export default function PostDetailsModal({
 
   if (!open || !post) return null;
 
-  const parseImages = (raw) => {
+  const parseImages = (raw: any) => {
     if (!raw) return [];
     if (Array.isArray(raw)) return raw;
     try {
@@ -95,7 +95,7 @@ export default function PostDetailsModal({
   const images = parseImages(post.images);
 
   // Format date
-  const formatDate = (dateStr) => {
+  const formatDate = (dateStr: any) => {
     if (!dateStr) return "Unknown";
     const date = new Date(dateStr);
     return date.toLocaleDateString("en-US", {
@@ -106,7 +106,7 @@ export default function PostDetailsModal({
   };
 
   // Format time ago
-  const formatTimeAgo = (dateStr) => {
+  const formatTimeAgo = (dateStr: any) => {
     if (!dateStr) return "Unknown";
     const date = new Date(dateStr);
     const now = new Date();
@@ -128,7 +128,7 @@ export default function PostDetailsModal({
       style={{ paddingTop: "calc(var(--header-height) + 16px)" }}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e: any) => e.stopPropagation()}
         className="bg-[var(--bg-card)] border border-[var(--border)] rounded-lg w-full max-w-3xl shadow-xl mx-3 md:mx-0 my-4"
       >
         {/* Header */}
@@ -171,7 +171,7 @@ export default function PostDetailsModal({
           {images.length > 0 && (
             <div className="mb-6">
               <div className="grid grid-cols-3 md:grid-cols-3 gap-2 md:gap-3 max-w-xs md:max-w-none mx-auto md:mx-0">
-                {images.map((image, idx) => (
+                {images.map((image: any, idx: any) => (
                   <button
                     key={idx}
                     type="button"
@@ -181,10 +181,10 @@ export default function PostDetailsModal({
                     aria-label={`View image ${idx + 1} fullscreen`}
                   >
                     <img
-                      src={getImageUrl(image)}
+                      src={getImageUrl(image) ?? undefined}
                       alt={`Pet image ${idx + 1}`}
                       className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform"
-                      onError={(e) => {
+                      onError={(e: any) => {
                         const placeholder = document.createElement("div");
                         placeholder.className = "flex items-center justify-center h-full text-[var(--text-secondary)]";
                         placeholder.textContent = "📷";
@@ -350,7 +350,7 @@ export default function PostDetailsModal({
                   }
                   alt={post.owner_name}
                   className="w-10 h-10 rounded-full object-cover bg-[var(--accent)]"
-                  onError={(e) => { (e.target as any).style.display = "none"; }}
+                  onError={(e: any) => { (e.target as any).style.display = "none"; }}
                 />
               ) : (
                 <div className="w-10 h-10 rounded-full bg-[var(--accent)] flex items-center justify-center text-white font-bold">
@@ -408,7 +408,7 @@ export default function PostDetailsModal({
       {/* Image Lightbox */}
       {lightboxIndex !== null && images[lightboxIndex] && (
         <div
-          onClick={(e) => {
+          onClick={(e: any) => {
             e.stopPropagation();
             setLightboxIndex(null);
           }}
@@ -416,7 +416,7 @@ export default function PostDetailsModal({
         >
           <button
             type="button"
-            onClick={(e) => {
+            onClick={(e: any) => {
               e.stopPropagation();
               setLightboxIndex(null);
             }}
@@ -429,7 +429,7 @@ export default function PostDetailsModal({
             <>
               <button
                 type="button"
-                onClick={(e) => {
+                onClick={(e: any) => {
                   e.stopPropagation();
                   setLightboxIndex(
                     (lightboxIndex - 1 + images.length) % images.length,
@@ -442,7 +442,7 @@ export default function PostDetailsModal({
               </button>
               <button
                 type="button"
-                onClick={(e) => {
+                onClick={(e: any) => {
                   e.stopPropagation();
                   setLightboxIndex((lightboxIndex + 1) % images.length);
                 }}
@@ -454,9 +454,9 @@ export default function PostDetailsModal({
             </>
           )}
           <img
-            src={getImageUrl(images[lightboxIndex])}
+            src={getImageUrl(images[lightboxIndex]) ?? undefined}
             alt={`Pet image ${lightboxIndex + 1}`}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e: any) => e.stopPropagation()}
             className="max-w-full max-h-[90vh] object-contain rounded-lg"
           />
           {images.length > 1 && (

@@ -25,7 +25,7 @@ export function useVets() {
       nextCursorRef.current = res.next_cursor || null;
       setHasMore(!!res.next_cursor);
       return res.vets || [];
-    } catch (e) {
+    } catch (e: any) {
       setError((e as Error).message);
       return [];
     } finally {
@@ -46,7 +46,7 @@ export function useVets() {
       setVets(prev => [...prev, ...(res.vets || [])]);
       nextCursorRef.current = res.next_cursor || null;
       setHasMore(!!res.next_cursor);
-    } catch (e) {
+    } catch (e: any) {
       setError((e as Error).message);
     } finally {
       setLoading(false);

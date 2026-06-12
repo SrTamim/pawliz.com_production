@@ -4,7 +4,7 @@ import Head from "next/head";
 import { petsAPI, getImageUrl } from "../../lib/api";
 import ContactFormModal from "../../components/ContactFormModal";
 
-export default function PublicPetProfile({ initialPet = null }) {
+export default function PublicPetProfile({ initialPet = null }: any) {
   const router = useRouter();
   const { petId } = router.query;
   // Seed from SSR so OG/first paint match; client useEffect still refetches as source of truth.
@@ -32,8 +32,8 @@ export default function PublicPetProfile({ initialPet = null }) {
   useEffect(() => {
     if (!petId) return;
     petsAPI
-      .getPublic(petId)
-      .then((res) => {
+      .getPublic(petId as string)
+      .then((res: any) => {
         setPet(res.pet);
         if (res.pet.images) {
           const images = Array.isArray(res.pet.images)
@@ -44,7 +44,7 @@ export default function PublicPetProfile({ initialPet = null }) {
       })
       // Only flag not-found if SSR didn't already provide a valid pet — a transient
       // client refetch failure must not hide a pet the server already resolved.
-      .catch(() => setPet((prev) => { if (!prev) setNotFound(true); return prev; }))
+      .catch(() => setPet((prev: any) => { if (!prev) setNotFound(true); return prev; }))
       .finally(() => setLoading(false));
   }, [petId]);
 
@@ -62,7 +62,7 @@ export default function PublicPetProfile({ initialPet = null }) {
   })();
   const ogImage = ogImageRaw ? getImageUrl(ogImageRaw) : null;
 
-  function formatAge(age) {
+  function formatAge(age: any) {
     // age is free-text (VARCHAR), e.g. "2 year 3 month" — render as-is.
     if (age === null || age === undefined) return null;
     const str = String(age).trim();
@@ -72,13 +72,13 @@ export default function PublicPetProfile({ initialPet = null }) {
 
   function nextImage() {
     if (petImages.length > 1) {
-      setCurrentImageIndex((prev) => (prev + 1) % petImages.length);
+      setCurrentImageIndex((prev: any) => (prev + 1) % petImages.length);
     }
   }
 
   function prevImage() {
     if (petImages.length > 1) {
-      setCurrentImageIndex((prev) =>
+      setCurrentImageIndex((prev: any) =>
         prev === 0 ? petImages.length - 1 : prev - 1,
       );
     }
@@ -224,14 +224,14 @@ export default function PublicPetProfile({ initialPet = null }) {
                   >
                     <img
                       key={currentImageIndex}
-                      src={getImageUrl(petImages[currentImageIndex])}
+                      src={getImageUrl(petImages[currentImageIndex]) ?? undefined}
                       alt={`${pet.name} - image ${currentImageIndex + 1}`}
                       style={{
                         width: "100%",
                         height: "100%",
                         objectFit: "cover",
                       }}
-                      onError={(e) => {
+                      onError={(e: any) => {
                         console.error(
                           "Failed to load image:",
                           getImageUrl(petImages[currentImageIndex]),
@@ -371,7 +371,7 @@ export default function PublicPetProfile({ initialPet = null }) {
                     label: "Weight",
                     value: pet.weight ? `${pet.weight} kg` : null,
                   },
-                ].map(({ label, value }) =>
+                ].map(({ label, value }: any) =>
                   value ? (
                     <div
                       key={label}
@@ -466,8 +466,8 @@ export default function PublicPetProfile({ initialPet = null }) {
 
               {/* Behavior summary */}
               {(() => {
-                const hasBool = (v) => v === true || v === false;
-                const bool2str = (v) =>
+                const hasBool = (v: any) => v === true || v === false;
+                const bool2str = (v: any) =>
                   v === true ? "Yes ✅" : v === false ? "No ❌" : null;
                 const rows = [
                   {
@@ -488,7 +488,7 @@ export default function PublicPetProfile({ initialPet = null }) {
                     label: "Good with Other Pets",
                     value: bool2str(pet.good_with_pets),
                   },
-                ].filter((r) => r.value);
+                ].filter((r: any) => r.value);
                 const show =
                   pet.temperament ||
                   pet.special_notes ||
@@ -517,7 +517,7 @@ export default function PublicPetProfile({ initialPet = null }) {
                     >
                       🐾 Behavior
                     </div>
-                    {rows.map(({ label, value }) => (
+                    {rows.map(({ label, value }: any) => (
                       <div
                         key={label}
                         style={{
@@ -636,7 +636,7 @@ export default function PublicPetProfile({ initialPet = null }) {
 // otherwise loads the pet client-side and ships empty OG). Fail-safe: any error
 // (incl. Render free-tier cold start) returns { pet: null } and the client
 // useEffect still fetches — identical to the previous behavior, no hard error.
-export async function getServerSideProps({ params }) {
+export async function getServerSideProps({ params }: any) {
   const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
   try {
     const r = await fetch(`${base}/v1/pets/public/${encodeURIComponent(params.petId)}`);

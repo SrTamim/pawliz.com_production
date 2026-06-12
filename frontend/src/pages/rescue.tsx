@@ -7,7 +7,7 @@ export default function RescueRedirect() {
   useEffect(() => {
     if (!router.isReady) return;
     const { post, type } = router.query;
-    const query = { tab: "rescue" };
+    const query: any = { tab: "rescue" };
     if (post) query.post = post;
     if (type) query.type = type;
     router.replace({ pathname: "/help-board", query });

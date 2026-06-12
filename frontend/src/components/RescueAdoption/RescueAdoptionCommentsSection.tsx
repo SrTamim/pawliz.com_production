@@ -26,7 +26,7 @@ export default function RescueAdoptionCommentsSection({
   const [reportReason, setReportReason] = useState("");
   const [reportSubmitting, setReportSubmitting] = useState(false);
 
-  const formatTimeAgo = (dateStr) => {
+  const formatTimeAgo = (dateStr: any) => {
     if (!dateStr) return "Unknown";
     const date = new Date(dateStr);
     const now = new Date();
@@ -50,14 +50,14 @@ export default function RescueAdoptionCommentsSection({
       toast(t("comments.postBtn"), "success");
       setNewComment("");
       onCommentAdded();
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to add comment", "error");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleReport = async (commentId) => {
+  const handleReport = async (commentId: any) => {
     if (!reportReason) { toast(t("comments.reportReason"), "error"); return; }
     setReportSubmitting(true);
     try {
@@ -66,21 +66,21 @@ export default function RescueAdoptionCommentsSection({
       setReportingId(null);
       setReportReason("");
       onCommentAdded();
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to report", "error");
     } finally {
       setReportSubmitting(false);
     }
   };
 
-  const handleDeleteComment = async (commentId) => {
+  const handleDeleteComment = async (commentId: any) => {
     if (!window.confirm(t("comments.deleteConfirm"))) return;
     setDeleting(commentId);
     try {
       await rescueAdoptionAPI.deleteComment(commentId);
       toast(t("comments.deleteBtn"), "success");
       onCommentAdded();
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to delete comment", "error");
     } finally {
       setDeleting(null);
@@ -102,7 +102,7 @@ export default function RescueAdoptionCommentsSection({
                   src={user.profile_picture.startsWith("http") ? user.profile_picture : `${process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:5000"}${user.profile_picture}`}
                   alt={user.name}
                   className="w-8 h-8 rounded-full object-cover flex-shrink-0 bg-[var(--accent)]"
-                  onError={(e) => { (e.target as any).style.display = "none"; if ((e.target as any).nextElementSibling) (e.target as any).nextElementSibling.style.display = "flex"; }}
+                  onError={(e: any) => { (e.target as any).style.display = "none"; if ((e.target as any).nextElementSibling) (e.target as any).nextElementSibling.style.display = "flex"; }}
                 />
                 <div
                   className="w-8 h-8 rounded-full bg-[var(--accent)] items-center justify-center text-white text-xs font-bold flex-shrink-0"
@@ -119,7 +119,7 @@ export default function RescueAdoptionCommentsSection({
             <div className="flex-1">
               <textarea
                 value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
+                onChange={(e: any) => setNewComment(e.target.value)}
                 placeholder={t("comments.placeholder")}
                 maxLength={500}
                 className="w-full bg-[var(--bg-primary)] border border-[var(--border)] rounded-lg p-3 text-[var(--text-primary)] placeholder-[var(--text-secondary)] text-sm resize-none"
@@ -152,7 +152,7 @@ export default function RescueAdoptionCommentsSection({
         </div>
       ) : (
         <div className="space-y-4">
-          {comments.map((comment) => (
+          {comments.map((comment: any) => (
             <div key={comment.id} className="p-4 bg-[var(--bg-secondary)] rounded-lg">
               <div className="flex items-start gap-3">
                 {comment.profile_picture ? (
@@ -160,7 +160,7 @@ export default function RescueAdoptionCommentsSection({
                     src={comment.profile_picture.startsWith("http") ? comment.profile_picture : `${process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:5000"}${comment.profile_picture}`}
                     alt={comment.name}
                     className="w-9 h-9 rounded-full object-cover flex-shrink-0 bg-[var(--accent)]"
-                    onError={(e) => { (e.target as any).style.display = "none"; if ((e.target as any).nextElementSibling) (e.target as any).nextElementSibling.style.display = "flex"; }}
+                    onError={(e: any) => { (e.target as any).style.display = "none"; if ((e.target as any).nextElementSibling) (e.target as any).nextElementSibling.style.display = "flex"; }}
                   />
                 ) : null}
                 <div
@@ -203,7 +203,7 @@ export default function RescueAdoptionCommentsSection({
                     <div className="mt-2 p-3 bg-[var(--bg-primary)] border border-[var(--border)] rounded-lg">
                       <p className="text-xs text-[var(--text-secondary)] mb-2 font-medium">{t("comments.reportReason")}</p>
                       <div className="flex flex-wrap gap-2 mb-2">
-                        {REPORT_REASON_KEYS.map((key) => (
+                        {REPORT_REASON_KEYS.map((key: any) => (
                           <button
                             key={key}
                             onClick={() => setReportReason(key)}

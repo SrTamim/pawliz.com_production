@@ -34,7 +34,7 @@ export default function ImageGallery({ images = [], maxDisplay = 4 }: any) {
           gap: 8,
         }}
       >
-        {displayImages.map((img, i) => (
+        {displayImages.map((img: any, i: any) => (
           <div
             key={i}
             style={{
@@ -50,10 +50,10 @@ export default function ImageGallery({ images = [], maxDisplay = 4 }: any) {
               setLightboxIndex(i);
               setLightboxOpen(true);
             }}
-            onMouseEnter={(e) => {
+            onMouseEnter={(e: any) => {
               e.currentTarget.style.transform = 'scale(1.05)';
             }}
-            onMouseLeave={(e) => {
+            onMouseLeave={(e: any) => {
               e.currentTarget.style.transform = 'scale(1)';
             }}
           >
@@ -89,10 +89,10 @@ export default function ImageGallery({ images = [], maxDisplay = 4 }: any) {
               setLightboxIndex(maxDisplay);
               setLightboxOpen(true);
             }}
-            onMouseEnter={(e) => {
+            onMouseEnter={(e: any) => {
               e.currentTarget.style.transform = 'scale(1.05)';
             }}
-            onMouseLeave={(e) => {
+            onMouseLeave={(e: any) => {
               e.currentTarget.style.transform = 'scale(1)';
             }}
           >

@@ -11,13 +11,13 @@ const API_SERVER_BASE =
     "",
   );
 
-function getAvatarUrl(path) {
+function getAvatarUrl(path: any) {
   if (!path) return null;
   if (path.startsWith("http")) return path;
   return `${API_SERVER_BASE}${path}`;
 }
 
-function timeAgo(dateStr) {
+function timeAgo(dateStr: any) {
   if (!dateStr) return "";
   const diff = Date.now() - new Date(dateStr).getTime();
   const m = Math.floor(diff / 60000);
@@ -71,7 +71,7 @@ export default function NotificationBell() {
     if (!user) return;
     notificationsAPI
       .getUnreadCount()
-      .then((res) => setUnreadCount(res.unread_count || 0))
+      .then((res: any) => setUnreadCount(res.unread_count || 0))
       .catch(() => {});
   }, [user]);
 
@@ -85,9 +85,9 @@ export default function NotificationBell() {
     const socket = getSocket();
     socketRef.current = socket;
 
-    const onNotification = (notification) => {
-      setUnreadCount((c) => c + 1);
-      setNotifications((prev) => [notification, ...prev].slice(0, 20));
+    const onNotification = (notification: any) => {
+      setUnreadCount((c: any) => c + 1);
+      setNotifications((prev: any) => [notification, ...prev].slice(0, 20));
     };
 
     socket.on("notification", onNotification);
@@ -107,7 +107,7 @@ export default function NotificationBell() {
       pollTimerRef.current = setInterval(() => {
         notificationsAPI
           .getUnreadCount()
-          .then((res) => setUnreadCount(res.unread_count || 0))
+          .then((res: any) => setUnreadCount(res.unread_count || 0))
           .catch(() => {});
       }, OFFLINE_POLL_INTERVAL_MS);
     };
@@ -146,7 +146,7 @@ export default function NotificationBell() {
 
   // Close on outside click
   useEffect(() => {
-    const handler = (e) => {
+    const handler = (e: any) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setOpen(false);
       }
@@ -155,14 +155,14 @@ export default function NotificationBell() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const handleClick = async (n) => {
+  const handleClick = async (n: any) => {
     if (!n.is_read) {
       try {
         await notificationsAPI.markAsRead(n.id);
-        setNotifications((prev) =>
-          prev.map((x) => (x.id === n.id ? { ...x, is_read: true } : x)),
+        setNotifications((prev: any) =>
+          prev.map((x: any) => (x.id === n.id ? { ...x, is_read: true } : x)),
         );
-        setUnreadCount((c) => Math.max(0, c - 1));
+        setUnreadCount((c: any) => Math.max(0, c - 1));
       } catch {}
     }
     setOpen(false);
@@ -175,7 +175,7 @@ export default function NotificationBell() {
   const handleMarkAllRead = async () => {
     try {
       await notificationsAPI.markAllAsRead();
-      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      setNotifications((prev: any) => prev.map((n: any) => ({ ...n, is_read: true })));
       setUnreadCount(0);
     } catch {}
   };
@@ -186,7 +186,7 @@ export default function NotificationBell() {
     <div ref={dropdownRef} style={{ position: "relative" }}>
       {/* Bell button */}
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen((v: any) => !v)}
         style={{
           position: "relative",
           width: 40,
@@ -202,11 +202,11 @@ export default function NotificationBell() {
           transition: "all 0.25s ease",
           flexShrink: 0,
         }}
-        onMouseEnter={(e) => {
+        onMouseEnter={(e: any) => {
           e.currentTarget.style.background = "var(--bg-hover)";
           e.currentTarget.style.transform = "scale(1.08)";
         }}
-        onMouseLeave={(e) => {
+        onMouseLeave={(e: any) => {
           e.currentTarget.style.background = open
             ? "rgba(0, 184, 122, 0.1)"
             : "var(--bg-elevated)";
@@ -352,7 +352,7 @@ export default function NotificationBell() {
                 { label: 'Comments', value: 'comment_on_post' },
                 { label: 'Contact', value: 'contact_request' },
                 { label: 'Follows', value: 'follow' },
-              ].map((f) => (
+              ].map((f: any) => (
                 <button
                   key={f.value}
                   onClick={() => setFilterType(f.value)}
@@ -399,7 +399,7 @@ export default function NotificationBell() {
               No notifications yet
             </div>
           ) : (
-            notifications.map((n) => (
+            notifications.map((n: any) => (
               <NotificationItem
                 key={n.id}
                 notification={n}
@@ -450,7 +450,7 @@ function NotificationItem({ notification: n, onClick }: any) {
             flexShrink: 0,
             background: "var(--bg-elevated)",
           }}
-          onError={(e) => {
+          onError={(e: any) => {
             (e.target as any).style.display = "none";
           }}
         />

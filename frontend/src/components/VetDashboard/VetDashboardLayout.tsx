@@ -29,17 +29,17 @@ export default function VetDashboardLayout({ activeSection, onSectionChange, chi
     router.push("/");
   };
 
-  const statusColor = {
+  const statusColor = ({
     pending: "#f0a500",
     approved: "#00e5a0",
     rejected: "#ff4f6a",
-  }[vet?.approval_status] || "#888";
+  } as any)[vet?.approval_status] || "#888";
 
-  const statusLabel = {
+  const statusLabel = ({
     pending: t("status.pending"),
     approved: t("status.approved"),
     rejected: t("status.rejected"),
-  }[vet?.approval_status] || t("status.unknown");
+  } as any)[vet?.approval_status] || t("status.unknown");
 
   const headerHeight = isMobile ? "56px" : "64px";
   const bottomNavHeight = "80px";
@@ -134,7 +134,7 @@ export default function VetDashboardLayout({ activeSection, onSectionChange, chi
 
         {/* Nav */}
         <nav style={{ flex: 1, padding: "12px 0" }}>
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.map((item: any) => {
             const blocked = isClaimPending && (item.key === "profile" || item.key === "reviews");
             return (
               <button

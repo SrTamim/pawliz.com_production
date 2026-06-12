@@ -20,7 +20,7 @@ export default function RescueModal({ open, onClose, onCreated, editPost }: any)
   const pinIconRef = useRef<any>(null);
   const isEdit = !!editPost;
 
-  const parseExistingImages = (raw) => {
+  const parseExistingImages = (raw: any) => {
     if (!raw) return [];
     if (Array.isArray(raw)) return raw;
     try { return JSON.parse(raw) || []; } catch { return []; }
@@ -118,9 +118,9 @@ export default function RescueModal({ open, onClose, onCreated, editPost }: any)
       markerRef.current = L.marker([initLat, initLng], { icon: pinIconRef.current }).addTo(map);
     }
 
-    map.on("click", (e) => {
+    map.on("click", (e: any) => {
       const { lat, lng } = e.latlng;
-      setForm((f) => ({ ...f, rescue_latitude: lat.toFixed(6), rescue_longitude: lng.toFixed(6) }));
+      setForm((f: any) => ({ ...f, rescue_latitude: lat.toFixed(6), rescue_longitude: lng.toFixed(6) }));
       if (markerRef.current) markerRef.current.remove();
       markerRef.current = L.marker([lat, lng], { icon: pinIconRef.current }).addTo(map);
     });
@@ -132,10 +132,10 @@ export default function RescueModal({ open, onClose, onCreated, editPost }: any)
     if (!navigator.geolocation) { toast(t("form.geolocationNotSupported"), "error"); return; }
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      (pos: any) => {
         const { latitude, longitude } = pos.coords;
         const L = leafletRef.current;
-        setForm((f) => ({
+        setForm((f: any) => ({
           ...f,
           rescue_latitude: latitude.toFixed(6),
           rescue_longitude: longitude.toFixed(6),
@@ -152,24 +152,24 @@ export default function RescueModal({ open, onClose, onCreated, editPost }: any)
     );
   };
 
-  const handleImageSelect = (e) => {
+  const handleImageSelect = (e: any) => {
     const files = Array.from(e.target.files);
     if (form.images.length + files.length > 3) { toast(t("form.maxImagesError"), "error"); return; }
     const newImages = [...form.images, ...files].slice(0, 3);
-    setForm((f) => ({ ...f, images: newImages }));
-    setImagePreviews(newImages.map((file) => URL.createObjectURL(file)));
+    setForm((f: any) => ({ ...f, images: newImages }));
+    setImagePreviews(newImages.map((file: any) => URL.createObjectURL(file)));
   };
 
-  const handleRemoveImage = (index) => {
-    const newImages = form.images.filter((_, i) => i !== index);
-    setForm((f) => ({ ...f, images: newImages }));
-    setImagePreviews((prev) => {
+  const handleRemoveImage = (index: any) => {
+    const newImages = form.images.filter((_: any, i: any) => i !== index);
+    setForm((f: any) => ({ ...f, images: newImages }));
+    setImagePreviews((prev: any) => {
       URL.revokeObjectURL(prev[index]);
-      return prev.filter((_, i) => i !== index);
+      return prev.filter((_: any, i: any) => i !== index);
     });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
     if (!form.pet_type || !form.rescue_date) {
       toast(t("form.petTypeDateRequired"), "error");
@@ -186,7 +186,7 @@ export default function RescueModal({ open, onClose, onCreated, editPost }: any)
       }
       onCreated();
       handleClose();
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || (isEdit ? t("form.updateFailed") : t("form.createFailed")), "error");
     } finally {
       setSaving(false);
@@ -194,7 +194,7 @@ export default function RescueModal({ open, onClose, onCreated, editPost }: any)
   };
 
   const handleClose = () => {
-    imagePreviews.forEach((p) => URL.revokeObjectURL(p));
+    imagePreviews.forEach((p: any) => URL.revokeObjectURL(p));
     setForm(buildInitialForm());
     setImagePreviews([]);
     onClose();
@@ -209,7 +209,7 @@ export default function RescueModal({ open, onClose, onCreated, editPost }: any)
       style={{ paddingTop: "calc(var(--header-height) + 16px)", paddingBottom: "calc(var(--bottom-nav-height, 64px) + 16px)" }}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e: any) => e.stopPropagation()}
         className="bg-[var(--bg-card)] border border-[var(--border)] rounded-lg w-full max-w-2xl max-h-[85vh] md:max-h-[80vh] overflow-y-auto shadow-xl mx-3 md:mx-0"
       >
         {/* Header */}
@@ -227,11 +227,11 @@ export default function RescueModal({ open, onClose, onCreated, editPost }: any)
               <label className="block text-sm font-semibold mb-2 text-[var(--text-primary)]">{t("rescueModal.petType")}</label>
               <select
                 value={form.pet_type}
-                onChange={(e) => setForm((f) => ({ ...f, pet_type: e.target.value }))}
+                onChange={(e: any) => setForm((f: any) => ({ ...f, pet_type: e.target.value }))}
                 className="input-field w-full"
                 style={{ background: "var(--bg-primary)", border: "1px solid var(--border)" }}
               >
-                {PET_TYPES.map((type) => (
+                {PET_TYPES.map((type: any) => (
                   <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
                 ))}
               </select>
@@ -240,12 +240,12 @@ export default function RescueModal({ open, onClose, onCreated, editPost }: any)
               <label className="block text-sm font-semibold mb-2 text-[var(--text-primary)]">{t("rescueModal.gender")}</label>
               <select
                 value={form.gender}
-                onChange={(e) => setForm((f) => ({ ...f, gender: e.target.value }))}
+                onChange={(e: any) => setForm((f: any) => ({ ...f, gender: e.target.value }))}
                 className="input-field w-full"
                 style={{ background: "var(--bg-primary)", border: "1px solid var(--border)" }}
               >
                 <option value="">{t("rescueModal.notSpecified")}</option>
-                {GENDERS.map((g) => (
+                {GENDERS.map((g: any) => (
                   <option key={g} value={g}>{g.charAt(0).toUpperCase() + g.slice(1)}</option>
                 ))}
               </select>
@@ -261,7 +261,7 @@ export default function RescueModal({ open, onClose, onCreated, editPost }: any)
                 placeholder={t("rescueModal.colorPlaceholder")}
                 value={form.color}
                 maxLength={100}
-                onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))}
+                onChange={(e: any) => setForm((f: any) => ({ ...f, color: e.target.value }))}
                 className="input-field w-full"
                 style={{ background: "var(--bg-primary)", border: "1px solid var(--border)" }}
               />
@@ -273,7 +273,7 @@ export default function RescueModal({ open, onClose, onCreated, editPost }: any)
                 placeholder={t("rescueModal.breedPlaceholder")}
                 value={form.breed}
                 maxLength={100}
-                onChange={(e) => setForm((f) => ({ ...f, breed: e.target.value }))}
+                onChange={(e: any) => setForm((f: any) => ({ ...f, breed: e.target.value }))}
                 className="input-field w-full"
                 style={{ background: "var(--bg-primary)", border: "1px solid var(--border)" }}
               />
@@ -285,11 +285,11 @@ export default function RescueModal({ open, onClose, onCreated, editPost }: any)
             <label className="block text-sm font-semibold mb-2 text-[var(--text-primary)]">{t("rescueModal.urgency")}</label>
             <select
               value={form.urgency}
-              onChange={(e) => setForm((f) => ({ ...f, urgency: e.target.value }))}
+              onChange={(e: any) => setForm((f: any) => ({ ...f, urgency: e.target.value }))}
               className="input-field w-full"
               style={{ background: "var(--bg-primary)", border: "1px solid var(--border)" }}
             >
-              {URGENCY_LEVELS.map((u) => (
+              {URGENCY_LEVELS.map((u: any) => (
                 <option key={u} value={u}>{t(`rescueModal.urgency${u.charAt(0).toUpperCase() + u.slice(1)}`)}</option>
               ))}
             </select>
@@ -301,7 +301,7 @@ export default function RescueModal({ open, onClose, onCreated, editPost }: any)
             <input
               type="date"
               value={form.rescue_date}
-              onChange={(e) => setForm((f) => ({ ...f, rescue_date: e.target.value }))}
+              onChange={(e: any) => setForm((f: any) => ({ ...f, rescue_date: e.target.value }))}
               max={new Date().toISOString().split("T")[0]}
               className="input-field w-full"
               style={{ background: "var(--bg-primary)", border: "1px solid var(--border)" }}
@@ -317,7 +317,7 @@ export default function RescueModal({ open, onClose, onCreated, editPost }: any)
               placeholder={t("rescueModal.locationPlaceholder")}
               value={form.rescue_location_name}
               maxLength={200}
-              onChange={(e) => setForm((f) => ({ ...f, rescue_location_name: e.target.value }))}
+              onChange={(e: any) => setForm((f: any) => ({ ...f, rescue_location_name: e.target.value }))}
               className="input-field w-full"
               style={{ background: "var(--bg-primary)", border: "1px solid var(--border)" }}
             />
@@ -348,7 +348,7 @@ export default function RescueModal({ open, onClose, onCreated, editPost }: any)
             <textarea
               placeholder={t("rescueModal.descPlaceholder")}
               value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              onChange={(e: any) => setForm((f: any) => ({ ...f, description: e.target.value }))}
               maxLength={1000}
               className="input-field w-full resize-none"
               rows={4}
@@ -363,7 +363,7 @@ export default function RescueModal({ open, onClose, onCreated, editPost }: any)
               <label className="block text-sm font-semibold mb-2 text-[var(--text-primary)]">{t("rescueModal.status")}</label>
               <select
                 value={form.status || "active"}
-                onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
+                onChange={(e: any) => setForm((f: any) => ({ ...f, status: e.target.value }))}
                 className="input-field w-full"
                 style={{ background: "var(--bg-primary)", border: "1px solid var(--border)" }}
               >
@@ -379,13 +379,13 @@ export default function RescueModal({ open, onClose, onCreated, editPost }: any)
             <div>
               <label className="block text-sm font-semibold mb-2 text-[var(--text-primary)]">{t("rescueModal.existingImages")}</label>
               <div className="grid grid-cols-3 gap-2">
-                {existingImages.map((img, idx) => (
+                {existingImages.map((img: any, idx: any) => (
                   <img
                     key={idx}
                     src={img.startsWith("http") ? img : `${process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:5000"}${img}`}
                     alt={`Existing ${idx + 1}`}
                     className="w-full h-20 object-cover rounded-lg border border-[var(--border)]"
-                    onError={(e) => { (e.target as any).style.opacity = 0.3; }}
+                    onError={(e: any) => { (e.target as any).style.opacity = 0.3; }}
                   />
                 ))}
               </div>
@@ -409,7 +409,7 @@ export default function RescueModal({ open, onClose, onCreated, editPost }: any)
 
             {imagePreviews.length > 0 && (
               <div className="grid grid-cols-3 gap-2 mt-4">
-                {imagePreviews.map((preview, index) => (
+                {imagePreviews.map((preview: any, index: any) => (
                   <div key={index} className="relative">
                     <img src={preview} alt={`Preview ${index}`} className="w-full h-20 object-cover rounded-lg border border-[var(--border)]" />
                     <button

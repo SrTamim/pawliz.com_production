@@ -50,10 +50,10 @@ export default function RescueAdoptionPostDetailsModal({
     else setLoadingMoreComments(true);
     try {
       const data = await rescueAdoptionAPI.getComments(postType, post.id, offset);
-      setComments((prev) => offset === 0 ? (data.comments || []) : [...prev, ...(data.comments || [])]);
+      setComments((prev: any) => offset === 0 ? (data.comments || []) : [...prev, ...(data.comments || [])]);
       setCommentsTotal(data.total || 0);
       setCommentsHasMore(data.hasMore || false);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to load comments:", err);
     } finally {
       setLoadingComments(false);
@@ -77,7 +77,7 @@ export default function RescueAdoptionPostDetailsModal({
       toast(t("rescueDetails.deleteSuccess"), "success");
       if (onPostDeleted) onPostDeleted();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to delete report", "error");
     } finally {
       setDeleting(false);
@@ -86,7 +86,7 @@ export default function RescueAdoptionPostDetailsModal({
 
   if (!open || !post) return null;
 
-  const parseImages = (raw) => {
+  const parseImages = (raw: any) => {
     if (!raw) return [];
     if (Array.isArray(raw)) return raw;
     try { return JSON.parse(raw) || []; } catch { return []; }
@@ -94,14 +94,14 @@ export default function RescueAdoptionPostDetailsModal({
 
   const images = parseImages(post.images);
 
-  const formatDate = (dateStr) => {
+  const formatDate = (dateStr: any) => {
     if (!dateStr) return "Unknown";
     return new Date(dateStr).toLocaleDateString("en-US", {
       year: "numeric", month: "long", day: "numeric",
     });
   };
 
-  const formatTimeAgo = (dateStr) => {
+  const formatTimeAgo = (dateStr: any) => {
     if (!dateStr) return "Unknown";
     const date = new Date(dateStr);
     const now = new Date();
@@ -125,7 +125,7 @@ export default function RescueAdoptionPostDetailsModal({
       style={{ paddingTop: "calc(var(--header-height) + 16px)" }}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e: any) => e.stopPropagation()}
         className="bg-[var(--bg-card)] border border-[var(--border)] rounded-lg w-full max-w-3xl shadow-xl mx-3 md:mx-0 my-4"
       >
         {/* Header */}
@@ -166,7 +166,7 @@ export default function RescueAdoptionPostDetailsModal({
           {images.length > 0 && (
             <div className="mb-6">
               <div className="grid grid-cols-3 gap-2 md:gap-3 max-w-xs md:max-w-none mx-auto md:mx-0">
-                {images.map((image, idx) => (
+                {images.map((image: any, idx: any) => (
                   <button
                     key={idx}
                     type="button"
@@ -176,10 +176,10 @@ export default function RescueAdoptionPostDetailsModal({
                     aria-label={`View image ${idx + 1} fullscreen`}
                   >
                     <img
-                      src={getImageUrl(image)}
+                      src={getImageUrl(image) ?? undefined}
                       alt={`Pet image ${idx + 1}`}
                       className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform"
-                      onError={(e) => {
+                      onError={(e: any) => {
                         (e.target as any).parentElement.innerHTML = '<div class="absolute inset-0 flex items-center justify-center text-[var(--text-secondary)]">📷</div>';
                       }}
                     />
@@ -197,7 +197,7 @@ export default function RescueAdoptionPostDetailsModal({
             <div className="mb-4">
               <span
                 className="px-4 py-2 rounded-full text-sm font-bold text-white"
-                style={{ background: URGENCY_COLORS[post.urgency] || URGENCY_COLORS.medium }}
+                style={{ background: (URGENCY_COLORS as any)[post.urgency] || URGENCY_COLORS.medium }}
               >
                 {t("rescueDetails.urgencyLabel")} {post.urgency.toUpperCase()}
               </span>
@@ -336,7 +336,7 @@ export default function RescueAdoptionPostDetailsModal({
                   src={post.profile_picture.startsWith("http") ? post.profile_picture : `${process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:5000"}${post.profile_picture}`}
                   alt={post.owner_name}
                   className="w-10 h-10 rounded-full object-cover bg-[var(--accent)]"
-                  onError={(e) => { (e.target as any).style.display = "none"; }}
+                  onError={(e: any) => { (e.target as any).style.display = "none"; }}
                 />
               ) : (
                 <div className="w-10 h-10 rounded-full bg-[var(--accent)] flex items-center justify-center text-white font-bold">
@@ -394,12 +394,12 @@ export default function RescueAdoptionPostDetailsModal({
       {/* Image Lightbox */}
       {lightboxIndex !== null && images[lightboxIndex] && (
         <div
-          onClick={(e) => { e.stopPropagation(); setLightboxIndex(null); }}
+          onClick={(e: any) => { e.stopPropagation(); setLightboxIndex(null); }}
           className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4"
         >
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); setLightboxIndex(null); }}
+            onClick={(e: any) => { e.stopPropagation(); setLightboxIndex(null); }}
             className="absolute top-4 right-4 text-white text-3xl font-bold w-10 h-10 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/70 transition-colors"
           >
             ✕
@@ -408,20 +408,20 @@ export default function RescueAdoptionPostDetailsModal({
             <>
               <button
                 type="button"
-                onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex - 1 + images.length) % images.length); }}
+                onClick={(e: any) => { e.stopPropagation(); setLightboxIndex((lightboxIndex - 1 + images.length) % images.length); }}
                 className="absolute left-2 md:left-6 text-white text-2xl w-10 h-10 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/70"
               >‹</button>
               <button
                 type="button"
-                onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex + 1) % images.length); }}
+                onClick={(e: any) => { e.stopPropagation(); setLightboxIndex((lightboxIndex + 1) % images.length); }}
                 className="absolute right-2 md:right-6 text-white text-2xl w-10 h-10 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/70"
               >›</button>
             </>
           )}
           <img
-            src={getImageUrl(images[lightboxIndex])}
+            src={getImageUrl(images[lightboxIndex]) ?? undefined}
             alt={`Pet image ${lightboxIndex + 1}`}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e: any) => e.stopPropagation()}
             className="max-w-full max-h-[90vh] object-contain rounded-lg"
           />
           {images.length > 1 && (

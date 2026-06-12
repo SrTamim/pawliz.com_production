@@ -27,7 +27,7 @@ export default function NotificationSettings({ onClose }: any) {
       await notificationsAPI.updatePreferences(prefs);
       toast('Notification settings updated', 'success');
       onClose?.();
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || 'Failed to save settings', 'error');
     } finally {
       setSaving(false);
@@ -54,7 +54,7 @@ export default function NotificationSettings({ onClose }: any) {
           <input
             type="checkbox"
             checked={prefs.notifications_enabled}
-            onChange={(e) => setPrefs({ ...prefs, notifications_enabled: e.target.checked })}
+            onChange={(e: any) => setPrefs({ ...prefs, notifications_enabled: e.target.checked })}
             style={{ cursor: 'pointer' }}
           />
           <span style={{ fontSize: 13 }}>Enable notifications</span>
@@ -65,7 +65,7 @@ export default function NotificationSettings({ onClose }: any) {
           <input
             type="checkbox"
             checked={prefs.notifications_email}
-            onChange={(e) => setPrefs({ ...prefs, notifications_email: e.target.checked })}
+            onChange={(e: any) => setPrefs({ ...prefs, notifications_email: e.target.checked })}
             style={{ cursor: 'pointer' }}
           />
           <span style={{ fontSize: 13 }}>Send email notifications</span>
@@ -78,7 +78,7 @@ export default function NotificationSettings({ onClose }: any) {
           </label>
           <select
             value={prefs.notification_types}
-            onChange={(e) => setPrefs({ ...prefs, notification_types: e.target.value })}
+            onChange={(e: any) => setPrefs({ ...prefs, notification_types: e.target.value })}
             style={{
               width: '100%',
               padding: '8px',

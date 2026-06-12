@@ -155,7 +155,7 @@ export default function TermsPage() {
   );
 }
 
-function Section({ title, children }) {
+function Section({ title, children }: any) {
   return (
     <div style={{ marginBottom: 28 }}>
       <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 15, color: "var(--accent)", marginBottom: 8, paddingBottom: 6, borderBottom: "1px solid var(--border)" }}>

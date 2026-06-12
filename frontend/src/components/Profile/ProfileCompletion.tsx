@@ -31,7 +31,7 @@ const BADGE_CONFIG = {
 };
 
 export function BadgePill({ badge, small = false, theme = "dark" }: any) {
-  const cfg = BADGE_CONFIG[badge] || BADGE_CONFIG.bronze;
+  const cfg = (BADGE_CONFIG as any)[badge] || BADGE_CONFIG.bronze;
   const isLight =
     typeof window !== "undefined"
       ? document.documentElement.classList.contains("light")
@@ -65,7 +65,7 @@ export default function ProfileCompletion({
   badge,
   motivate = false,
 }: any) {
-  const cfg = BADGE_CONFIG[badge] || BADGE_CONFIG.bronze;
+  const cfg = (BADGE_CONFIG as any)[badge] || BADGE_CONFIG.bronze;
   const barColor = "#22c55e"; // Green color for progress bar
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {

@@ -35,12 +35,12 @@ export default function HelpBoard() {
 
   const [activeTab, setActiveTab] = useState("lost");
   const [tabInitialized, setTabInitialized] = useState(false);
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [foundPetModalOpen, setFoundPetModalOpen] = useState(false);
   const [rescueModalOpen, setRescueModalOpen] = useState(false);
-  const [deepLinkPost, setDeepLinkPost] = useState(null);
-  const [deepLinkType, setDeepLinkType] = useState(null);
+  const [deepLinkPost, setDeepLinkPost] = useState<any>(null);
+  const [deepLinkType, setDeepLinkType] = useState<any>(null);
   const [filters, setFilters] = useState({ pet_type: "", location: "" });
   const [showFilters, setShowFilters] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -48,7 +48,7 @@ export default function HelpBoard() {
   // Read ?tab= on mount
   useEffect(() => {
     if (!router.isReady) return;
-    const tabParam = router.query.tab;
+    const tabParam = router.query.tab as string;
     if (tabParam && VALID_TABS.includes(tabParam)) {
       setActiveTab(tabParam);
     }
@@ -58,7 +58,7 @@ export default function HelpBoard() {
   // Deep-link: open specific post from notification (?post=ID&type=...)
   useEffect(() => {
     if (!router.isReady || !tabInitialized) return;
-    const { post: postId, type: postType } = router.query;
+    const { post: postId, type: postType } = router.query as { post?: string; type?: string };
     if (!postId || !postType || !VALID_TABS.includes(postType)) return;
 
     const fetchAndOpen = async () => {
@@ -88,7 +88,7 @@ export default function HelpBoard() {
   const loadPosts = useCallback(async () => {
     setLoading(true);
     try {
-      const params = {};
+      const params: any = {};
       if (filters.pet_type) params.pet_type = filters.pet_type;
       if (filters.location) params.location = filters.location;
 
@@ -103,7 +103,7 @@ export default function HelpBoard() {
         data = await rescueAdoptionAPI.getAdoptionPosts(params);
       }
       setPosts(data.posts || []);
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to load posts", "error");
     } finally {
       setLoading(false);
@@ -115,7 +115,7 @@ export default function HelpBoard() {
     loadPosts();
   }, [loadPosts, tabInitialized]);
 
-  const handleTabChange = (tabId) => {
+  const handleTabChange = (tabId: any) => {
     setActiveTab(tabId);
     setSearchText("");
     setFilters({ pet_type: "", location: "" });
@@ -154,7 +154,7 @@ export default function HelpBoard() {
     router.push({ pathname: "/profile", query: { showAdoptionInstruction: true } });
   };
 
-  const filteredPosts = posts.filter((post) => {
+  const filteredPosts = posts.filter((post: any) => {
     const k = searchText.toLowerCase();
     if (!k) return true;
     if (activeTab === "lost") {
@@ -185,7 +185,7 @@ export default function HelpBoard() {
     }
   });
 
-  const activeTabConfig = TABS.find((t) => t.id === activeTab);
+  const activeTabConfig = TABS.find((t: any) => t.id === activeTab);
   const REPORT_ACTION = {
     lost: handleReportLostPet,
     found: handleOpenFoundPetForm,
@@ -227,7 +227,7 @@ export default function HelpBoard() {
               {/* Tab Bar — horizontal scrollable pills */}
               <div className="overflow-x-auto mb-6">
                 <div className="flex gap-2 min-w-max pb-1">
-                  {TABS.map((tab) => {
+                  {TABS.map((tab: any) => {
                     const isActive = activeTab === tab.id;
                     return (
                       <button
@@ -264,7 +264,7 @@ export default function HelpBoard() {
                     type="text"
                     placeholder={t(`searchPlaceholder.${activeTab}`)}
                     value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
+                    onChange={(e: any) => setSearchText(e.target.value)}
                     className="input-field w-full"
                     style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
                   />
@@ -276,8 +276,8 @@ export default function HelpBoard() {
                   🔍 {t("filters.label")} {showFilters ? "▲" : "▼"}
                 </button>
                 <button
-                  onClick={REPORT_ACTION[activeTab]}
-                  style={{ backgroundColor: activeTabConfig.color }}
+                  onClick={(REPORT_ACTION as any)[activeTab]}
+                  style={{ backgroundColor: activeTabConfig?.color }}
                   className="px-6 py-2 text-white rounded-lg font-semibold hover:opacity-90 transition-all whitespace-nowrap"
                 >
                   {t(`reportAction.${activeTab}`)}
@@ -294,12 +294,12 @@ export default function HelpBoard() {
                       </label>
                       <select
                         value={filters.pet_type}
-                        onChange={(e) => setFilters((f) => ({ ...f, pet_type: e.target.value }))}
+                        onChange={(e: any) => setFilters((f: any) => ({ ...f, pet_type: e.target.value }))}
                         className="input-field w-full"
                         style={{ background: "var(--bg-primary)", border: "1px solid var(--border)" }}
                       >
                         <option value="">{t("filters.allTypes")}</option>
-                        {PET_TYPES.map((type) => (
+                        {PET_TYPES.map((type: any) => (
                           <option key={type} value={type}>
                             {type.charAt(0).toUpperCase() + type.slice(1)}
                           </option>
@@ -312,12 +312,12 @@ export default function HelpBoard() {
                       </label>
                       <select
                         value={filters.location}
-                        onChange={(e) => setFilters((f) => ({ ...f, location: e.target.value }))}
+                        onChange={(e: any) => setFilters((f: any) => ({ ...f, location: e.target.value }))}
                         className="input-field w-full"
                         style={{ background: "var(--bg-primary)", border: "1px solid var(--border)" }}
                       >
                         <option value="">{t("filters.allLocations")}</option>
-                        {LOCATIONS.map((loc) => (
+                        {LOCATIONS.map((loc: any) => (
                           <option key={loc} value={loc}>{loc}</option>
                         ))}
                       </select>
@@ -347,7 +347,7 @@ export default function HelpBoard() {
                 </div>
               ) : filteredPosts.length === 0 ? (
                 <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-lg p-12 text-center">
-                  <div style={{ fontSize: 48, marginBottom: 16 }}>{EMPTY_ICON[activeTab]}</div>
+                  <div style={{ fontSize: 48, marginBottom: 16 }}>{(EMPTY_ICON as any)[activeTab]}</div>
                   <h3 className="text-xl font-bold mb-2">{t(`emptyTitle.${activeTab}`)}</h3>
                   <p className="text-[var(--text-secondary)] mb-6">{t(`emptyDesc.${activeTab}`)}</p>
                   {activeTab === "found" && (
@@ -377,7 +377,7 @@ export default function HelpBoard() {
                 </div>
               ) : (
                 <div className="help-grid grid grid-cols-2 gap-4">
-                  {filteredPosts.map((post) => {
+                  {filteredPosts.map((post: any) => {
                     if (activeTab === "lost")
                       return <LostPetPostCard key={post.id} post={post} onPostDeleted={loadPosts} />;
                     if (activeTab === "found")

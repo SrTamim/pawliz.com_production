@@ -8,7 +8,7 @@ import ShareButton from '../ShareButton';
 
 const DAYS = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
-function fmt12(t) {
+function fmt12(t: any) {
   if (!t) return null;
   const [h, m] = t.split(':');
   const hour = parseInt(h, 10);
@@ -59,7 +59,7 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired }: 
       setRating(0); setComment('');
       const res = await vetsAPI.getById(vetId);
       setVet(res.vet); setReviews(res.reviews || []);
-    } catch (e) { toast(e.message, 'error'); }
+    } catch (e: any) { toast(e.message, 'error'); }
     finally { setSubmitting(false); }
   };
 
@@ -182,7 +182,7 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired }: 
                 {/* Clinic Contacts */}
                 {clinicContacts.length > 0 && (
                   <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {clinicContacts.map(c => {
+                    {clinicContacts.map((c: any) => {
                       const icon = c.contact_type === 'phone' ? '📞' : c.contact_type === 'email' ? '✉️' : c.contact_type === 'whatsapp' ? '💬' : '🔗';
                       const isLink = c.contact_type === 'whatsapp' || c.contact_type === 'email' || c.contact_type === 'other';
                       const href = c.contact_type === 'whatsapp' ? `https://wa.me/${c.contact_value.replace(/\D/g,'')}` : c.contact_type === 'email' ? `mailto:${c.contact_value}` : c.contact_value;
@@ -234,7 +234,7 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired }: 
               {clinicVets.length > 0 && (
                 <Section title={t("detail.ourVets", { count: clinicVets.length })}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
-                    {clinicVets.map((cv) => {
+                    {clinicVets.map((cv: any) => {
                       const cvAvatar = getImageUrl(cv.vet_image);
                       return (
                         <div key={cv.id} style={{ padding: 16, background: 'var(--bg-elevated)', borderRadius: 12, border: '1px solid var(--border)', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
@@ -249,7 +249,7 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired }: 
                             {cv.bmdc_reg_number && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>BMDC: {cv.bmdc_reg_number}</div>}
                             {Array.isArray(cv.qualifications) && cv.qualifications.length > 0 && (
                               <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>
-                                {cv.qualifications.map(q => q.qualification).join(' · ')}
+                                {cv.qualifications.map((q: any) => q.qualification).join(' · ')}
                               </div>
                             )}
                             {(cv.checkup_start || cv.checkup_end) && (
@@ -274,7 +274,7 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired }: 
               {Array.isArray(vet.services) && vet.services.length > 0 && (
                 <Section title={t("detail.servicesOffered")}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {vet.services.map((s, i) => (
+                    {vet.services.map((s: any, i: any) => (
                       <span key={i} style={{
                         padding: '6px 14px',
                         background: 'var(--accent-dim)',
@@ -305,7 +305,7 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired }: 
                         <div>
                           <div style={{ fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)', marginBottom: 6 }}>{t("detail.holidays")}</div>
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                            {DAYS.map(d => {
+                            {DAYS.map((d: any) => {
                               const isHoliday = vet.weekly_holidays.includes(d);
                               return (
                                 <span key={d} style={{
@@ -346,7 +346,7 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired }: 
                       <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{t("detail.reviewsCount", { count: vet.review_count })}</div>
                     </div>
                     <div style={{ flex: 1, minWidth: 160 }}>
-                      {[5,4,3,2,1].map(r => {
+                      {[5,4,3,2,1].map((r: any) => {
                         const count = reviews.filter(rv => rv.rating === r).length;
                         const pct = reviews.length ? (count / reviews.length) * 100 : 0;
                         return (
@@ -361,7 +361,7 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired }: 
                       })}
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                      {[0,5,4,3,2,1].map(r => (
+                      {[0,5,4,3,2,1].map((r: any) => (
                         <button key={r} onClick={() => { setReviewFilter(r); setReviewPage(1); }} style={{
                           padding: '3px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
                           cursor: 'pointer', border: '1px solid',
@@ -403,7 +403,7 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired }: 
                   <EmptyState icon="💬" title={t("detail.noReviewsTitle")} subtitle={t("detail.noReviewsHint")} />
                 ) : (
                   <>
-                    {pagedReviews.map(r => <ReviewCard key={r.id} review={r} />)}
+                    {pagedReviews.map((r: any) => <ReviewCard key={r.id} review={r} />)}
                     <Pagination page={reviewPage} total={filteredReviews.length} limit={REVIEWS_PER_PAGE} onChange={setReviewPage} />
                   </>
                 )}

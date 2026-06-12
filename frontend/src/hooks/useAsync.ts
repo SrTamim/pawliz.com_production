@@ -26,7 +26,7 @@ export function useAsync<T = any>(
       const result = await asyncFunction(...args);
       setData(result);
       return result;
-    } catch (err) {
+    } catch (err: any) {
       setError((err as Error)?.message || 'An error occurred');
       throw err;
     } finally {
@@ -44,7 +44,7 @@ export function useAsync<T = any>(
       try {
         const result = await asyncFunction();
         if (mounted) setData(result);
-      } catch (err) {
+      } catch (err: any) {
         if (mounted) setError((err as Error)?.message || 'An error occurred');
       } finally {
         if (mounted) setLoading(false);

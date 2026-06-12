@@ -6,9 +6,9 @@ const PROFILE_FIELDS_CLINIC = [
   "latitude", "longitude",
 ];
 
-function completionPct(vet, documents, clinicVets, clinicContacts) {
+function completionPct(vet: any, documents: any, clinicVets: any, clinicContacts: any) {
   if (!vet) return 0;
-  let filled = PROFILE_FIELDS_CLINIC.filter((f) => vet[f] && (Array.isArray(vet[f]) ? vet[f].length > 0 : true)).length;
+  let filled = PROFILE_FIELDS_CLINIC.filter((f: any) => vet[f] && (Array.isArray(vet[f]) ? vet[f].length > 0 : true)).length;
   let total = PROFILE_FIELDS_CLINIC.length + 3;
   if (clinicContacts?.length) filled++;
   if (clinicVets?.length) filled++;
@@ -56,7 +56,7 @@ export default function VetOverview({ vet, qualifications, documents, clinicVets
   const isClaimApproved = claimedVet?.status === "claimed" && claimedVet?.approval_status === "approved";
 
   const avgRating = reviews?.length
-    ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
+    ? (reviews.reduce((s: any, r: any) => s + r.rating, 0) / reviews.length).toFixed(1)
     : "—";
 
   const cards = [
@@ -114,7 +114,7 @@ export default function VetOverview({ vet, qualifications, documents, clinicVets
 
       {/* 4. Statistics */}
       <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fit, minmax(140px, 1fr))", gap: isMobile ? 12 : 16, marginBottom: 32 }}>
-        {cards.map((c) => (
+        {cards.map((c: any) => (
           <div key={c.label} style={{
             background: "var(--bg-card)", borderRadius: 12, padding: isMobile ? "16px 12px" : "20px 16px",
             border: "1px solid var(--border)",

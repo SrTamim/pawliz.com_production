@@ -14,7 +14,7 @@ export default function MobileModal({ isOpen, onClose, title, children, actions 
       onClick={onClose}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e: any) => e.stopPropagation()}
         style={{
           width: '100%',
           maxHeight: '90vh',

@@ -39,7 +39,7 @@ import { Analytics } from "@vercel/analytics/react";
 import Script from "next/script";
 import { useEffect } from "react";
 
-function AppContent({ Component, pageProps }) {
+function AppContent({ Component, pageProps }: any) {
   const {
     theme,
     toggleTheme,
@@ -71,10 +71,10 @@ function AppContent({ Component, pageProps }) {
   );
 }
 
-export default function App({ Component, pageProps }) {
+export default function App({ Component, pageProps }: any) {
   useEffect(() => {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch((err) => {
+      navigator.serviceWorker.register('/sw.js').catch((err: any) => {
         console.error('SW registration failed:', err);
       });
     }

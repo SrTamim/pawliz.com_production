@@ -23,7 +23,7 @@ export default function AdminDashboard() {
 
   // Sidebar items the current user may see (admin sees all incl. Role Manager).
   // permissions registry is the single source of truth for nav + gating.
-  const visiblePages = PAGES.filter((p) => can(p.key));
+  const visiblePages = PAGES.filter((p: any) => can(p.key));
   const [section, setSection] = useState(
     () => visiblePages[0]?.key || "overview",
   );
@@ -31,7 +31,7 @@ export default function AdminDashboard() {
   // If the active section is no longer permitted (perms changed mid-session),
   // fall back to the first allowed page so a manager never sees a blank/denied view.
   useEffect(() => {
-    if (!visiblePages.find((p) => p.key === section)) {
+    if (!visiblePages.find((p: any) => p.key === section)) {
       setSection(visiblePages[0]?.key || "overview");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -71,7 +71,7 @@ export default function AdminDashboard() {
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           {isMobile && (
             <button
-              onClick={() => setNavOpen((v) => !v)}
+              onClick={() => setNavOpen((v: any) => !v)}
               style={{
                 width: 36,
                 height: 36,
@@ -164,7 +164,7 @@ export default function AdminDashboard() {
                   : {}),
               }}
             >
-              {visiblePages.map((item) => (
+              {visiblePages.map((item: any) => (
                 <button
                   key={item.key}
                   onClick={() => {
@@ -228,11 +228,11 @@ export default function AdminDashboard() {
 
 // ─── OVERVIEW ──────────────────────────────────────────────────────────────
 function MiniBarChart({ data, height = 120 }: any) {
-  const max = Math.max(...data.map((d) => d.value), 1);
+  const max = Math.max(...data.map((d: any) => d.value), 1);
   const barW = 100 / data.length;
   return (
     <svg width="100%" height={height} style={{ display: "block", overflow: "visible" }}>
-      {data.map((d, i) => {
+      {data.map((d: any, i: any) => {
         const barH = Math.max((d.value / max) * (height - 28), 2);
         const x = i * barW + barW * 0.15;
         const w = barW * 0.7;
@@ -279,9 +279,9 @@ function DonutChart({ segments, size = 110 }: any) {
   const r = 40;
   const cx = size / 2;
   const cy = size / 2;
-  const total = segments.reduce((s, d) => s + d.value, 0) || 1;
+  const total = segments.reduce((s: any, d: any) => s + d.value, 0) || 1;
   let cumAngle = -Math.PI / 2;
-  const paths = segments.map((seg) => {
+  const paths = segments.map((seg: any) => {
     const angle = (seg.value / total) * 2 * Math.PI;
     const x1 = cx + r * Math.cos(cumAngle);
     const y1 = cy + r * Math.sin(cumAngle);
@@ -295,7 +295,7 @@ function DonutChart({ segments, size = 110 }: any) {
   return (
     <svg width={size} height={size}>
       <circle cx={cx} cy={cy} r={r} fill="var(--bg-primary)" />
-      {paths.map((p, i) => (
+      {paths.map((p: any, i: any) => (
         <path key={i} d={p.d} fill={p.color} opacity={0.85} />
       ))}
       <circle cx={cx} cy={cy} r={r * 0.6} fill="var(--bg-card)" />
@@ -332,7 +332,7 @@ function OverviewSection() {
   const [error, setError] = useState<any>(null);
 
   useEffect(() => {
-    adminAPI.stats().then(setStats).catch((err) => setError(err.message || "Failed to load stats")).finally(() => setLoading(false));
+    adminAPI.stats().then(setStats).catch((err: any) => setError(err.message || "Failed to load stats")).finally(() => setLoading(false));
   }, []);
 
   if (loading) return <Loading />;
@@ -389,7 +389,7 @@ function OverviewSection() {
               { label: "Found", color: "#00e5a0", value: s.foundReports ?? 0 },
               { label: "Rescue", color: "#ff6b35", value: s.rescueReports ?? 0 },
               { label: "Adoption", color: "#7c6df0", value: s.adoptionPosts ?? 0 },
-            ].map((item) => (
+            ].map((item: any) => (
               <div key={item.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <div style={{ width: 8, height: 8, borderRadius: 2, background: item.color, flexShrink: 0 }} />
@@ -449,7 +449,7 @@ function VetsSection() {
       { include_inactive: "true" };
     adminAPI
       .getVets({ page: p, limit: PAGE_SIZE, ...(s ? { search: s } : {}), ...(af ? { approval_status: af } : {}), ...statusParam })
-      .then((r) => {
+      .then((r: any) => {
         setVets(r.vets || []);
         setTotal(r.total || 0);
       })
@@ -467,26 +467,26 @@ function VetsSection() {
     return () => clearTimeout(t);
   }, [search, approvalFilter, statusFilter]);
 
-  const goToPage = (p) => {
+  const goToPage = (p: any) => {
     const next = Math.min(Math.max(1, p), totalPages);
     setPage(next);
     load(next, search, approvalFilter, statusFilter);
   };
 
-  const handleApprove = async (id) => {
+  const handleApprove = async (id: any) => {
     setApproving(id);
     try {
       await adminAPI.approveVet(id);
       toast("Vet approved");
       load();
-    } catch (e) {
+    } catch (e: any) {
       toast(e.message, "error");
     } finally {
       setApproving(null);
     }
   };
 
-  const handleReject = async (id) => {
+  const handleReject = async (id: any) => {
     const reason = prompt("Rejection reason (optional):");
     if (reason === null) return;
     setApproving(id);
@@ -494,31 +494,31 @@ function VetsSection() {
       await adminAPI.rejectVet(id, reason);
       toast("Vet rejected");
       load();
-    } catch (e) {
+    } catch (e: any) {
       toast(e.message, "error");
     } finally {
       setApproving(null);
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: any) => {
     if (!confirm("Delete this vet clinic?")) return;
     try {
       await adminAPI.deleteVet(id);
       toast("Vet deleted");
       load();
-    } catch (e) {
+    } catch (e: any) {
       toast(e.message, "error");
     }
   };
 
-  const handleToggleStatus = async (id, currentStatus) => {
+  const handleToggleStatus = async (id: any, currentStatus: any) => {
     setTogglingStatus(id);
     try {
       await adminAPI.updateVetStatus(id, !currentStatus);
       toast(currentStatus ? "Vet deactivated" : "Vet activated");
       load();
-    } catch (e) {
+    } catch (e: any) {
       toast(e.message, "error");
     } finally {
       setTogglingStatus(null);
@@ -528,7 +528,7 @@ function VetsSection() {
   if (editing !== null) {
     return (
       <VetForm
-        vet={editing === "new" ? null : vets.find((v) => v.id === editing)}
+        vet={editing === "new" ? null : vets.find((v: any) => v.id === editing)}
         onSave={() => {
           setEditing(null);
           load();
@@ -556,10 +556,10 @@ function VetsSection() {
         )}
       </div>
       <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name or location..." style={{ flex: 1, minWidth: 180 }} />
+        <Input value={search} onChange={(e: any) => setSearch(e.target.value)} placeholder="Search by name or location..." style={{ flex: 1, minWidth: 180 }} />
         <select
           value={approvalFilter}
-          onChange={(e) => setApprovalFilter(e.target.value)}
+          onChange={(e: any) => setApprovalFilter(e.target.value)}
           style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--bg-elevated)", color: "var(--text-primary)", fontSize: 14, cursor: "pointer" }}
         >
           <option value="">All Statuses</option>
@@ -569,7 +569,7 @@ function VetsSection() {
         </select>
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          onChange={(e: any) => setStatusFilter(e.target.value)}
           style={{ padding: "8px 12px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--bg-elevated)", color: "var(--text-primary)", fontSize: 14, cursor: "pointer" }}
         >
           <option value="">All (Active + Inactive)</option>
@@ -596,7 +596,7 @@ function VetsSection() {
               </Tr>
             </thead>
             <tbody>
-              {vets.map((v) => (
+              {vets.map((v: any) => (
                 <Tr key={v.id}>
                   <Td bold>
                     <span style={!v.is_active ? { opacity: 0.5 } : {}}>
@@ -689,7 +689,7 @@ function VetsSection() {
 }
 
 const SERVER_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api").replace("/api", "");
-function getAdminImageUrl(path) {
+function getAdminImageUrl(path: any) {
   if (!path) return null;
   if (path.startsWith("http")) return path;
   return `${SERVER_BASE}${path}`;
@@ -734,9 +734,9 @@ function VetForm({ vet, onSave, onCancel }: any) {
     if (!isEdit || !vet?.id) return;
     setLoadingDetails(true);
     adminAPI.getVet(vet.id)
-      .then((res) => {
+      .then((res: any) => {
         const v = res.vet;
-        setForm((f) => ({
+        setForm((f: any) => ({
           ...f,
           website: v.website || "",
           cover_image: v.cover_image || "",
@@ -755,16 +755,16 @@ function VetForm({ vet, onSave, onCancel }: any) {
       .finally(() => setLoadingDetails(false));
   }, []);
 
-  const F = (key) => ({
-    value: form[key],
-    onChange: (e) => setForm((f) => ({ ...f, [key]: e.target.value })),
+  const F = (key: any) => ({
+    value: (form as any)[key],
+    onChange: (e: any) => setForm((f: any) => ({ ...f, [key]: e.target.value })),
   });
 
   // Initialize the location picker map
   useEffect(() => {
     if (mapInstanceRef.current || !mapContainerRef.current) return;
 
-    import("leaflet").then((L) => {
+    import("leaflet").then((L: any) => {
       leafletRef.current = L.default || L;
       const Leaf = leafletRef.current;
       if (!mapContainerRef.current || mapInstanceRef.current) return;
@@ -800,7 +800,7 @@ function VetForm({ vet, onSave, onCancel }: any) {
         }).addTo(map);
         markerRef.current.on("dragend", () => {
           const pos = markerRef.current.getLatLng();
-          setForm((f) => ({
+          setForm((f: any) => ({
             ...f,
             latitude: pos.lat.toFixed(6),
             longitude: pos.lng.toFixed(6),
@@ -808,9 +808,9 @@ function VetForm({ vet, onSave, onCancel }: any) {
         });
       }
 
-      map.on("click", (e) => {
+      map.on("click", (e: any) => {
         const { lat, lng } = e.latlng;
-        setForm((f) => ({
+        setForm((f: any) => ({
           ...f,
           latitude: lat.toFixed(6),
           longitude: lng.toFixed(6),
@@ -824,7 +824,7 @@ function VetForm({ vet, onSave, onCancel }: any) {
           }).addTo(map);
           markerRef.current.on("dragend", () => {
             const pos = markerRef.current.getLatLng();
-            setForm((f) => ({
+            setForm((f: any) => ({
               ...f,
               latitude: pos.lat.toFixed(6),
               longitude: pos.lng.toFixed(6),
@@ -851,9 +851,9 @@ function VetForm({ vet, onSave, onCancel }: any) {
       return;
     }
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      (pos: any) => {
         const { latitude, longitude } = pos.coords;
-        setForm((f) => ({
+        setForm((f: any) => ({
           ...f,
           latitude: latitude.toFixed(6),
           longitude: longitude.toFixed(6),
@@ -870,7 +870,7 @@ function VetForm({ vet, onSave, onCancel }: any) {
             }).addTo(mapInstanceRef.current);
             markerRef.current.on("dragend", () => {
               const p = markerRef.current.getLatLng();
-              setForm((f) => ({
+              setForm((f: any) => ({
                 ...f,
                 latitude: p.lat.toFixed(6),
                 longitude: p.lng.toFixed(6),
@@ -886,31 +886,31 @@ function VetForm({ vet, onSave, onCancel }: any) {
     );
   };
 
-  const handleDeleteQual = async (id) => {
+  const handleDeleteQual = async (id: any) => {
     if (!confirm("Delete this qualification?")) return;
     try {
       await adminAPI.deleteVetQualification(id);
-      setQualifications((q) => q.filter((x) => x.id !== id));
+      setQualifications((q: any) => q.filter((x: any) => x.id !== id));
       toast("Qualification deleted");
-    } catch (e) { toast(e.message, "error"); }
+    } catch (e: any) { toast(e.message, "error"); }
   };
 
-  const handleDeleteContact = async (id) => {
+  const handleDeleteContact = async (id: any) => {
     if (!confirm("Delete this contact?")) return;
     try {
       await adminAPI.deleteClinicContact(id);
-      setClinicContacts((c) => c.filter((x) => x.id !== id));
+      setClinicContacts((c: any) => c.filter((x: any) => x.id !== id));
       toast("Contact deleted");
-    } catch (e) { toast(e.message, "error"); }
+    } catch (e: any) { toast(e.message, "error"); }
   };
 
-  const handleDeleteClinicVet = async (id) => {
+  const handleDeleteClinicVet = async (id: any) => {
     if (!confirm("Remove this vet?")) return;
     try {
       await adminAPI.deleteClinicVet(id);
-      setClinicVets((v) => v.filter((x) => x.id !== id));
+      setClinicVets((v: any) => v.filter((x: any) => x.id !== id));
       toast("Clinic vet removed");
-    } catch (e) { toast(e.message, "error"); }
+    } catch (e: any) { toast(e.message, "error"); }
   };
 
   const handleSubmit = async () => {
@@ -925,8 +925,8 @@ function VetForm({ vet, onSave, onCancel }: any) {
         ...form,
         latitude: form.latitude ? parseFloat(form.latitude) : undefined,
         longitude: form.longitude ? parseFloat(form.longitude) : undefined,
-        services: form.services.split(",").map((s) => s.trim()).filter(Boolean),
-        weekly_holidays: form.weekly_holidays ? form.weekly_holidays.split(",").map((s) => s.trim()).filter(Boolean) : [],
+        services: form.services.split(",").map((s: any) => s.trim()).filter(Boolean),
+        weekly_holidays: form.weekly_holidays ? form.weekly_holidays.split(",").map((s: any) => s.trim()).filter(Boolean) : [],
       };
       if (isEdit) {
         await adminAPI.updateVet(vet.id, data);
@@ -936,7 +936,7 @@ function VetForm({ vet, onSave, onCancel }: any) {
         toast("Vet clinic added!");
       }
       onSave();
-    } catch (e) {
+    } catch (e: any) {
       setError(e.message);
     } finally {
       setSaving(false);
@@ -1119,7 +1119,7 @@ function VetForm({ vet, onSave, onCancel }: any) {
               src={getAdminImageUrl(form.image)}
               alt="preview"
               style={{ marginTop: 6, height: 60, borderRadius: 6, objectFit: "cover" }}
-              onError={(e) => ((e.target as any).style.display = "none")}
+              onError={(e: any) => ((e.target as any).style.display = "none")}
             />
           )}
         </div>
@@ -1135,7 +1135,7 @@ function VetForm({ vet, onSave, onCancel }: any) {
               src={getAdminImageUrl(form.cover_image)}
               alt="cover preview"
               style={{ marginTop: 6, height: 60, width: "100%", borderRadius: 6, objectFit: "cover" }}
-              onError={(e) => ((e.target as any).style.display = "none")}
+              onError={(e: any) => ((e.target as any).style.display = "none")}
             />
           )}
         </div>
@@ -1175,7 +1175,7 @@ function VetForm({ vet, onSave, onCancel }: any) {
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: "var(--accent)", marginBottom: 10, paddingBottom: 6, borderBottom: "1px solid var(--border)" }}>
                   Uploaded Documents
                 </div>
-                {documents.map((d) => (
+                {documents.map((d: any) => (
                   <div key={d.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: "var(--bg-elevated)", borderRadius: 8, marginBottom: 6 }}>
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{d.doc_type}</div>
@@ -1200,7 +1200,7 @@ function VetForm({ vet, onSave, onCancel }: any) {
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: "var(--accent)", marginBottom: 10, paddingBottom: 6, borderBottom: "1px solid var(--border)" }}>
                   Clinic Contacts
                 </div>
-                {clinicContacts.map((c) => (
+                {clinicContacts.map((c: any) => (
                   <div key={c.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: "var(--bg-elevated)", borderRadius: 8, marginBottom: 6 }}>
                     <div>
                       <div style={{ fontSize: 12, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px" }}>{c.contact_type}</div>
@@ -1218,7 +1218,7 @@ function VetForm({ vet, onSave, onCancel }: any) {
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: "var(--accent)", marginBottom: 10, paddingBottom: 6, borderBottom: "1px solid var(--border)" }}>
                   Clinic Vets
                 </div>
-                {clinicVets.map((cv) => (
+                {clinicVets.map((cv: any) => (
                   <div key={cv.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: "var(--bg-elevated)", borderRadius: 8, marginBottom: 6, gap: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       {cv.vet_image && (
@@ -1226,7 +1226,7 @@ function VetForm({ vet, onSave, onCancel }: any) {
                           src={getAdminImageUrl(cv.vet_image)}
                           alt={cv.name}
                           style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
-                          onError={(e) => ((e.target as any).style.display = "none")}
+                          onError={(e: any) => ((e.target as any).style.display = "none")}
                         />
                       )}
                       <div>
@@ -1236,7 +1236,7 @@ function VetForm({ vet, onSave, onCancel }: any) {
                         {cv.bmdc_reg_number && <div style={{ fontSize: 11, color: "var(--text-muted)" }}>BMDC: {cv.bmdc_reg_number}</div>}
                         {Array.isArray(cv.qualifications) && cv.qualifications.length > 0 && (
                           <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 2 }}>
-                            {cv.qualifications.map((q) => q.qualification).join(", ")}
+                            {cv.qualifications.map((q: any) => q.qualification).join(", ")}
                           </div>
                         )}
                       </div>
@@ -1281,16 +1281,16 @@ function UsersSection() {
     if (!canRole) return;
     adminAPI
       .getRoles()
-      .then((r) => setRoleOptions((r.roles || []).filter((x) => x.name !== "admin")))
+      .then((r: any) => setRoleOptions((r.roles || []).filter((x: any) => x.name !== "admin")))
       .catch(() => {});
   }, [canRole]);
 
-  const handleAssignRole = async (id, role) => {
+  const handleAssignRole = async (id: any, role: any) => {
     try {
       await adminAPI.assignUserRole(id, role);
       toast("Role updated", "success");
       load();
-    } catch (e) {
+    } catch (e: any) {
       toast(e.message, "error");
     }
   };
@@ -1299,7 +1299,7 @@ function UsersSection() {
     setLoading(true);
     adminAPI
       .getUsers({ page: p, limit: LIMIT, ...(s ? { search: s } : {}) })
-      .then((r) => {
+      .then((r: any) => {
         setUsers(r.users || []);
         setTotal(r.total || 0);
       })
@@ -1316,24 +1316,24 @@ function UsersSection() {
     return () => clearTimeout(t);
   }, [search]);
 
-  const handleDeactivate = async (id) => {
+  const handleDeactivate = async (id: any) => {
     if (!confirm("Deactivate this user?")) return;
     try {
       await adminAPI.deleteUser(id);
       toast("User deactivated");
       load();
-    } catch (e) {
+    } catch (e: any) {
       toast(e.message, "error");
     }
   };
 
-  const handleActivate = async (id) => {
+  const handleActivate = async (id: any) => {
     if (!confirm("Activate this user?")) return;
     try {
       await adminAPI.updateUser(id, { is_active: true });
       toast("User activated");
       load();
-    } catch (e) {
+    } catch (e: any) {
       toast(e.message, "error");
     }
   };
@@ -1349,7 +1349,7 @@ function UsersSection() {
       toast(`Password reset for ${resetTarget.name}`, "success");
       setResetTarget(null);
       setNewPassword("");
-    } catch (e) {
+    } catch (e: any) {
       toast(e.message, "error");
     } finally {
       setResetting(false);
@@ -1360,7 +1360,7 @@ function UsersSection() {
     <div>
       <SectionTitle>Manage Users</SectionTitle>
       <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name, phone or email..." style={{ flex: 1 }} />
+        <Input value={search} onChange={(e: any) => setSearch(e.target.value)} placeholder="Search by name, phone or email..." style={{ flex: 1 }} />
       </div>
       {loading ? (
         <Loading />
@@ -1380,7 +1380,7 @@ function UsersSection() {
                 </Tr>
               </thead>
               <tbody>
-                {users.map((u) => (
+                {users.map((u: any) => (
                   <Tr key={u.id}>
                     <Td bold>{u.name}</Td>
                     <Td>{u.phone}</Td>
@@ -1412,15 +1412,15 @@ function UsersSection() {
                             <select
                               className="input-field"
                               value={u.role}
-                              onChange={(e) => handleAssignRole(u.id, e.target.value)}
+                              onChange={(e: any) => handleAssignRole(u.id, e.target.value)}
                               style={{ height: 30, padding: "0 8px", fontSize: 12, width: "auto" }}
                               title="Assign role"
                             >
                               {/* Ensure the user's current role is selectable even if not in options */}
-                              {!roleOptions.find((r) => r.name === u.role) && (
+                              {!roleOptions.find((r: any) => r.name === u.role) && (
                                 <option value={u.role}>{u.role}</option>
                               )}
-                              {roleOptions.map((r) => (
+                              {roleOptions.map((r: any) => (
                                 <option key={r.name} value={r.name}>{r.name}</option>
                               ))}
                             </select>
@@ -1455,7 +1455,7 @@ function UsersSection() {
             page={page}
             total={total}
             limit={LIMIT}
-            onChange={(p) => {
+            onChange={(p: any) => {
               setPage(p);
               load(p);
             }}
@@ -1467,7 +1467,7 @@ function UsersSection() {
       {resetTarget && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 4000, display: "flex", alignItems: "center", justifyContent: "center" }}
           onClick={() => setResetTarget(null)}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 12, padding: 28, width: "100%", maxWidth: 400 }}>
+          <div onClick={(e: any) => e.stopPropagation()} style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 12, padding: 28, width: "100%", maxWidth: 400 }}>
             <h3 style={{ fontFamily: "Roboto, sans-serif", fontWeight: 700, marginBottom: 8 }}>Reset Password</h3>
             <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20 }}>
               Set new password for <strong style={{ color: "var(--text-primary)" }}>{resetTarget.name}</strong> ({resetTarget.phone})
@@ -1478,7 +1478,7 @@ function UsersSection() {
                 type="password"
                 className="input-field"
                 value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
+                onChange={(e: any) => setNewPassword(e.target.value)}
                 placeholder="Min. 6 characters"
                 autoFocus
               />
@@ -1513,7 +1513,7 @@ function ReviewsSection() {
     setLoading(true);
     reviewsAPI
       .getAll({ page: p, limit: LIMIT, ...(s ? { search: s } : {}) })
-      .then((r) => {
+      .then((r: any) => {
         setReviews(r.reviews || []);
         setTotal(r.total || 0);
       })
@@ -1530,13 +1530,13 @@ function ReviewsSection() {
     return () => clearTimeout(t);
   }, [search]);
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: any) => {
     if (!confirm("Delete this review?")) return;
     try {
       await reviewsAPI.delete(id);
       toast("Review deleted");
       load();
-    } catch (e) {
+    } catch (e: any) {
       toast(e.message, "error");
     }
   };
@@ -1545,7 +1545,7 @@ function ReviewsSection() {
     <div>
       <SectionTitle>Manage Reviews</SectionTitle>
       <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by user, clinic or comment..." style={{ flex: 1 }} />
+        <Input value={search} onChange={(e: any) => setSearch(e.target.value)} placeholder="Search by user, clinic or comment..." style={{ flex: 1 }} />
       </div>
       {loading ? (
         <Loading />
@@ -1564,7 +1564,7 @@ function ReviewsSection() {
                 </Tr>
               </thead>
               <tbody>
-                {reviews.map((r) => (
+                {reviews.map((r: any) => (
                   <Tr key={r.id}>
                     <Td bold>{r.user_name}</Td>
                     <Td>{r.vet_name}</Td>
@@ -1607,7 +1607,7 @@ function ReviewsSection() {
             page={page}
             total={total}
             limit={LIMIT}
-            onChange={(p) => {
+            onChange={(p: any) => {
               setPage(p);
               load(p);
             }}
@@ -1632,7 +1632,7 @@ function DonationSection() {
   useEffect(() => {
     donationsAPI
       .get()
-      .then((r) => {
+      .then((r: any) => {
         const donation = r.donation || { id: 1, title: "", message: "", qr_code_image_url: "" };
         setDon(donation);
         if (donation.qr_code_image_url) {
@@ -1642,12 +1642,12 @@ function DonationSection() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleQrChange = (e) => {
+  const handleQrChange = (e: any) => {
     const file = e.target.files?.[0];
     if (file) {
-      setDon((d) => ({ ...d, qr_code_image: file }));
+      setDon((d: any) => ({ ...d, qr_code_image: file }));
       const reader = new FileReader();
-      reader.onload = (ev) => setQrPreview(ev.target?.result);
+      reader.onload = (ev: any) => setQrPreview(ev.target?.result);
       reader.readAsDataURL(file);
     }
   };
@@ -1663,7 +1663,7 @@ function DonationSection() {
       toast("Donation info saved!");
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
-    } catch (e) {
+    } catch (e: any) {
       toast(e.message, "error");
     } finally {
       setSaving(false);
@@ -1690,7 +1690,7 @@ function DonationSection() {
           <input
             className="input-field"
             value={don?.title || ""}
-            onChange={(e) => setDon((d) => ({ ...d, title: e.target.value }))}
+            onChange={(e: any) => setDon((d: any) => ({ ...d, title: e.target.value }))}
             placeholder="Support Pawliz"
           />
         </div>
@@ -1701,7 +1701,7 @@ function DonationSection() {
             rows={4}
             style={{ resize: "vertical" }}
             value={don?.message || ""}
-            onChange={(e) => setDon((d) => ({ ...d, message: e.target.value }))}
+            onChange={(e: any) => setDon((d: any) => ({ ...d, message: e.target.value }))}
             placeholder="Your donation helps..."
           />
         </div>
@@ -1754,7 +1754,7 @@ function SettingsSection() {
   useEffect(() => {
     adminAPI
       .getSettings()
-      .then((r) => setSettings(r.settings || {}))
+      .then((r: any) => setSettings(r.settings || {}))
       .finally(() => setLoading(false));
   }, []);
 
@@ -1763,7 +1763,7 @@ function SettingsSection() {
     try {
       await adminAPI.updateSettings(settings);
       toast("Settings saved!");
-    } catch (e) {
+    } catch (e: any) {
       toast(e.message, "error");
     } finally {
       setSaving(false);
@@ -1789,8 +1789,8 @@ function SettingsSection() {
           <input
             className="input-field"
             value={settings.logo_text || ""}
-            onChange={(e) =>
-              setSettings((s) => ({ ...s, logo_text: e.target.value }))
+            onChange={(e: any) =>
+              setSettings((s: any) => ({ ...s, logo_text: e.target.value }))
             }
             placeholder="Pawliz"
           />
@@ -1800,8 +1800,8 @@ function SettingsSection() {
           <input
             className="input-field"
             value={settings.logo_image || ""}
-            onChange={(e) =>
-              setSettings((s) => ({ ...s, logo_image: e.target.value }))
+            onChange={(e: any) =>
+              setSettings((s: any) => ({ ...s, logo_image: e.target.value }))
             }
             placeholder="https://..."
           />
@@ -1832,7 +1832,7 @@ function RolesSection() {
         setRoles(r.roles || []);
         setRegistry(reg.pages || []);
       })
-      .catch((e) => toast(e.message, "error"))
+      .catch((e: any) => toast(e.message, "error"))
       .finally(() => setLoading(false));
   };
 
@@ -1840,18 +1840,18 @@ function RolesSection() {
     load();
   }, []);
 
-  const handleDelete = async (role) => {
+  const handleDelete = async (role: any) => {
     if (!confirm(`Delete role "${role.name}"? This cannot be undone.`)) return;
     try {
       await adminAPI.deleteRole(role.name);
       toast("Role deleted");
       load();
-    } catch (e) {
+    } catch (e: any) {
       toast(e.message, "error");
     }
   };
 
-  const pageCount = (role) =>
+  const pageCount = (role: any) =>
     Array.isArray(role.permissions?.pages) ? role.permissions.pages.length : 0;
 
   return (
@@ -1879,7 +1879,7 @@ function RolesSection() {
               </Tr>
             </thead>
             <tbody>
-              {roles.map((r) => (
+              {roles.map((r: any) => (
                 <Tr key={r.name}>
                   <Td bold>
                     {r.name}{" "}
@@ -1936,16 +1936,16 @@ function RoleEditorModal({ role, registry, onClose, onSaved }: any) {
   const [ui, setUi] = useState(() => new Set(role?.permissions?.ui || []));
   const [saving, setSaving] = useState(false);
 
-  const togglePage = (key) => {
-    setPages((prev) => {
+  const togglePage = (key: any) => {
+    setPages((prev: any) => {
       const next = new Set(prev);
       if (next.has(key)) {
         next.delete(key);
         // Drop this page's UI flags when the page is removed.
-        const pg = registry.find((p) => p.key === key);
-        if (pg) setUi((u) => {
+        const pg = registry.find((p: any) => p.key === key);
+        if (pg) setUi((u: any) => {
           const nu = new Set(u);
-          (pg.ui || []).forEach((f) => nu.delete(f.key));
+          (pg.ui || []).forEach((f: any) => nu.delete(f.key));
           return nu;
         });
       } else {
@@ -1955,8 +1955,8 @@ function RoleEditorModal({ role, registry, onClose, onSaved }: any) {
     });
   };
 
-  const toggleUi = (flagKey) => {
-    setUi((prev) => {
+  const toggleUi = (flagKey: any) => {
+    setUi((prev: any) => {
       const next = new Set(prev);
       next.has(flagKey) ? next.delete(flagKey) : next.add(flagKey);
       return next;
@@ -1978,7 +1978,7 @@ function RoleEditorModal({ role, registry, onClose, onSaved }: any) {
         toast("Role created", "success");
       }
       onSaved();
-    } catch (e) {
+    } catch (e: any) {
       toast(e.message, "error");
     } finally {
       setSaving(false);
@@ -1991,7 +1991,7 @@ function RoleEditorModal({ role, registry, onClose, onSaved }: any) {
       onClick={onClose}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e: any) => e.stopPropagation()}
         style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 12, padding: 28, width: "100%", maxWidth: 520, maxHeight: "85vh", overflowY: "auto" }}
       >
         <h3 style={{ fontFamily: "Roboto, sans-serif", fontWeight: 700, marginBottom: 18 }}>
@@ -2006,7 +2006,7 @@ function RoleEditorModal({ role, registry, onClose, onSaved }: any) {
             <input
               className="input-field"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e: any) => setName(e.target.value)}
               placeholder="e.g. manager"
               autoFocus
             />
@@ -2023,7 +2023,7 @@ function RoleEditorModal({ role, registry, onClose, onSaved }: any) {
           <input
             className="input-field"
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e: any) => setDescription(e.target.value)}
             placeholder="Short description"
           />
         </div>
@@ -2032,7 +2032,7 @@ function RoleEditorModal({ role, registry, onClose, onSaved }: any) {
           Page Access & Permissions
         </label>
         <div style={{ border: "1px solid var(--border)", borderRadius: 8, padding: 12, marginBottom: 22 }}>
-          {registry.map((pg) => {
+          {registry.map((pg: any) => {
             const pageOn = pages.has(pg.key);
             return (
               <div key={pg.key} style={{ marginBottom: 10 }}>
@@ -2042,7 +2042,7 @@ function RoleEditorModal({ role, registry, onClose, onSaved }: any) {
                 </label>
                 {(pg.ui || []).length > 0 && (
                   <div style={{ paddingLeft: 26, marginTop: 4, display: "flex", flexDirection: "column", gap: 4 }}>
-                    {pg.ui.map((f) => (
+                    {pg.ui.map((f: any) => (
                       <label
                         key={f.key}
                         style={{ display: "flex", alignItems: "center", gap: 8, cursor: pageOn ? "pointer" : "not-allowed", fontSize: 13, color: pageOn ? "var(--text-secondary)" : "var(--text-muted)", opacity: pageOn ? 1 : 0.5 }}
@@ -2122,10 +2122,10 @@ function Tr({ children, header }: any) {
         background: header ? "var(--bg-elevated)" : "transparent",
         transition: "background 0.15s",
       }}
-      onMouseEnter={(e) => {
+      onMouseEnter={(e: any) => {
         if (!header) e.currentTarget.style.background = "var(--bg-elevated)";
       }}
-      onMouseLeave={(e) => {
+      onMouseLeave={(e: any) => {
         if (!header) e.currentTarget.style.background = "transparent";
       }}
     >
@@ -2169,7 +2169,7 @@ function PetsSection() {
     return () => clearTimeout(t);
   }, [search]);
 
-  const openEdit = (pet) => { setEditPet(pet); setEditForm({ name: pet.name, type: pet.type, breed: pet.breed || "", gender: pet.gender || "", age: pet.age || "", color: pet.color || "", weight: pet.weight || "", status: pet.is_for_adoption ? 'adoption' : (pet.status || 'active') }); };
+  const openEdit = (pet: any) => { setEditPet(pet); setEditForm({ name: pet.name, type: pet.type, breed: pet.breed || "", gender: pet.gender || "", age: pet.age || "", color: pet.color || "", weight: pet.weight || "", status: pet.is_for_adoption ? 'adoption' : (pet.status || 'active') }); };
 
   const handleSave = async () => {
     setSaving(true);
@@ -2178,11 +2178,11 @@ function PetsSection() {
       toast("Pet updated", "success");
       setEditPet(null);
       load(page, search, typeFilter);
-    } catch (err) { toast(err.message || "Failed to update", "error"); }
+    } catch (err: any) { toast(err.message || "Failed to update", "error"); }
     finally { setSaving(false); }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: any) => {
     if (!window.confirm("Deactivate this pet?")) return;
     try {
       await adminAPI.deletePet(id);
@@ -2197,13 +2197,13 @@ function PetsSection() {
       <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
         <Input
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e: any) => setSearch(e.target.value)}
           placeholder="Search by name or Pet ID..."
           style={{ flex: 1, minWidth: 200 }}
         />
         <select
           value={typeFilter}
-          onChange={(e) => { const t = e.target.value; setTypeFilter(t); setPage(1); load(1, search, t); }}
+          onChange={(e: any) => { const t = e.target.value; setTypeFilter(t); setPage(1); load(1, search, t); }}
           className="input-field"
           style={{ width: 130 }}
         >
@@ -2218,7 +2218,7 @@ function PetsSection() {
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead><Tr header><Th>Pet ID</Th><Th>Name</Th><Th>Type</Th><Th>Owner</Th><Th>Status</Th>{showActions && <Th>Actions</Th>}</Tr></thead>
             <tbody>
-              {pets.map((p) => (
+              {pets.map((p: any) => (
                 <Tr key={p.id}>
                   <Td><code style={{ fontSize: 11 }}>{p.pet_id}</code></Td>
                   <Td bold>{p.name}</Td>
@@ -2241,33 +2241,33 @@ function PetsSection() {
               ))}
             </tbody>
           </table>
-          <Pagination page={page} total={total} pageSize={20} onChange={(p) => { setPage(p); load(p, search, typeFilter); }} />
+          <Pagination page={page} total={total} pageSize={20} onChange={(p: any) => { setPage(p); load(p, search, typeFilter); }} />
         </div>
       )}
       {editPet && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 4000, display: "flex", alignItems: "center", justifyContent: "center" }}
           onClick={() => setEditPet(null)}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 12, padding: 28, width: "100%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto" }}>
+          <div onClick={(e: any) => e.stopPropagation()} style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 12, padding: 28, width: "100%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto" }}>
             <h3 style={{ fontFamily: "Roboto, sans-serif", fontWeight: 700, marginBottom: 20 }}>Edit Pet — {editPet.name}</h3>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
               {[["name","Name"],["breed","Breed"],["color","Color"]].map(([k,l]) => (
                 <div key={k}><label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 4, textTransform: "uppercase" }}>{l}</label>
-                <Input value={editForm[k] || ""} onChange={(e) => setEditForm((f) => ({ ...f, [k]: e.target.value }))} /></div>
+                <Input value={editForm[k] || ""} onChange={(e: any) => setEditForm((f: any) => ({ ...f, [k]: e.target.value }))} /></div>
               ))}
               <div><label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 4, textTransform: "uppercase" }}>Type</label>
-              <select className="input-field" value={editForm.type || ""} onChange={(e) => setEditForm((f) => ({ ...f, type: e.target.value }))}>
+              <select className="input-field" value={editForm.type || ""} onChange={(e: any) => setEditForm((f: any) => ({ ...f, type: e.target.value }))}>
                 <option value="dog">Dog</option><option value="cat">Cat</option><option value="other">Other</option>
               </select></div>
               <div><label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 4, textTransform: "uppercase" }}>Gender</label>
-              <select className="input-field" value={editForm.gender || ""} onChange={(e) => setEditForm((f) => ({ ...f, gender: e.target.value }))}>
+              <select className="input-field" value={editForm.gender || ""} onChange={(e: any) => setEditForm((f: any) => ({ ...f, gender: e.target.value }))}>
                 <option value="">Not specified</option><option value="male">Male</option><option value="female">Female</option>
               </select></div>
               <div><label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 4, textTransform: "uppercase" }}>Age (years)</label>
-              <Input type="number" value={editForm.age || ""} onChange={(e) => setEditForm((f) => ({ ...f, age: e.target.value }))} /></div>
+              <Input type="number" value={editForm.age || ""} onChange={(e: any) => setEditForm((f: any) => ({ ...f, age: e.target.value }))} /></div>
               <div><label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 4, textTransform: "uppercase" }}>Weight (kg)</label>
-              <Input type="number" step="0.1" value={editForm.weight || ""} onChange={(e) => setEditForm((f) => ({ ...f, weight: e.target.value }))} /></div>
+              <Input type="number" step="0.1" value={editForm.weight || ""} onChange={(e: any) => setEditForm((f: any) => ({ ...f, weight: e.target.value }))} /></div>
               <div><label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 4, textTransform: "uppercase" }}>Status</label>
-              <select className="input-field" value={editForm.status || ""} onChange={(e) => setEditForm((f) => ({ ...f, status: e.target.value }))}>
+              <select className="input-field" value={editForm.status || ""} onChange={(e: any) => setEditForm((f: any) => ({ ...f, status: e.target.value }))}>
                 <option value="active">Active</option><option value="lost">Lost</option><option value="safe">Safe</option><option value="adoption">For Adoption</option>
               </select></div>
             </div>
@@ -2314,13 +2314,13 @@ function LostPetsSection() {
     return () => clearTimeout(t);
   }, [search]);
 
-  const handleMarkActive = async (pet) => {
+  const handleMarkActive = async (pet: any) => {
     setSaving(pet.id);
     try {
       await adminAPI.updatePet(pet.id, { status: 'active' });
       toast(`${pet.name} marked as active`, "success");
       load(page, search);
-    } catch (err) { toast(err.message || "Failed", "error"); }
+    } catch (err: any) { toast(err.message || "Failed", "error"); }
     finally { setSaving(null); }
   };
 
@@ -2328,14 +2328,14 @@ function LostPetsSection() {
     <div>
       <SectionTitle>Lost Pets</SectionTitle>
       <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name or Pet ID..." style={{ flex: 1 }} />
+        <Input value={search} onChange={(e: any) => setSearch(e.target.value)} placeholder="Search by name or Pet ID..." style={{ flex: 1 }} />
       </div>
       {loading ? <Loading /> : pets.length === 0 ? <EmptyState>No lost pets found</EmptyState> : (
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead><Tr header><Th>Pet ID</Th><Th>Name</Th><Th>Type</Th><Th>Owner</Th>{canEdit && <Th>Actions</Th>}</Tr></thead>
             <tbody>
-              {pets.map((p) => (
+              {pets.map((p: any) => (
                 <Tr key={p.id}>
                   <Td><code style={{ fontSize: 11 }}>{p.pet_id}</code></Td>
                   <Td bold>{p.name}</Td>
@@ -2350,7 +2350,7 @@ function LostPetsSection() {
               ))}
             </tbody>
           </table>
-          <Pagination page={page} total={total} pageSize={20} onChange={(p) => { setPage(p); load(p, search); }} />
+          <Pagination page={page} total={total} pageSize={20} onChange={(p: any) => { setPage(p); load(p, search); }} />
         </div>
       )}
     </div>
@@ -2389,14 +2389,14 @@ function AdoptablePetsSection() {
     return () => clearTimeout(t);
   }, [search]);
 
-  const handleRemoveAdoption = async (pet) => {
+  const handleRemoveAdoption = async (pet: any) => {
     if (!window.confirm(`Remove ${pet.name} from adoption?`)) return;
     setSaving(pet.id);
     try {
       await adminAPI.updatePet(pet.id, { status: 'active' });
       toast(`${pet.name} removed from adoption`, "success");
       load(page, search);
-    } catch (err) { toast(err.message || "Failed", "error"); }
+    } catch (err: any) { toast(err.message || "Failed", "error"); }
     finally { setSaving(null); }
   };
 
@@ -2404,14 +2404,14 @@ function AdoptablePetsSection() {
     <div>
       <SectionTitle>Adoptable Pets</SectionTitle>
       <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name or Pet ID..." style={{ flex: 1 }} />
+        <Input value={search} onChange={(e: any) => setSearch(e.target.value)} placeholder="Search by name or Pet ID..." style={{ flex: 1 }} />
       </div>
       {loading ? <Loading /> : pets.length === 0 ? <EmptyState>No adoptable pets found</EmptyState> : (
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead><Tr header><Th>Pet ID</Th><Th>Name</Th><Th>Type</Th><Th>Breed</Th><Th>Owner</Th>{canEdit && <Th>Actions</Th>}</Tr></thead>
             <tbody>
-              {pets.map((p) => (
+              {pets.map((p: any) => (
                 <Tr key={p.id}>
                   <Td><code style={{ fontSize: 11 }}>{p.pet_id}</code></Td>
                   <Td bold>{p.name}</Td>
@@ -2427,7 +2427,7 @@ function AdoptablePetsSection() {
               ))}
             </tbody>
           </table>
-          <Pagination page={page} total={total} pageSize={20} onChange={(p) => { setPage(p); load(p, search); }} />
+          <Pagination page={page} total={total} pageSize={20} onChange={(p: any) => { setPage(p); load(p, search); }} />
         </div>
       )}
     </div>
@@ -2469,7 +2469,7 @@ function FoundPetsSection() {
     return () => clearTimeout(t);
   }, [search]);
 
-  const openEdit = (post) => {
+  const openEdit = (post: any) => {
     setEditPost(post);
     setEditForm({ pet_type: post.pet_type || "", color: post.color || "", gender: post.gender || "", breed: post.breed || "", found_location_name: post.found_location_name || "", description: post.description || "", status: post.status || "found" });
   };
@@ -2481,11 +2481,11 @@ function FoundPetsSection() {
       toast("Report updated", "success");
       setEditPost(null);
       load(page);
-    } catch (err) { toast(err.message || "Failed to update", "error"); }
+    } catch (err: any) { toast(err.message || "Failed to update", "error"); }
     finally { setSaving(false); }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: any) => {
     if (!window.confirm("Delete this found report?")) return;
     try {
       await adminAPI.deleteFoundPet(id);
@@ -2494,20 +2494,20 @@ function FoundPetsSection() {
     } catch { toast("Failed to delete", "error"); }
   };
 
-  const formatDate = (d) => d ? new Date(d).toLocaleDateString() : "—";
+  const formatDate = (d: any) => d ? new Date(d).toLocaleDateString() : "—";
 
   return (
     <div>
       <SectionTitle>Found Pet Reports</SectionTitle>
       <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by type, location, breed..." style={{ flex: 1 }} />
+        <Input value={search} onChange={(e: any) => setSearch(e.target.value)} placeholder="Search by type, location, breed..." style={{ flex: 1 }} />
       </div>
       {loading ? <Loading /> : posts.length === 0 ? <EmptyState>No found reports</EmptyState> : (
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead><Tr header><Th>Type</Th><Th>Breed / Color</Th><Th>Location</Th><Th>Date</Th><Th>Reporter</Th><Th>Status</Th>{showActions && <Th>Actions</Th>}</Tr></thead>
             <tbody>
-              {posts.map((p) => (
+              {posts.map((p: any) => (
                 <Tr key={p.id}>
                   <Td bold>{p.pet_type?.charAt(0).toUpperCase() + p.pet_type?.slice(1)}</Td>
                   <Td>{p.breed || "—"} / {p.color || "—"}</Td>
@@ -2527,31 +2527,31 @@ function FoundPetsSection() {
               ))}
             </tbody>
           </table>
-          <Pagination page={page} total={total} pageSize={20} onChange={(p) => { setPage(p); load(p); }} />
+          <Pagination page={page} total={total} pageSize={20} onChange={(p: any) => { setPage(p); load(p); }} />
         </div>
       )}
       {editPost && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 4000, display: "flex", alignItems: "center", justifyContent: "center" }}
           onClick={() => setEditPost(null)}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 12, padding: 28, width: "100%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto" }}>
+          <div onClick={(e: any) => e.stopPropagation()} style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 12, padding: 28, width: "100%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto" }}>
             <h3 style={{ fontFamily: "Roboto, sans-serif", fontWeight: 700, marginBottom: 20 }}>Edit Found Report</h3>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
               <div><label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 4, textTransform: "uppercase" }}>Pet Type</label>
-              <select className="input-field" value={editForm.pet_type || ""} onChange={(e) => setEditForm((f) => ({ ...f, pet_type: e.target.value }))}>
+              <select className="input-field" value={editForm.pet_type || ""} onChange={(e: any) => setEditForm((f: any) => ({ ...f, pet_type: e.target.value }))}>
                 <option value="dog">Dog</option><option value="cat">Cat</option><option value="other">Other</option>
               </select></div>
               <div><label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 4, textTransform: "uppercase" }}>Gender</label>
-              <select className="input-field" value={editForm.gender || ""} onChange={(e) => setEditForm((f) => ({ ...f, gender: e.target.value }))}>
+              <select className="input-field" value={editForm.gender || ""} onChange={(e: any) => setEditForm((f: any) => ({ ...f, gender: e.target.value }))}>
                 <option value="">Not specified</option><option value="male">Male</option><option value="female">Female</option>
               </select></div>
               {[["breed","Breed"],["color","Color"],["found_location_name","Location"]].map(([k,l]) => (
                 <div key={k}><label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 4, textTransform: "uppercase" }}>{l}</label>
-                <Input value={editForm[k] || ""} onChange={(e) => setEditForm((f) => ({ ...f, [k]: e.target.value }))} /></div>
+                <Input value={editForm[k] || ""} onChange={(e: any) => setEditForm((f: any) => ({ ...f, [k]: e.target.value }))} /></div>
               ))}
               <div style={{ gridColumn: "1/-1" }}><label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 4, textTransform: "uppercase" }}>Description</label>
-              <textarea className="input-field" rows={3} value={editForm.description || ""} onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))} style={{ resize: "vertical" }} /></div>
+              <textarea className="input-field" rows={3} value={editForm.description || ""} onChange={(e: any) => setEditForm((f: any) => ({ ...f, description: e.target.value }))} style={{ resize: "vertical" }} /></div>
               <div><label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 4, textTransform: "uppercase" }}>Status</label>
-              <select className="input-field" value={editForm.status || ""} onChange={(e) => setEditForm((f) => ({ ...f, status: e.target.value }))}>
+              <select className="input-field" value={editForm.status || ""} onChange={(e: any) => setEditForm((f: any) => ({ ...f, status: e.target.value }))}>
                 <option value="found">Found</option><option value="resolved">Resolved</option>
               </select></div>
             </div>
@@ -2603,7 +2603,7 @@ function RescuePetsSection() {
     return () => clearTimeout(t);
   }, [search]);
 
-  const openEdit = (post) => {
+  const openEdit = (post: any) => {
     setEditPost(post);
     setEditForm({ pet_type: post.pet_type || "", color: post.color || "", gender: post.gender || "", breed: post.breed || "", rescue_location_name: post.rescue_location_name || "", description: post.description || "", urgency: post.urgency || "medium", status: post.status || "active" });
   };
@@ -2615,11 +2615,11 @@ function RescuePetsSection() {
       toast("Report updated", "success");
       setEditPost(null);
       load(page);
-    } catch (err) { toast(err.message || "Failed to update", "error"); }
+    } catch (err: any) { toast(err.message || "Failed to update", "error"); }
     finally { setSaving(false); }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: any) => {
     if (!window.confirm("Delete this rescue report?")) return;
     try {
       await adminAPI.deleteRescuePet(id);
@@ -2628,26 +2628,26 @@ function RescuePetsSection() {
     } catch { toast("Failed to delete", "error"); }
   };
 
-  const formatDate = (d) => d ? new Date(d).toLocaleDateString() : "—";
+  const formatDate = (d: any) => d ? new Date(d).toLocaleDateString() : "—";
 
   return (
     <div>
       <SectionTitle>Rescue Reports</SectionTitle>
       <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by type, location, breed..." style={{ flex: 1 }} />
+        <Input value={search} onChange={(e: any) => setSearch(e.target.value)} placeholder="Search by type, location, breed..." style={{ flex: 1 }} />
       </div>
       {loading ? <Loading /> : posts.length === 0 ? <EmptyState>No rescue reports</EmptyState> : (
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead><Tr header><Th>Type</Th><Th>Breed / Color</Th><Th>Location</Th><Th>Date</Th><Th>Urgency</Th><Th>Reporter</Th><Th>Status</Th>{showActions && <Th>Actions</Th>}</Tr></thead>
             <tbody>
-              {posts.map((p) => (
+              {posts.map((p: any) => (
                 <Tr key={p.id}>
                   <Td bold>{p.pet_type?.charAt(0).toUpperCase() + p.pet_type?.slice(1)}</Td>
                   <Td>{p.breed || "—"} / {p.color || "—"}</Td>
                   <Td>{p.rescue_location_name || "—"}</Td>
                   <Td>{formatDate(p.rescue_date)}</Td>
-                  <Td><span style={{ color: URGENCY_COLORS[p.urgency] || URGENCY_COLORS.medium, fontWeight: 700, fontSize: 12 }}>{p.urgency?.toUpperCase()}</span></Td>
+                  <Td><span style={{ color: (URGENCY_COLORS as any)[p.urgency] || URGENCY_COLORS.medium, fontWeight: 700, fontSize: 12 }}>{p.urgency?.toUpperCase()}</span></Td>
                   <Td>{p.reporter_name}<br /><span style={{ fontSize: 11, color: "var(--text-muted)" }}>{p.reporter_phone}</span></Td>
                   <Td><Badge variant={p.status === "rescued" ? "success" : p.status === "resolved" ? "info" : "warning"}>{p.status}</Badge></Td>
                   {showActions && (
@@ -2662,37 +2662,37 @@ function RescuePetsSection() {
               ))}
             </tbody>
           </table>
-          <Pagination page={page} total={total} pageSize={20} onChange={(p) => { setPage(p); load(p); }} />
+          <Pagination page={page} total={total} pageSize={20} onChange={(p: any) => { setPage(p); load(p); }} />
         </div>
       )}
       {editPost && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 4000, display: "flex", alignItems: "center", justifyContent: "center" }}
           onClick={() => setEditPost(null)}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 12, padding: 28, width: "100%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto" }}>
+          <div onClick={(e: any) => e.stopPropagation()} style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 12, padding: 28, width: "100%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto" }}>
             <h3 style={{ fontFamily: "Roboto, sans-serif", fontWeight: 700, marginBottom: 20 }}>Edit Rescue Report</h3>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
               <div><label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 4, textTransform: "uppercase" }}>Pet Type</label>
-              <select className="input-field" value={editForm.pet_type || ""} onChange={(e) => setEditForm((f) => ({ ...f, pet_type: e.target.value }))}>
+              <select className="input-field" value={editForm.pet_type || ""} onChange={(e: any) => setEditForm((f: any) => ({ ...f, pet_type: e.target.value }))}>
                 <option value="dog">Dog</option><option value="cat">Cat</option><option value="other">Other</option>
               </select></div>
               <div><label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 4, textTransform: "uppercase" }}>Urgency</label>
-              <select className="input-field" value={editForm.urgency || ""} onChange={(e) => setEditForm((f) => ({ ...f, urgency: e.target.value }))}>
+              <select className="input-field" value={editForm.urgency || ""} onChange={(e: any) => setEditForm((f: any) => ({ ...f, urgency: e.target.value }))}>
                 <option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="critical">Critical</option>
               </select></div>
               <div><label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 4, textTransform: "uppercase" }}>Gender</label>
-              <select className="input-field" value={editForm.gender || ""} onChange={(e) => setEditForm((f) => ({ ...f, gender: e.target.value }))}>
+              <select className="input-field" value={editForm.gender || ""} onChange={(e: any) => setEditForm((f: any) => ({ ...f, gender: e.target.value }))}>
                 <option value="">Not specified</option><option value="male">Male</option><option value="female">Female</option>
               </select></div>
               <div><label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 4, textTransform: "uppercase" }}>Status</label>
-              <select className="input-field" value={editForm.status || ""} onChange={(e) => setEditForm((f) => ({ ...f, status: e.target.value }))}>
+              <select className="input-field" value={editForm.status || ""} onChange={(e: any) => setEditForm((f: any) => ({ ...f, status: e.target.value }))}>
                 <option value="active">Active</option><option value="rescued">Rescued</option><option value="resolved">Resolved</option>
               </select></div>
               {[["breed","Breed"],["color","Color"],["rescue_location_name","Location"]].map(([k,l]) => (
                 <div key={k}><label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 4, textTransform: "uppercase" }}>{l}</label>
-                <Input value={editForm[k] || ""} onChange={(e) => setEditForm((f) => ({ ...f, [k]: e.target.value }))} /></div>
+                <Input value={editForm[k] || ""} onChange={(e: any) => setEditForm((f: any) => ({ ...f, [k]: e.target.value }))} /></div>
               ))}
               <div style={{ gridColumn: "1/-1" }}><label style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: 4, textTransform: "uppercase" }}>Description</label>
-              <textarea className="input-field" rows={3} value={editForm.description || ""} onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))} style={{ resize: "vertical" }} /></div>
+              <textarea className="input-field" rows={3} value={editForm.description || ""} onChange={(e: any) => setEditForm((f: any) => ({ ...f, description: e.target.value }))} style={{ resize: "vertical" }} /></div>
             </div>
             <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
               <Button variant="primary" onClick={handleSave} disabled={saving} style={{ flex: 1 }}>{saving ? "Saving..." : "Save"}</Button>
@@ -2717,7 +2717,7 @@ function CommentsManagementSection() {
   const canModerate = can("comments.delete");
 
   const POST_TYPE_LABEL = { lost: "Lost", found: "Found", rescue: "Rescue", adoption: "Adoption" };
-  const POST_URL = (c) => {
+  const POST_URL = (c: any) => {
     if (c.post_type === "lost" || c.post_type === "found")
       return `/lost-found?post=${c.post_id}&type=${c.post_type}`;
     return `/rescue?post=${c.post_id}&type=${c.post_type}`;
@@ -2742,34 +2742,34 @@ function CommentsManagementSection() {
   useEffect(() => {
     if (!search.trim()) { setComments(allComments); return; }
     const q = search.toLowerCase();
-    setComments(allComments.filter((c) =>
+    setComments(allComments.filter((c: any) =>
       (c.commenter_name || "").toLowerCase().includes(q) ||
       (c.commenter_phone || "").toLowerCase().includes(q)
     ));
   }, [search, allComments]);
 
-  const removeFromList = (id) => {
-    setAllComments((a) => a.filter((x) => x.id !== id));
-    setComments((c) => c.filter((x) => x.id !== id));
+  const removeFromList = (id: any) => {
+    setAllComments((a: any) => a.filter((x: any) => x.id !== id));
+    setComments((c: any) => c.filter((x: any) => x.id !== id));
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: any) => {
     if (!window.confirm("Delete this comment permanently?")) return;
     try {
       await adminAPI.deleteComment(id);
       toast("Comment deleted", "success");
       removeFromList(id);
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to delete", "error");
     }
   };
 
-  const handleDismiss = async (id) => {
+  const handleDismiss = async (id: any) => {
     try {
       await adminAPI.dismissComment(id);
       toast("Reports cleared — comment marked safe", "success");
       removeFromList(id);
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to dismiss", "error");
     }
   };
@@ -2787,7 +2787,7 @@ function CommentsManagementSection() {
         </p>
         <Input
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e: any) => setSearch(e.target.value)}
           placeholder="Search by name or phone number..."
           style={{ maxWidth: 380 }}
         />
@@ -2797,8 +2797,8 @@ function CommentsManagementSection() {
         <EmptyState icon="✅" title="No reported comments" description="All clear — no comments pending review." />
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {comments.map((c) => {
-            const reasonCounts = (c.reports || []).reduce((acc, r) => {
+          {comments.map((c: any) => {
+            const reasonCounts = (c.reports || []).reduce((acc: any, r: any) => {
               acc[r.reason] = (acc[r.reason] || 0) + 1;
               return acc;
             }, {});
@@ -2839,7 +2839,7 @@ function CommentsManagementSection() {
                           cursor: "pointer",
                         }}
                       >
-                        {POST_TYPE_LABEL[c.post_type] || c.post_type} · Post ↗
+                        {(POST_TYPE_LABEL as any)[c.post_type] || c.post_type} · Post ↗
                       </a>
                       <span style={{
                         padding: "2px 8px",
@@ -2866,7 +2866,7 @@ function CommentsManagementSection() {
                       {c.comment_text}
                     </p>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                      {Object.entries(reasonCounts).map(([reason, count]) => (
+                      {Object.entries(reasonCounts).map(([reason, count]: [any, any]) => (
                         <span key={reason} style={{
                           padding: "2px 8px",
                           borderRadius: 999,
@@ -2977,7 +2977,7 @@ function ClaimRequestsSection() {
     try {
       const data = await adminAPI.getClaimRequests();
       setClaims(data.claims);
-    } catch (e) {
+    } catch (e: any) {
       toast(e.message, "error");
     } finally {
       setLoading(false);
@@ -2986,14 +2986,14 @@ function ClaimRequestsSection() {
 
   useEffect(() => { load(); }, []);
 
-  const handle = async (vetId, action) => {
+  const handle = async (vetId: any, action: any) => {
     setActing(vetId);
     try {
       if (action === "approve") await adminAPI.approveClaimRequest(vetId);
       else await adminAPI.rejectClaimRequest(vetId);
       toast(action === "approve" ? "Claim approved" : "Claim rejected", "success");
       load();
-    } catch (e) {
+    } catch (e: any) {
       toast(e.message, "error");
     } finally {
       setActing(null);
@@ -3017,7 +3017,7 @@ function ClaimRequestsSection() {
           </tr>
         </thead>
         <tbody>
-          {claims.map((c) => (
+          {claims.map((c: any) => (
             <Tr key={c.id}>
               <Td>{c.name || c.clinic_name}</Td>
               <Td>{c.requester_name}</Td>
@@ -3030,7 +3030,7 @@ function ClaimRequestsSection() {
               <Td>
                 {c.documents?.length > 0 ? (
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    {c.documents.map((d, i) => (
+                    {c.documents.map((d: any, i: any) => (
                       <a
                         key={i}
                         href={`${API_SERVER}${d.file_path}`}
@@ -3168,7 +3168,7 @@ function SmsSettingsSection() {
             </div>
             <button
               type="button"
-              onClick={() => setSmsEnabled((v) => !v)}
+              onClick={() => setSmsEnabled((v: any) => !v)}
               style={{
                 width: 48,
                 height: 26,
@@ -3208,7 +3208,7 @@ function SmsSettingsSection() {
           <input
             type="tel"
             value={adminPhone}
-            onChange={(e) => setAdminPhone(e.target.value)}
+            onChange={(e: any) => setAdminPhone(e.target.value)}
             placeholder="01XXXXXXXXX"
             maxLength={11}
             style={{

@@ -50,7 +50,7 @@ function readDismissed() {
     const ts = Number(localStorage.getItem(DISMISS_KEY));
     if (!ts) return false;
     return Date.now() - ts < SNOOZE_MS;
-  } catch (e) {
+  } catch (e: any) {
     return false;
   }
 }
@@ -58,7 +58,7 @@ function readDismissed() {
 function writeDismissed() {
   try {
     localStorage.setItem(DISMISS_KEY, String(Date.now()));
-  } catch (e) {
+  } catch (e: any) {
     /* storage unavailable — fall through, banner just reappears next load */
   }
 }
@@ -82,7 +82,7 @@ export default function InstallPrompt() {
       setHidden(false);
     }
 
-    const handleBeforeInstall = (e) => {
+    const handleBeforeInstall = (e: any) => {
       // Stop Chrome's default mini-infobar; stash the event for our button.
       e.preventDefault();
       setDeferredPrompt(e);
@@ -111,7 +111,7 @@ export default function InstallPrompt() {
     deferredPrompt.prompt();
     try {
       await deferredPrompt.userChoice;
-    } catch (e) {
+    } catch (e: any) {
       /* user closed prompt — ignore */
     }
     // Single-use: the event can't be reused once prompt() is called.
@@ -120,7 +120,7 @@ export default function InstallPrompt() {
   };
 
   const handleIosClick = () => {
-    setIosHintOpen((open) => !open);
+    setIosHintOpen((open: any) => !open);
   };
 
   const handleDismiss = () => {

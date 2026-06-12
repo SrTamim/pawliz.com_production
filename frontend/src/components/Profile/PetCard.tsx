@@ -41,7 +41,7 @@ export function AddPetCard({ onCreated }: any) {
   const [tab, setTab] = useState(0);
   const [saving, setSaving] = useState(false);
 
-  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (k: any, v: any) => setForm((f: any) => ({ ...f, [k]: v }));
 
   const handleSubmit = async () => {
     if (!form.name.trim()) {
@@ -60,7 +60,7 @@ export function AddPetCard({ onCreated }: any) {
       setOpen(false);
       setForm(EMPTY_PET);
       setTab(0);
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to add pet", "error");
     } finally {
       setSaving(false);
@@ -85,11 +85,11 @@ export function AddPetCard({ onCreated }: any) {
           transition: "all 0.2s",
           color: "var(--text-muted)",
         }}
-        onMouseEnter={(e) => {
+        onMouseEnter={(e: any) => {
           e.currentTarget.style.borderColor = "var(--accent)";
           e.currentTarget.style.background = "rgba(0,230,118,0.04)";
         }}
-        onMouseLeave={(e) => {
+        onMouseLeave={(e: any) => {
           e.currentTarget.style.borderColor = "var(--border)";
           e.currentTarget.style.background = "var(--bg-card)";
         }}
@@ -197,7 +197,7 @@ export default function PetCard({ pet: initialPet, onDeleted, onUpdated }: any) 
     color: "var(--accent)",
   };
 
-  const set = useCallback((k, v) => setForm((f) => ({ ...f, [k]: v })), []);
+  const set = useCallback((k: any, v: any) => setForm((f: any) => ({ ...f, [k]: v })), []);
 
   const startEdit = () => {
     setForm({
@@ -251,7 +251,7 @@ export default function PetCard({ pet: initialPet, onDeleted, onUpdated }: any) 
       setEditing(false);
       toast(`${res.pet.name} updated!`, "success");
       if (onUpdated) onUpdated(res.pet);
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to save", "error");
     } finally {
       setSaving(false);
@@ -264,29 +264,29 @@ export default function PetCard({ pet: initialPet, onDeleted, onUpdated }: any) 
       await petsAPI.delete(pet.id);
       toast(`${pet.name} removed`, "success");
       if (onDeleted) onDeleted(pet.id);
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to remove pet", "error");
       setDeleting(false);
     }
   };
 
-  const handleMarkedLost = (petId) => {
-    setPet((p) => ({ ...p, is_lost: true }));
+  const handleMarkedLost = (petId: any) => {
+    setPet((p: any) => ({ ...p, is_lost: true }));
     if (onUpdated) onUpdated({ ...pet, is_lost: true });
   };
 
-  const handleMarkedForAdoption = (petId) => {
-    setPet((p) => ({ ...p, is_for_adoption: true }));
+  const handleMarkedForAdoption = (petId: any) => {
+    setPet((p: any) => ({ ...p, is_for_adoption: true }));
     if (onUpdated) onUpdated({ ...pet, is_for_adoption: true });
   };
 
   const handleMarkAdopted = async () => {
     try {
       await petsAPI.markAdopted(pet.id);
-      setPet((p) => ({ ...p, is_for_adoption: false }));
+      setPet((p: any) => ({ ...p, is_for_adoption: false }));
       toast(`${pet.name} marked as adopted! 🎉`, "success");
       if (onUpdated) onUpdated({ ...pet, is_for_adoption: false });
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to update", "error");
     }
   };
@@ -294,44 +294,44 @@ export default function PetCard({ pet: initialPet, onDeleted, onUpdated }: any) 
   const handleMarkFound = async () => {
     try {
       await petsAPI.markFound(pet.id);
-      setPet((p) => ({ ...p, is_lost: false }));
+      setPet((p: any) => ({ ...p, is_lost: false }));
       toast(`${pet.name} marked as found! 🎉`, "success");
       if (onUpdated) onUpdated({ ...pet, is_lost: false });
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to mark as found", "error");
     }
   };
 
-  const handleImagesUpload = async (files) => {
+  const handleImagesUpload = async (files: any) => {
     if (files.length === 0) return;
     setUploadingImages(true);
     try {
       const res = await petsAPI.uploadImages(pet.id, Array.from(files));
-      setPet((p) => ({ ...p, images: res.images }));
+      setPet((p: any) => ({ ...p, images: res.images }));
       // Update form.images if in edit mode
-      setForm((f) => ({ ...f, images: res.images }));
+      setForm((f: any) => ({ ...f, images: res.images }));
       toast(
         `Uploaded ${files.length} image${files.length !== 1 ? "s" : ""}!`,
         "success",
       );
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Upload failed", "error");
     } finally {
       setUploadingImages(false);
     }
   };
 
-  const handleDeleteImage = async (imageIndex) => {
+  const handleDeleteImage = async (imageIndex: any) => {
     try {
       const res = await petsAPI.deleteImage(pet.id, imageIndex);
-      setPet((p) => ({ ...p, images: res.images }));
+      setPet((p: any) => ({ ...p, images: res.images }));
       toast("Image removed", "success");
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to remove image", "error");
     }
   };
 
-  const handleDeleteImageInForm = async (imageIndex, imageToDelete) => {
+  const handleDeleteImageInForm = async (imageIndex: any, imageToDelete: any) => {
     try {
       // Find the actual index in the pet's images array (the one stored on server)
       const actualImages = Array.isArray(pet.images)
@@ -344,11 +344,11 @@ export default function PetCard({ pet: initialPet, onDeleted, onUpdated }: any) 
       }
 
       // Update both pet and form state
-      const newImages = form.images.filter((_, i) => i !== imageIndex);
-      setPet((p) => ({ ...p, images: newImages }));
+      const newImages = form.images.filter((_: any, i: any) => i !== imageIndex);
+      setPet((p: any) => ({ ...p, images: newImages }));
       set("images", newImages);
       toast("Image removed", "success");
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to remove image", "error");
     }
   };
@@ -516,7 +516,7 @@ export default function PetCard({ pet: initialPet, onDeleted, onUpdated }: any) 
               }}
             >
               <button
-                onClick={() => { setShowQr((v) => !v); setShowShare(false); }}
+                onClick={() => { setShowQr((v: any) => !v); setShowShare(false); }}
                 style={bigIconBtn}
                 title="QR Code"
               >
@@ -535,7 +535,7 @@ export default function PetCard({ pet: initialPet, onDeleted, onUpdated }: any) 
               }}
             >
               <button
-                onClick={() => { setShowShare((v) => !v); setShowQr(false); }}
+                onClick={() => { setShowShare((v: any) => !v); setShowQr(false); }}
                 style={bigIconBtn}
                 title={t("pets:shareTitle")}
               >
@@ -738,7 +738,7 @@ export default function PetCard({ pet: initialPet, onDeleted, onUpdated }: any) 
             paddingBottom: 0,
           }}
         >
-          {TABS.map((tabLabel, i) => (
+          {TABS.map((tabLabel: any, i: any) => (
             <button
               key={tabLabel}
               onClick={() => setTab(i)}
@@ -824,7 +824,7 @@ export default function PetCard({ pet: initialPet, onDeleted, onUpdated }: any) 
               maxWidth: 360,
               boxShadow: "var(--shadow-lg)",
             }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e: any) => e.stopPropagation()}
           >
             <div
               style={{
@@ -953,7 +953,7 @@ function PetView({ pet, tab }: any) {
               images={(Array.isArray(pet.images)
                 ? pet.images
                 : JSON.parse(pet.images || "[]")
-              ).map((img) =>
+              ).map((img: any) =>
                 img.startsWith("http")
                   ? img
                   : `${process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:5000"}${img}`
@@ -966,7 +966,7 @@ function PetView({ pet, tab }: any) {
   }
 
   if (tab === 1) {
-    const bool2str = (v) => (v === true ? t("form.yes") : v === false ? t("form.no") : null);
+    const bool2str = (v: any) => (v === true ? t("form.yes") : v === false ? t("form.no") : null);
     const fields = [
       { label: t("medical.vaccinationStatus"), value: pet.vaccination_status },
       {
@@ -989,7 +989,7 @@ function PetView({ pet, tab }: any) {
   }
 
   if (tab === 2) {
-    const bool2str = (v) =>
+    const bool2str = (v: any) =>
       v === true ? t("form.yesEmoji") : v === false ? t("form.noEmoji") : null;
     const fields = [
       {
@@ -1021,7 +1021,7 @@ function InfoGrid({ fields }: any) {
         gap: 12,
       }}
     >
-      {fields.map(({ label, value, full }) =>
+      {fields.map(({ label, value, full }: any) =>
         value !== null && value !== undefined && value !== "" ? (
           <div key={label} style={full ? { gridColumn: "1/-1" } : {}}>
             <div
@@ -1074,7 +1074,7 @@ function PetForm({
             ? ""
             : String(form[field])
         }
-        onChange={(e) => {
+        onChange={(e: any) => {
           const v = e.target.value;
           setField(field, v === "" ? null : v === "true");
         }}
@@ -1100,7 +1100,7 @@ function PetForm({
           <input
             className="input-field"
             value={form.name}
-            onChange={(e) => setField("name", e.target.value)}
+            onChange={(e: any) => setField("name", e.target.value)}
             placeholder="Buddy"
             required
           />
@@ -1110,7 +1110,7 @@ function PetForm({
           <select
             className="input-field"
             value={form.type}
-            onChange={(e) => setField("type", e.target.value)}
+            onChange={(e: any) => setField("type", e.target.value)}
           >
             <option value="dog">🐕 Dog</option>
             <option value="cat">🐱 Cat</option>
@@ -1122,7 +1122,7 @@ function PetForm({
           <input
             className="input-field"
             value={form.breed}
-            onChange={(e) => setField("breed", e.target.value)}
+            onChange={(e: any) => setField("breed", e.target.value)}
             placeholder="German Shepherd"
           />
         </div>
@@ -1131,7 +1131,7 @@ function PetForm({
           <select
             className="input-field"
             value={form.gender || ""}
-            onChange={(e) => setField("gender", e.target.value)}
+            onChange={(e: any) => setField("gender", e.target.value)}
           >
             <option value="">{t("form.notSpecified")}</option>
             <option value="male">{t("form.male")}</option>
@@ -1145,7 +1145,7 @@ function PetForm({
             maxLength={30}
             className="input-field"
             value={form.age || ""}
-            onChange={(e) => setField("age", e.target.value)}
+            onChange={(e: any) => setField("age", e.target.value)}
             placeholder="1 year 3 month"
           />
         </div>
@@ -1154,7 +1154,7 @@ function PetForm({
           <input
             className="input-field"
             value={form.color}
-            onChange={(e) => setField("color", e.target.value)}
+            onChange={(e: any) => setField("color", e.target.value)}
             placeholder="Golden with white patches"
           />
         </div>
@@ -1166,7 +1166,7 @@ function PetForm({
             min="0"
             className="input-field"
             value={form.weight}
-            onChange={(e) => setField("weight", e.target.value)}
+            onChange={(e: any) => setField("weight", e.target.value)}
             placeholder="12.5"
           />
         </div>
@@ -1187,7 +1187,7 @@ function PetForm({
               {(Array.isArray(form.images)
                 ? form.images
                 : JSON.parse(form.images || "[]")
-              ).map((img, idx) => (
+              ).map((img: any, idx: any) => (
                 <div
                   key={idx}
                   style={{
@@ -1267,7 +1267,7 @@ function PetForm({
             multiple
             max="3"
             style={{ display: "none" }}
-            onChange={(e) => {
+            onChange={(e: any) => {
               if (e.target.files) handleImagesUpload(e.target.files);
             }}
           />
@@ -1289,7 +1289,7 @@ function PetForm({
           <select
             className="input-field"
             value={form.vaccination_status || ""}
-            onChange={(e) => setField("vaccination_status", e.target.value)}
+            onChange={(e: any) => setField("vaccination_status", e.target.value)}
           >
             <option value="">{t("form.notSpecified")}</option>
             <option value="up-to-date">{t("form.upToDate")}</option>
@@ -1305,7 +1305,7 @@ function PetForm({
             className="input-field"
             value={form.last_vaccination_date}
             max={new Date().toISOString().split("T")[0]}
-            onChange={(e) => setField("last_vaccination_date", e.target.value)}
+            onChange={(e: any) => setField("last_vaccination_date", e.target.value)}
           />
         </div>
         <div>
@@ -1314,7 +1314,7 @@ function PetForm({
             type="date"
             className="input-field"
             value={form.next_vaccination_date}
-            onChange={(e) => setField("next_vaccination_date", e.target.value)}
+            onChange={(e: any) => setField("next_vaccination_date", e.target.value)}
           />
         </div>
         <div style={{ gridColumn: "1/-1" }}>
@@ -1323,7 +1323,7 @@ function PetForm({
             className="input-field"
             rows={2}
             value={form.medical_conditions}
-            onChange={(e) => setField("medical_conditions", e.target.value)}
+            onChange={(e: any) => setField("medical_conditions", e.target.value)}
             placeholder="Hip dysplasia, ear infections..."
             style={{ resize: "vertical" }}
           />
@@ -1334,7 +1334,7 @@ function PetForm({
             className="input-field"
             rows={2}
             value={form.allergies}
-            onChange={(e) => setField("allergies", e.target.value)}
+            onChange={(e: any) => setField("allergies", e.target.value)}
             placeholder="Chicken, grass pollen..."
             style={{ resize: "vertical" }}
           />
@@ -1345,7 +1345,7 @@ function PetForm({
             className="input-field"
             rows={2}
             value={form.current_medicines}
-            onChange={(e) => setField("current_medicines", e.target.value)}
+            onChange={(e: any) => setField("current_medicines", e.target.value)}
             placeholder="Monthly flea prevention..."
             style={{ resize: "vertical" }}
           />
@@ -1367,7 +1367,7 @@ function PetForm({
           <select
             className="input-field"
             value={form.temperament || ""}
-            onChange={(e) => setField("temperament", e.target.value)}
+            onChange={(e: any) => setField("temperament", e.target.value)}
           >
             <option value="">{t("form.notSpecified")}</option>
             <option value="friendly">{t("form.friendly")}</option>
@@ -1389,7 +1389,7 @@ function PetForm({
             className="input-field"
             rows={3}
             value={form.special_notes}
-            onChange={(e) => setField("special_notes", e.target.value)}
+            onChange={(e: any) => setField("special_notes", e.target.value)}
             placeholder="Loves belly rubs, scared of thunder..."
             style={{ resize: "vertical" }}
           />
@@ -1431,7 +1431,7 @@ const labelStyle = {
   letterSpacing: "0.4px",
 };
 
-const saveBtnStyle = (saving) => ({
+const saveBtnStyle = (saving: any) => ({
   flex: 2,
   padding: "10px 0",
   borderRadius: 8,

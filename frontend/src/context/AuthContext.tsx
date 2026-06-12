@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     authAPI
       .me()
-      .then((res) => setUser(res.user))
+      .then((res: any) => setUser(res.user))
       .catch(() => setUser(null))
       .finally(() => setLoading(false));
   }, []);
@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     // If the server call fails, still clear client state; tokens expire server-side (15min access).
-    try { await authAPI.logout(); } catch (err) { console.warn("Server logout failed; clearing local session anyway", err); }
+    try { await authAPI.logout(); } catch (err: any) { console.warn("Server logout failed; clearing local session anyway", err); }
     setUser(null);
     disconnectSocket(); // Close stale WS connection — next user gets a fresh socket
     // Clear cached API responses from service worker — prevents PII leakage on shared devices
@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const patch = Object.fromEntries(
       Object.entries(updatedUser || {}).filter(([, v]) => v !== undefined),
     );
-    setUser((prev) => ({ ...(prev as User), ...patch }));
+    setUser((prev: any) => ({ ...(prev as User), ...patch }));
   }, []);
 
   // RBAC: does the current user hold permission `key`?

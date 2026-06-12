@@ -46,8 +46,8 @@ const securityHeaders = [
   { key: "Content-Security-Policy", value: buildCsp() },
 ];
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import type { NextConfig } from 'next';
+const nextConfig: NextConfig = {
   reactStrictMode: true,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
@@ -63,7 +63,7 @@ const nextConfig = {
         try {
           if (!process.env.NEXT_PUBLIC_R2_PUBLIC_URL) return [];
           const { hostname } = new URL(process.env.NEXT_PUBLIC_R2_PUBLIC_URL);
-          return [{ protocol: "https", hostname }];
+          return [{ protocol: "https" as const, hostname }];
         } catch {
           return [];
         }
@@ -83,8 +83,8 @@ const nextConfig = {
       },
     ];
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config: any, { isServer }: any) => {
     return config;
   },
 };
-module.exports = nextConfig;
+export default nextConfig;

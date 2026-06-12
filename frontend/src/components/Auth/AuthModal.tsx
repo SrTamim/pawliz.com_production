@@ -72,7 +72,7 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
       toast(`Welcome back, ${user.name}! 🐾`);
       onClose();
       if (user.role === "vet") router.push("/vet-dashboard");
-    } catch (e) {
+    } catch (e: any) {
       setError(e.message);
     } finally {
       setLoading(false);
@@ -122,14 +122,14 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
       } else {
         setOtpPhase(true);
       }
-    } catch (e) {
+    } catch (e: any) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOtpVerify = async (otp) => {
+  const handleOtpVerify = async (otp: any) => {
     setOtpLoading(true);
     setOtpError("");
     try {
@@ -137,7 +137,7 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
       const user = await register(reg);
       toast(`Welcome to Pawliz, ${user.name}! 🐾`);
       onClose();
-    } catch (e) {
+    } catch (e: any) {
       setOtpError(e.message);
     } finally {
       setOtpLoading(false);
@@ -148,7 +148,7 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
     try {
       await authAPI.sendOtp(reg.phone);
     } catch { /* ignore */ }
-    setResendKey((k) => k + 1);
+    setResendKey((k: any) => k + 1);
   };
 
   const handleForgotSendOtp = async () => {
@@ -164,23 +164,23 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
         setForgotPhase("reset");
       } else {
         setForgotPhase("otp");
-        setForgotOtpKey((k) => k + 1);
+        setForgotOtpKey((k: any) => k + 1);
       }
-    } catch (e) {
+    } catch (e: any) {
       setForgotError(e.message);
     } finally {
       setForgotLoading(false);
     }
   };
 
-  const handleForgotOtpSubmit = async (otp) => {
+  const handleForgotOtpSubmit = async (otp: any) => {
     setForgotLoading(true);
     setForgotError("");
     try {
       await authAPI.verifyOtp(forgotPhone, otp);
       setForgotOtp(otp);
       setForgotPhase("reset");
-    } catch (e) {
+    } catch (e: any) {
       setForgotError(e.message);
     } finally {
       setForgotLoading(false);
@@ -191,7 +191,7 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
     try {
       await authAPI.forgotPasswordSendOtp(forgotPhone);
     } catch { /* ignore */ }
-    setForgotOtpKey((k) => k + 1);
+    setForgotOtpKey((k: any) => k + 1);
   };
 
   const handlePasswordReset = async () => {
@@ -215,14 +215,14 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
       setForgotOtp("");
       setNewPassword("");
       setNewPasswordConfirm("");
-    } catch (e) {
+    } catch (e: any) {
       setForgotError(e.message);
     } finally {
       setForgotLoading(false);
     }
   };
 
-  const switchTab = (newTab) => {
+  const switchTab = (newTab: any) => {
     setTab(newTab);
     setError("");
     setOtpPhase(false);
@@ -271,7 +271,7 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
           marginBottom: 20,
         }}
       >
-        {["login", "register"].map((tabKey) => (
+        {["login", "register"].map((tabKey: any) => (
           <button
             key={tabKey}
             onClick={() => switchTab(tabKey)}
@@ -309,7 +309,7 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
                   id="login-phone"
                   name="phone"
                   value={loginPhone}
-                  onChange={(e) => setLoginPhone(e.target.value)}
+                  onChange={(e: any) => setLoginPhone(e.target.value)}
                   placeholder={t("login.phonePlaceholder")}
                   maxLength={11}
                   type="tel"
@@ -323,11 +323,11 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
                     id="login-password"
                     name="password"
                     value={loginPass}
-                    onChange={(e) => setLoginPass(e.target.value)}
+                    onChange={(e: any) => setLoginPass(e.target.value)}
                     placeholder={t("login.passwordPlaceholder")}
                     type={showLoginPass ? "text" : "password"}
                     autoComplete="current-password"
-                    onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                    onKeyDown={(e: any) => e.key === "Enter" && handleLogin()}
                     style={{ paddingRight: "40px" }}
                   />
                   <button
@@ -358,7 +358,7 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
                   <input
                     type="checkbox"
                     checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
+                    onChange={(e: any) => setRememberMe(e.target.checked)}
                     style={{ width: 16, height: 16, accentColor: "#00e5a0", cursor: "pointer" }}
                   />
                   <span style={{ fontSize: 13, color: "var(--text-secondary)", fontFamily: "DM Sans, sans-serif" }}>
@@ -421,7 +421,7 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
                 <Input
                   type="tel"
                   value={forgotPhone}
-                  onChange={(e) => setForgotPhone(e.target.value)}
+                  onChange={(e: any) => setForgotPhone(e.target.value)}
                   placeholder="01XXXXXXXXX"
                   maxLength={11}
                   autoComplete="tel"
@@ -466,7 +466,7 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
                   <Input
                     type={showNewPass ? "text" : "password"}
                     value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
+                    onChange={(e: any) => setNewPassword(e.target.value)}
                     placeholder="Min 8 chars, letters + numbers"
                     autoComplete="new-password"
                     style={{ paddingRight: "40px" }}
@@ -487,7 +487,7 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
                   <Input
                     type={showNewPassConfirm ? "text" : "password"}
                     value={newPasswordConfirm}
-                    onChange={(e) => setNewPasswordConfirm(e.target.value)}
+                    onChange={(e: any) => setNewPasswordConfirm(e.target.value)}
                     placeholder="Repeat new password"
                     autoComplete="new-password"
                     style={{ paddingRight: "40px", borderColor: newPasswordConfirm && newPassword !== newPasswordConfirm ? "#ef4444" : undefined }}
@@ -546,8 +546,8 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
                 name="name"
                 autoComplete="name"
                 value={reg.name}
-                onChange={(e) =>
-                  setReg((r) => ({ ...r, name: e.target.value }))
+                onChange={(e: any) =>
+                  setReg((r: any) => ({ ...r, name: e.target.value }))
                 }
                 placeholder={t("register.namePlaceholder")}
               />
@@ -558,8 +558,8 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
                 name="phone"
                 autoComplete="tel"
                 value={reg.phone}
-                onChange={(e) =>
-                  setReg((r) => ({ ...r, phone: e.target.value }))
+                onChange={(e: any) =>
+                  setReg((r: any) => ({ ...r, phone: e.target.value }))
                 }
                 placeholder={t("register.phonePlaceholder")}
                 maxLength={11}
@@ -573,7 +573,7 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
               name="email"
               autoComplete="email"
               value={reg.email}
-              onChange={(e) => setReg((r) => ({ ...r, email: e.target.value }))}
+              onChange={(e: any) => setReg((r: any) => ({ ...r, email: e.target.value }))}
               placeholder={t("register.emailPlaceholder")}
               type="email"
             />
@@ -584,8 +584,8 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
               name="address"
               autoComplete="street-address"
               value={reg.address}
-              onChange={(e) =>
-                setReg((r) => ({ ...r, address: e.target.value }))
+              onChange={(e: any) =>
+                setReg((r: any) => ({ ...r, address: e.target.value }))
               }
               placeholder={t("register.addressPlaceholder")}
             />
@@ -597,8 +597,8 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
                 name="new-password"
                 autoComplete="new-password"
                 value={reg.password}
-                onChange={(e) =>
-                  setReg((r) => ({ ...r, password: e.target.value }))
+                onChange={(e: any) =>
+                  setReg((r: any) => ({ ...r, password: e.target.value }))
                 }
                 placeholder={t("register.passwordPlaceholder")}
                 type={showRegPass ? "text" : "password"}
@@ -635,8 +635,8 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
                 name="confirm-password"
                 autoComplete="new-password"
                 value={reg.confirm_password}
-                onChange={(e) =>
-                  setReg((r) => ({ ...r, confirm_password: e.target.value }))
+                onChange={(e: any) =>
+                  setReg((r: any) => ({ ...r, confirm_password: e.target.value }))
                 }
                 placeholder={t("register.confirmPasswordPlaceholder")}
                 type={showConfirmPass ? "text" : "password"}
@@ -701,7 +701,7 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
             <input
               type="checkbox"
               checked={termsAccepted}
-              onChange={(e) => setTermsAccepted(e.target.checked)}
+              onChange={(e: any) => setTermsAccepted(e.target.checked)}
               style={{ width: 16, height: 16, accentColor: "#00e5a0", cursor: "pointer", flexShrink: 0 }}
             />
             <span>
@@ -748,8 +748,8 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
                 color: "var(--accent)", fontWeight: 600, fontSize: 14,
                 fontFamily: "DM Sans, sans-serif", transition: "all 0.2s",
               }}
-              onMouseEnter={(e) => { (e.target as any).style.background = "var(--accent)"; (e.target as any).style.color = "#000"; }}
-              onMouseLeave={(e) => { (e.target as any).style.background = "transparent"; (e.target as any).style.color = "var(--accent)"; }}
+              onMouseEnter={(e: any) => { (e.target as any).style.background = "var(--accent)"; (e.target as any).style.color = "#000"; }}
+              onMouseLeave={(e: any) => { (e.target as any).style.background = "transparent"; (e.target as any).style.color = "var(--accent)"; }}
             >
               {t("register.vetBtn")}
             </button>

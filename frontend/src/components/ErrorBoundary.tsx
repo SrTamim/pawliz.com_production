@@ -5,16 +5,16 @@ import React from 'react';
  * Displays fallback UI instead of crashing entire app
  */
 class ErrorBoundary extends React.Component<any, any> {
-  constructor(props) {
+  constructor(props: any) {
     super(props);
     this.state = { hasError: false, error: null };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(error: any) {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error, errorInfo) {
+  componentDidCatch(error: any, errorInfo: any) {
     console.error('Error caught by boundary:', error, errorInfo);
     // Report to backend for monitoring — silent, non-blocking
     try {
@@ -72,8 +72,8 @@ class ErrorBoundary extends React.Component<any, any> {
               fontSize: '14px',
               transition: 'opacity 0.2s',
             }}
-            onMouseEnter={(e) => ((e.target as any).style.opacity = '0.8')}
-            onMouseLeave={(e) => ((e.target as any).style.opacity = '1')}
+            onMouseEnter={(e: any) => ((e.target as any).style.opacity = '0.8')}
+            onMouseLeave={(e: any) => ((e.target as any).style.opacity = '1')}
           >
             Try Again
           </button>

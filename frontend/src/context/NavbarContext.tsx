@@ -52,7 +52,7 @@ export function NavbarProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setTheme((prevTheme) => {
+    setTheme((prevTheme: any) => {
       const next = prevTheme === "dark" ? "light" : "dark";
       localStorage.setItem("pawliz_theme", next);
       document.documentElement.classList.toggle("light", next === "light");

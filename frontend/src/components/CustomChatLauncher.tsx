@@ -87,10 +87,10 @@ export default function CustomChatLauncher() {
         zIndex: 999,
         transition: "transform 0.2s ease",
       }}
-      onMouseEnter={(e) => {
+      onMouseEnter={(e: any) => {
         e.currentTarget.style.transform = "scale(1.08)";
       }}
-      onMouseLeave={(e) => {
+      onMouseLeave={(e: any) => {
         e.currentTarget.style.transform = "scale(1)";
       }}
     >

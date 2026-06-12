@@ -27,7 +27,7 @@ export default function CommentsSection({
   const [reportSubmitting, setReportSubmitting] = useState(false);
 
   // Format time ago
-  const formatTimeAgo = (dateStr) => {
+  const formatTimeAgo = (dateStr: any) => {
     if (!dateStr) return "Unknown";
     const date = new Date(dateStr);
     const now = new Date();
@@ -60,14 +60,14 @@ export default function CommentsSection({
       toast(t("comments.postBtn"), "success");
       setNewComment("");
       onCommentAdded();
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to add comment", "error");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleReport = async (commentId) => {
+  const handleReport = async (commentId: any) => {
     if (!reportReason) { toast(t("comments.reportReason"), "error"); return; }
     setReportSubmitting(true);
     try {
@@ -76,7 +76,7 @@ export default function CommentsSection({
       setReportingId(null);
       setReportReason("");
       onCommentAdded();
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to report", "error");
     } finally {
       setReportSubmitting(false);
@@ -84,7 +84,7 @@ export default function CommentsSection({
   };
 
   // Delete comment
-  const handleDeleteComment = async (commentId) => {
+  const handleDeleteComment = async (commentId: any) => {
     if (!window.confirm(t("comments.deleteConfirm"))) return;
 
     setDeleting(commentId);
@@ -92,7 +92,7 @@ export default function CommentsSection({
       await lostFoundAPI.deleteComment(commentId);
       toast(t("comments.deleteBtn"), "success");
       onCommentAdded();
-    } catch (err) {
+    } catch (err: any) {
       toast(err.message || "Failed to delete comment", "error");
     } finally {
       setDeleting(null);
@@ -119,7 +119,7 @@ export default function CommentsSection({
                   }
                   alt={user.name}
                   className="w-8 h-8 rounded-full object-cover flex-shrink-0 bg-[var(--accent)]"
-                  onError={(e) => {
+                  onError={(e: any) => {
                     (e.target as any).style.display = "none";
                     if ((e.target as any).nextElementSibling)
                       (e.target as any).nextElementSibling.style.display = "flex";
@@ -140,7 +140,7 @@ export default function CommentsSection({
             <div className="flex-1">
               <textarea
                 value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
+                onChange={(e: any) => setNewComment(e.target.value)}
                 placeholder={t("comments.placeholder")}
                 maxLength={500}
                 className="w-full bg-[var(--bg-primary)] border border-[var(--border)] rounded-lg p-3 text-[var(--text-primary)] placeholder-[var(--text-secondary)] text-sm resize-none"
@@ -178,7 +178,7 @@ export default function CommentsSection({
         </div>
       ) : (
         <div className="space-y-4">
-          {comments.map((comment) => (
+          {comments.map((comment: any) => (
             <div
               key={comment.id}
               className="p-4 bg-[var(--bg-secondary)] rounded-lg"
@@ -194,7 +194,7 @@ export default function CommentsSection({
                     }
                     alt={comment.name}
                     className="w-9 h-9 rounded-full object-cover flex-shrink-0 bg-[var(--accent)]"
-                    onError={(e) => {
+                    onError={(e: any) => {
                       (e.target as any).style.display = "none";
                       if ((e.target as any).nextElementSibling)
                         (e.target as any).nextElementSibling.style.display = "flex";
@@ -254,7 +254,7 @@ export default function CommentsSection({
                     <div className="mt-2 p-3 bg-[var(--bg-primary)] border border-[var(--border)] rounded-lg">
                       <p className="text-xs text-[var(--text-secondary)] mb-2 font-medium">{t("comments.reportReason")}</p>
                       <div className="flex flex-wrap gap-2 mb-2">
-                        {REPORT_REASON_KEYS.map((key) => (
+                        {REPORT_REASON_KEYS.map((key: any) => (
                           <button
                             key={key}
                             onClick={() => setReportReason(key)}

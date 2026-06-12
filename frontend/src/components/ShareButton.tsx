@@ -6,7 +6,7 @@ export default function ShareButton({ text, url: urlProp, className = "" }: any)
   const ref = useRef<any>(null);
 
   useEffect(() => {
-    const handle = (e) => {
+    const handle = (e: any) => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
     };
     document.addEventListener("mousedown", handle);
@@ -63,7 +63,7 @@ export default function ShareButton({ text, url: urlProp, className = "" }: any)
     },
   ];
 
-  const copyLink = async (e) => {
+  const copyLink = async (e: any) => {
     e.stopPropagation();
     try {
       await navigator.clipboard.writeText(shareUrl);
@@ -83,9 +83,9 @@ export default function ShareButton({ text, url: urlProp, className = "" }: any)
   return (
     <div ref={ref} className={`relative ${className}`}>
       <button
-        onClick={(e) => {
+        onClick={(e: any) => {
           e.stopPropagation();
-          setOpen((prev) => !prev);
+          setOpen((prev: any) => !prev);
         }}
         className={`flex items-center justify-center gap-1.5 px-2 py-2 border border-[var(--border)] rounded-lg text-xs sm:text-sm font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] transition-all whitespace-nowrap ${className}`}
         title="Share post"
@@ -112,9 +112,9 @@ export default function ShareButton({ text, url: urlProp, className = "" }: any)
       {open && (
         <div
           className="absolute bottom-full left-0 mb-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg shadow-xl z-50 overflow-hidden min-w-[150px]"
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e: any) => e.stopPropagation()}
         >
-          {platforms.map((p) =>
+          {platforms.map((p: any) =>
             p.instagram ? (
               <button
                 key={p.name}

@@ -19,10 +19,10 @@ export default function RescuePostCard({ post, onPostDeleted }: any) {
   const petImage = parseImages(post.images)[0] || null;
   const imageUrl = getImageUrl(petImage);
 
-  const formatDate = (dateStr) => formatShortDate(dateStr) || t("common:words.unknown");
+  const formatDate = (dateStr: any) => formatShortDate(dateStr) || t("common:words.unknown");
 
   const urgency = post.urgency || "medium";
-  const urgencyColor = URGENCY_COLORS[urgency] || URGENCY_COLORS.medium;
+  const urgencyColor = (URGENCY_COLORS as any)[urgency] || URGENCY_COLORS.medium;
   const urgencyLabel = t(`lostfound:urgency.${urgency}`) || t("lostfound:urgency.medium");
 
   return (
@@ -38,7 +38,7 @@ export default function RescuePostCard({ post, onPostDeleted }: any) {
               src={imageUrl}
               alt="Rescue pet"
               className="w-full h-full object-cover"
-              onError={(e) => { (e.target as any).style.display = "none"; }}
+              onError={(e: any) => { (e.target as any).style.display = "none"; }}
             />
           </div>
         ) : (
@@ -100,7 +100,7 @@ export default function RescuePostCard({ post, onPostDeleted }: any) {
               className="shrink-0"
             />
             <button
-              onClick={(e) => { e.stopPropagation(); setDetailsOpen(true); }}
+              onClick={(e: any) => { e.stopPropagation(); setDetailsOpen(true); }}
               className="flex-1 px-2 sm:px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-xs sm:text-sm font-semibold hover:opacity-90 transition-all"
             >
               <span className="sm:hidden">{t("lostfound:card.details", "Details")}</span>

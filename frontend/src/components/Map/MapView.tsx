@@ -1,11 +1,11 @@
 import { useEffect, useRef } from "react";
 
 // Escape user-controlled values before interpolating into popup HTML strings (XSS guard)
-const esc = (s) =>
+const esc = (s: any) =>
   String(s ?? "").replace(
     /[&<>"']/g,
-    (c) =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+    (c: any): string =>
+      (({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }) as any)[
         c
       ],
   );
@@ -65,7 +65,7 @@ export default function MapView({
       if (mapRef.current._leaflet_id) {
         try {
           delete mapRef.current._leaflet_id;
-        } catch (e) {}
+        } catch (e: any) {}
       }
       const map = L.map(mapRef.current, {
         center: BANGLADESH_CENTER,
@@ -114,10 +114,10 @@ export default function MapView({
       if (leafletMap.current) {
         try {
           leafletMap.current.stop();
-        } catch (e) {}
+        } catch (e: any) {}
         try {
           leafletMap.current.remove();
-        } catch (e) {}
+        } catch (e: any) {}
         leafletMap.current = null;
       }
       clusterGroup.current = null; // map.remove() already detaches its layers
@@ -137,7 +137,7 @@ export default function MapView({
     clusterGroup.current.clearLayers();
     markers.current = {};
 
-    vets.forEach((vet) => {
+    vets.forEach((vet: any) => {
       if (vet.latitude == null || vet.longitude == null) return;
       const icon = L.divIcon({
         html: `<div class="custom-marker-pin"><div class="custom-marker-inner">🐾</div></div>`,
@@ -160,11 +160,11 @@ export default function MapView({
     });
 
     const validVets = vets.filter(
-      (v) => v.latitude != null && v.longitude != null,
+      (v: any) => v.latitude != null && v.longitude != null,
     );
     if (validVets.length > 1) {
       const bounds = L.latLngBounds(
-        validVets.map((v) => [v.latitude, v.longitude]),
+        validVets.map((v: any) => [v.latitude, v.longitude]),
       );
       leafletMap.current.fitBounds(bounds, {
         paddingTopLeft: [20, 80],
@@ -200,7 +200,7 @@ export default function MapView({
   // Pan/fly to selected vet
   useEffect(() => {
     if (!leafletMap.current || !selectedVetId) return;
-    const vet = vets.find((v) => v.id === selectedVetId);
+    const vet = vets.find((v: any) => v.id === selectedVetId);
     if (!vet || vet.latitude == null || vet.longitude == null) return;
 
     const map = leafletMap.current;
@@ -209,14 +209,14 @@ export default function MapView({
     // the marker) opens clear of the top search/nearby bar instead of overlapping it.
     const isMobile =
       typeof window !== "undefined" && window.innerWidth < 768;
-    const offsetCenter = (lat, lng, zoom) => {
+    const offsetCenter = (lat: any, lng: any, zoom: any) => {
       if (!isMobile) return [lat, lng];
       try {
         const pt = map.project([lat, lng], zoom);
         pt.y -= map.getSize().y * 0.22;
         const ll = map.unproject(pt, zoom);
         return [ll.lat, ll.lng];
-      } catch (e) {
+      } catch (e: any) {
         return [lat, lng];
       }
     };
@@ -235,20 +235,20 @@ export default function MapView({
           duration: 0.4,
           easeLinearity: 0.5,
         });
-      } catch (e) {}
+      } catch (e: any) {}
       try {
         m.openPopup();
-      } catch (e) {}
+      } catch (e: any) {}
     };
 
     // zoomToShowLayer un-clusters/spiderfies the marker, THEN runs the callback —
     // openPopup() on a marker hidden inside a cluster would otherwise no-op.
     try {
       clusterGroup.current.zoomToShowLayer(m, openAfterMove);
-    } catch (e) {
+    } catch (e: any) {
       try {
         m.openPopup();
-      } catch (e2) {}
+      } catch (e2: any) {}
     }
   }, [selectedVetId]);
 
@@ -282,10 +282,10 @@ export default function MapView({
   }, [userLocation]);
 
   // Event delegation — "View Full Profile" button click inside any popup
-  function handleMapClick(e) {
+  function handleMapClick(e: any) {
     const vetId = e.target.dataset.popupVetId;
     if (!vetId) return;
-    const vet = vetsRef.current.find((v) => String(v.id) === vetId);
+    const vet = vetsRef.current.find((v: any) => String(v.id) === vetId);
     if (vet && onVetClickRef.current) onVetClickRef.current(vet, true);
   }
 
@@ -299,7 +299,7 @@ export default function MapView({
   );
 }
 
-function buildPopup(vet) {
+function buildPopup(vet: any) {
   const stars =
     "★".repeat(Math.round(vet.avg_rating || 0)) +
     "☆".repeat(5 - Math.round(vet.avg_rating || 0));

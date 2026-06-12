@@ -88,7 +88,7 @@ export default function AboutPage() {
   );
 }
 
-function Section({ title, children }) {
+function Section({ title, children }: any) {
   return (
     <div style={{ marginBottom: 28 }}>
       <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 15, color: "var(--accent)", marginBottom: 8, paddingBottom: 6, borderBottom: "1px solid var(--border)" }}>
@@ -101,10 +101,10 @@ function Section({ title, children }) {
   );
 }
 
-function FeatureList({ items }) {
+function FeatureList({ items }: any) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 10, marginTop: 6 }}>
-      {items.map(({ icon, title, desc }) => (
+      {items.map(({ icon, title, desc }: any) => (
         <div key={title} style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 10, padding: "12px 14px" }}>
           <div style={{ fontSize: 18, marginBottom: 6 }}>{icon}</div>
           <div style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: 13, marginBottom: 4 }}>{title}</div>

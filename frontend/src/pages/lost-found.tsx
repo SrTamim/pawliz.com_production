@@ -7,7 +7,7 @@ export default function LostFoundRedirect() {
   useEffect(() => {
     if (!router.isReady) return;
     const { post, type } = router.query;
-    const query = { tab: "lost" };
+    const query: any = { tab: "lost" };
     if (post) query.post = post;
     if (type) query.type = type;
     router.replace({ pathname: "/help-board", query });

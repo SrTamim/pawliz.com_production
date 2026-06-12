@@ -78,7 +78,7 @@ export default function Navbar({
   }, []);
 
   useEffect(() => {
-    const handler = (e) => {
+    const handler = (e: any) => {
       if (menuRef.current && !menuRef.current.contains(e.target))
         setMenuOpen(false);
     };
@@ -90,7 +90,7 @@ export default function Navbar({
     if (user) {
       profileAPI
         .completion()
-        .then((res) => setCompletion(res))
+        .then((res: any) => setCompletion(res))
         .catch(() => {});
     }
   };
@@ -138,11 +138,11 @@ export default function Navbar({
           transition: "transform 0.3s ease, opacity 0.2s ease",
           padding: "8px 4px",
         }}
-        onMouseEnter={(e) => {
+        onMouseEnter={(e: any) => {
           e.currentTarget.style.transform = "scale(1.05)";
           e.currentTarget.style.opacity = "0.85";
         }}
-        onMouseLeave={(e) => {
+        onMouseLeave={(e: any) => {
           e.currentTarget.style.transform = "scale(1)";
           e.currentTarget.style.opacity = "1";
         }}
@@ -200,20 +200,20 @@ export default function Navbar({
             transition: "all 0.25s ease",
             backdropFilter: "blur(10px)",
           }}
-          onMouseEnter={(e) => {
+          onMouseEnter={(e: any) => {
             e.currentTarget.style.background = "var(--bg-hover)";
             e.currentTarget.style.transform = "scale(1.08)";
             e.currentTarget.style.boxShadow = "0 4px 12px var(--shadow-lg)";
           }}
-          onMouseLeave={(e) => {
+          onMouseLeave={(e: any) => {
             e.currentTarget.style.background = "var(--bg-elevated)";
             e.currentTarget.style.transform = "scale(1)";
             e.currentTarget.style.boxShadow = "none";
           }}
-          onMouseDown={(e) => {
+          onMouseDown={(e: any) => {
             e.currentTarget.style.transform = "scale(0.95)";
           }}
-          onMouseUp={(e) => {
+          onMouseUp={(e: any) => {
             e.currentTarget.style.transform = "scale(1)";
           }}
         >
@@ -245,7 +245,7 @@ export default function Navbar({
         {user ? (
           <div ref={menuRef} style={{ position: "relative" }}>
             <div
-              onClick={() => setMenuOpen((v) => !v)}
+              onClick={() => setMenuOpen((v: any) => !v)}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -257,12 +257,12 @@ export default function Navbar({
                 transition: "all 0.25s ease",
                 background: menuOpen ? "rgba(0, 184, 122, 0.1)" : "transparent",
               }}
-              onMouseEnter={(e) => {
+              onMouseEnter={(e: any) => {
                 if (!menuOpen) {
                   e.currentTarget.style.background = "rgba(0, 184, 122, 0.08)";
                 }
               }}
-              onMouseLeave={(e) => {
+              onMouseLeave={(e: any) => {
                 if (!menuOpen) {
                   e.currentTarget.style.background = "transparent";
                 }
@@ -292,11 +292,11 @@ export default function Navbar({
                   flexShrink: 0,
                   boxShadow: "var(--shadow-glow)",
                 }}
-                onMouseEnter={(e) => {
+                onMouseEnter={(e: any) => {
                   e.currentTarget.style.transform = "scale(1.08)";
                   e.currentTarget.style.boxShadow = "var(--shadow-lg)";
                 }}
-                onMouseLeave={(e) => {
+                onMouseLeave={(e: any) => {
                   e.currentTarget.style.transform = "scale(1)";
                   e.currentTarget.style.boxShadow = "var(--shadow-glow)";
                 }}
@@ -506,8 +506,8 @@ export default function Navbar({
                   borderRadius: 8,
                   transition: "color 0.2s",
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text-primary)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-muted)"; }}
+                onMouseEnter={(e: any) => { e.currentTarget.style.color = "var(--text-primary)"; }}
+                onMouseLeave={(e: any) => { e.currentTarget.style.color = "var(--text-muted)"; }}
               >
                 About
               </button>
@@ -572,10 +572,10 @@ function MenuRow({ icon, label, danger, onClick }: any) {
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onMouseDown={(e) => {
+      onMouseDown={(e: any) => {
         e.currentTarget.style.transform = "scale(0.98)";
       }}
-      onMouseUp={(e) => {
+      onMouseUp={(e: any) => {
         e.currentTarget.style.transform = "scale(1)";
       }}
     >

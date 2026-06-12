@@ -1,9 +1,10 @@
-const multer = require("multer");
-const path = require("path");
-const sharp = require("sharp");
-const { MAX_FILE_SIZE, ALLOWED_IMAGE_TYPES, ALLOWED_DOC_TYPES } = require("../utils/constants");
-const logger = require("../utils/logger");
-const r2 = require("../utils/r2");
+import multer from 'multer';
+import path from 'path';
+import sharp from 'sharp';
+import type { Request, Response, NextFunction, RequestHandler } from 'express';
+import { MAX_FILE_SIZE, ALLOWED_IMAGE_TYPES, ALLOWED_DOC_TYPES } from '../utils/constants';
+import logger from '../utils/logger';
+import * as r2 from '../utils/r2';
 
 /**
  * File upload middleware.
@@ -23,10 +24,10 @@ const storage = multer.memoryStorage();
  * File type validator: reject non-image/non-doc files.
  * Double-checks extension + MIME type.
  */
-const fileFilter = (req, file, cb) => {
+const fileFilter: multer.Options['fileFilter'] = (req, file, cb) => {
   const allowedImg = /jpeg|jpg|png|webp|gif/;
   const allowedDoc = /pdf|doc|docx/;
-  const ext = path.extname(file.originalname).toLowerCase().replace(".", "");
+  const ext = path.extname(file.originalname).toLowerCase().replace('.', '');
   const isImageType = ALLOWED_IMAGE_TYPES.includes(file.mimetype);
   const isDocType = ALLOWED_DOC_TYPES.includes(file.mimetype);
 
@@ -34,7 +35,7 @@ const fileFilter = (req, file, cb) => {
     cb(null, true);
   } else {
     logger.warn(`Upload blocked: ${file.originalname} (${file.mimetype})`);
-    cb(new Error("Only image or document files are allowed"));
+    cb(new Error('Only image or document files are allowed'));
   }
 };
 
@@ -52,20 +53,20 @@ const multerInstance = multer({
  * before upload — turning 2–11MB phone photos into ~120–250KB, which is the
  * main LCP lever. PDFs/docs and animated gifs pass through untouched.
  */
-async function pushToR2(file, visibility) {
+async function pushToR2(file: Express.Multer.File, visibility: 'public' | 'private'): Promise<string> {
   let buffer = file.buffer;
   let mimetype = file.mimetype;
   let ext = path.extname(file.originalname);
 
-  const isRasterImage = mimetype.startsWith("image/") && mimetype !== "image/gif";
+  const isRasterImage = mimetype.startsWith('image/') && mimetype !== 'image/gif';
   if (isRasterImage) {
     buffer = await sharp(buffer)
       .rotate() // honor EXIF orientation so phone photos aren't sideways
-      .resize({ width: 1280, height: 1280, fit: "inside", withoutEnlargement: true })
+      .resize({ width: 1280, height: 1280, fit: 'inside', withoutEnlargement: true })
       .webp({ quality: 75 })
       .toBuffer();
-    mimetype = "image/webp";
-    ext = ".webp";
+    mimetype = 'image/webp';
+    ext = '.webp';
   }
 
   // Unique, extension-correct filename (R2 keys are ext-agnostic; DB stores this verbatim).
@@ -73,7 +74,7 @@ async function pushToR2(file, visibility) {
   await r2.putObject(visibility, filename, buffer, mimetype);
   file.filename = filename;
   // Free the buffer; nothing downstream needs it once uploaded.
-  delete file.buffer;
+  delete (file as Partial<Express.Multer.File>).buffer;
   return filename;
 }
 
@@ -82,12 +83,12 @@ async function pushToR2(file, visibility) {
  * uploaded to R2 before control passes to the route handler. Visibility is
  * taken from req.uploadDir ("private" → private bucket, else public).
  */
-function withR2Upload(multerMiddleware) {
-  return (req, res, next) => {
-    multerMiddleware(req, res, (err) => {
+function withR2Upload(multerMiddleware: RequestHandler): RequestHandler {
+  return (req: Request, res: Response, next: NextFunction) => {
+    multerMiddleware(req, res, (err?: unknown) => {
       if (err) return next(err);
-      const visibility = req.uploadDir === "private" ? "private" : "public";
-      const files = req.files
+      const visibility = req.uploadDir === 'private' ? 'private' : 'public';
+      const files: Express.Multer.File[] = req.files
         ? (Array.isArray(req.files) ? req.files : Object.values(req.files).flat())
         : req.file
           ? [req.file]
@@ -97,7 +98,7 @@ function withR2Upload(multerMiddleware) {
       Promise.all(files.map((f) => pushToR2(f, visibility)))
         .then(() => next())
         .catch((uploadErr) => {
-          logger.error("R2 upload failed:", uploadErr);
+          logger.error('R2 upload failed:', uploadErr);
           next(uploadErr);
         });
     });
@@ -109,8 +110,8 @@ function withR2Upload(multerMiddleware) {
  * returning R2-aware middleware with identical call signatures.
  */
 const upload = {
-  single: (field) => withR2Upload(multerInstance.single(field)),
-  array: (field, maxCount) => withR2Upload(multerInstance.array(field, maxCount)),
+  single: (field: string) => withR2Upload(multerInstance.single(field)),
+  array: (field: string, maxCount?: number) => withR2Upload(multerInstance.array(field, maxCount)),
 };
 
-module.exports = upload;
+export = upload;

@@ -1,4 +1,4 @@
-const pool = require('../config/database');
+import pool from '../config/database';
 
 /**
  * Activity logging utility
@@ -6,13 +6,27 @@ const pool = require('../config/database');
  * Non-blocking: failures don't crash requests
  */
 
+export interface ActivityMetadata {
+  postId?: number | null;
+  postType?: string | null;
+  petDbId?: number | null;
+  petUid?: string | null;
+  petName?: string | null;
+  petType?: string | null;
+  details?: unknown;
+}
+
 /**
  * Log user activity event
- * @param {number} userId - User performing action
- * @param {string} eventType - Event type (user_registered, pet_created, lost_report, etc)
- * @param {object} metadata - Optional metadata { postId, postType, petDbId, petName, details, ... }
+ * @param userId User performing action
+ * @param eventType Event type (user_registered, pet_created, lost_report, etc)
+ * @param metadata Optional metadata { postId, postType, petDbId, petName, details, ... }
  */
-async function logActivity(userId, eventType, metadata = {}) {
+export async function logActivity(
+  userId: number | null | undefined,
+  eventType: string,
+  metadata: ActivityMetadata = {},
+): Promise<void> {
   try {
     await pool.query(
       `INSERT INTO activity_logs
@@ -35,5 +49,3 @@ async function logActivity(userId, eventType, metadata = {}) {
     // Non-blocking — log failures must not crash request
   }
 }
-
-module.exports = { logActivity };

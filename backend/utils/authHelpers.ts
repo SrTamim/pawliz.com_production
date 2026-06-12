@@ -1,21 +1,25 @@
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
-const bcrypt = require('bcryptjs');
-const pool = require('../config/database');
-const { REFRESH_TOKEN_EXPIRES_MS } = require('./constants');
-const logger = require('./logger');
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
+import type { Response, CookieOptions } from 'express';
+import type { Pool, PoolClient } from 'pg';
+import pool from '../config/database';
+import { REFRESH_TOKEN_EXPIRES_MS } from './constants';
+import logger from './logger';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
 /**
  * Set authentication cookies on response.
- * @param {object} res - Express response object
- * @param {string} accessToken - JWT access token (15 min expiry)
- * @param {string} refreshToken - Refresh token string
- * @param {boolean} [rememberMe=false] - If true, refresh cookie persists 30 days across browser restarts
+ * @param rememberMe If true, refresh cookie persists 30 days across browser restarts
  */
-function setCookies(res, accessToken, refreshToken, rememberMe = false) {
-  const cookieOpts = {
+export function setCookies(
+  res: Response,
+  accessToken: string,
+  refreshToken: string,
+  rememberMe = false,
+): void {
+  const cookieOpts: CookieOptions = {
     httpOnly: true,
     sameSite: isProduction ? 'none' : 'lax',
     secure: isProduction,
@@ -26,7 +30,7 @@ function setCookies(res, accessToken, refreshToken, rememberMe = false) {
     : { ...cookieOpts };
   res.cookie('pawliz_refresh', refreshToken, refreshOpts);
   // Non-httpOnly preference marker — carries no credentials, value is '1' only
-  const prefOpts = { sameSite: isProduction ? 'none' : 'lax', secure: isProduction };
+  const prefOpts: CookieOptions = { sameSite: isProduction ? 'none' : 'lax', secure: isProduction };
   if (rememberMe) {
     res.cookie('pawliz_remember', '1', { ...prefOpts, maxAge: REFRESH_TOKEN_EXPIRES_MS });
   } else {
@@ -36,10 +40,9 @@ function setCookies(res, accessToken, refreshToken, rememberMe = false) {
 
 /**
  * Clear authentication cookies from response.
- * @param {object} res - Express response object
  */
-function clearCookies(res) {
-  const opts = { httpOnly: true, sameSite: isProduction ? 'none' : 'lax', secure: isProduction };
+export function clearCookies(res: Response): void {
+  const opts: CookieOptions = { httpOnly: true, sameSite: isProduction ? 'none' : 'lax', secure: isProduction };
   res.clearCookie('pawliz_access', opts);
   res.clearCookie('pawliz_refresh', opts);
   res.clearCookie('pawliz_remember', { sameSite: isProduction ? 'none' : 'lax', secure: isProduction });
@@ -47,15 +50,16 @@ function clearCookies(res) {
 
 /**
  * Create JWT access + refresh token pair. Stores refresh token in DB.
- * @param {number} userId - User ID
- * @param {object} [client] - Optional pg client for transaction use. If omitted, uses pool.
- * @returns {Promise<{accessToken: string, refreshToken: string}>}
+ * @param client Optional pg client for transaction use. If omitted, uses pool.
  */
-async function createTokens(userId, client) {
+export async function createTokens(
+  userId: number,
+  client?: Pool | PoolClient,
+): Promise<{ accessToken: string; refreshToken: string }> {
   const db = client || pool;
   const accessTokenExpiry = process.env.JWT_EXPIRES_IN || '15m';
-  const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET, {
-    expiresIn: accessTokenExpiry,
+  const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET as string, {
+    expiresIn: accessTokenExpiry as jwt.SignOptions['expiresIn'],
     algorithm: 'HS256',
   });
   const refreshToken = crypto.randomBytes(40).toString('hex');
@@ -74,27 +78,14 @@ async function createTokens(userId, client) {
 
 /**
  * Hash password with bcrypt (cost: 12).
- * @param {string} password - Plain password
- * @returns {Promise<string>} Hashed password
  */
-async function hashPassword(password) {
+export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 12);
 }
 
 /**
  * Verify plain password against bcrypt hash.
- * @param {string} password - Plain password
- * @param {string} hash - Bcrypt hash
- * @returns {Promise<boolean>} True if match
  */
-async function verifyPassword(password, hash) {
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
   return bcrypt.compare(password, hash);
 }
-
-module.exports = {
-  setCookies,
-  clearCookies,
-  createTokens,
-  hashPassword,
-  verifyPassword,
-};

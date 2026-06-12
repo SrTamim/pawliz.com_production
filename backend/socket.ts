@@ -1,7 +1,16 @@
-const { Server } = require("socket.io");
-const jwt = require("jsonwebtoken");
+import { Server } from 'socket.io';
+import jwt from 'jsonwebtoken';
+import type { Server as HttpServer } from 'http';
+import type {
+  ClientToServerEvents,
+  ServerToClientEvents,
+  InterServerEvents,
+  SocketData,
+} from './types/socket';
 
-let io;
+type PawlizServer = Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
+
+let io: PawlizServer | undefined;
 
 /**
  * Initialise Socket.IO on the HTTP server.
@@ -17,11 +26,11 @@ let io;
  *    meaningful bottleneck at scale. Banned/inactive users are blocked at the HTTP
  *    API layer (authenticate middleware) and their JWTs expire naturally in 15 min.
  */
-function init(httpServer, corsOrigins) {
-  io = new Server(httpServer, {
+export function init(httpServer: HttpServer, corsOrigins: string[]): PawlizServer {
+  io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(httpServer, {
     // WebSocket only — no long-poll fallback.
     // Halves memory per connection and eliminates HTTP handshake overhead.
-    transports: ["websocket"],
+    transports: ['websocket'],
 
     cors: {
       origin: corsOrigins,
@@ -41,33 +50,32 @@ function init(httpServer, corsOrigins) {
   // Auth middleware — JWT verify only, no DB round-trip.
   io.use((socket, next) => {
     try {
-      const cookieHeader = socket.handshake.headers.cookie || "";
+      const cookieHeader = socket.handshake.headers.cookie || '';
       const match = cookieHeader.match(/(?:^|;\s*)pawliz_access=([^;]+)/);
       const token = match ? match[1] : null;
-      if (!token) return next(new Error("Unauthorized"));
+      if (!token) return next(new Error('Unauthorized'));
 
-      const payload = jwt.verify(token, process.env.JWT_SECRET, {
-        algorithms: ["HS256"],
-      });
-      socket.userId = payload.userId;
+      const payload = jwt.verify(token, process.env.JWT_SECRET as string, {
+        algorithms: ['HS256'],
+      }) as jwt.JwtPayload;
+      // Kept on the socket instance (legacy pattern predating SocketData).
+      (socket as any).userId = payload.userId;
       next();
     } catch {
-      next(new Error("Unauthorized"));
+      next(new Error('Unauthorized'));
     }
   });
 
-  io.on("connection", (socket) => {
-    socket.join(`user:${socket.userId}`);
+  io.on('connection', (socket) => {
+    socket.join(`user:${(socket as any).userId}`);
 
     // Clients are receive-only — disconnect if they try to push arbitrary data.
-    socket.on("message", () => socket.disconnect(true));
+    socket.on('message', () => socket.disconnect(true));
   });
 
   return io;
 }
 
-function getIO() {
+export function getIO(): PawlizServer | undefined {
   return io;
 }
-
-module.exports = { init, getIO };

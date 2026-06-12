@@ -1,8 +1,9 @@
+import type { MigrationBuilder } from 'node-pg-migrate';
 'use strict';
 
-exports.shorthands = undefined;
+export const shorthands = undefined;
 
-exports.up = (pgm) => {
+export const up = (pgm: MigrationBuilder): void => {
   // Remove obsolete fields from vets (clinic profile) table
   pgm.sql(`ALTER TABLE vets DROP COLUMN IF EXISTS designation`);
   pgm.sql(`ALTER TABLE vets DROP COLUMN IF EXISTS chamber_name`);
@@ -14,7 +15,7 @@ exports.up = (pgm) => {
   pgm.sql(`ALTER TABLE clinic_vets DROP COLUMN IF EXISTS doc_reg_number`);
 };
 
-exports.down = (pgm) => {
+export const down = (pgm: MigrationBuilder): void => {
   pgm.sql(`ALTER TABLE vets ADD COLUMN IF NOT EXISTS designation VARCHAR(150)`);
   pgm.sql(`ALTER TABLE vets ADD COLUMN IF NOT EXISTS chamber_name VARCHAR(150)`);
   pgm.sql(`ALTER TABLE vets ADD COLUMN IF NOT EXISTS doc_reg_number VARCHAR(100)`);

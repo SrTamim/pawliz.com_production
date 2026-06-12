@@ -1,4 +1,5 @@
-exports.up = (pgm) => {
+import type { MigrationBuilder } from 'node-pg-migrate';
+export const up = (pgm: MigrationBuilder): void => {
   pgm.sql(`
     CREATE INDEX IF NOT EXISTS idx_vets_rating_name ON vets(avg_rating DESC, name ASC)
       WHERE is_active = true AND approval_status = 'approved';
@@ -15,7 +16,7 @@ exports.up = (pgm) => {
   `);
 };
 
-exports.down = (pgm) => {
+export const down = (pgm: MigrationBuilder): void => {
   pgm.sql(`
     DROP INDEX IF EXISTS idx_vets_rating_name;
     DROP INDEX IF EXISTS idx_vets_latlon;

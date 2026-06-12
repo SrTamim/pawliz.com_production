@@ -1,8 +1,9 @@
+import type { MigrationBuilder } from 'node-pg-migrate';
 // Adds the vet-claim workflow columns that the baseline migration never created
 // but that the app (routes/vet-auth.js, routes/admin-vets.js) and schema.sql
 // both depend on. Must run before 1747000010000_add-perf-indexes, which indexes
 // vets.status and vets.claimed_by.
-exports.up = (pgm) => {
+export const up = (pgm: MigrationBuilder): void => {
   pgm.sql(`
     ALTER TABLE vets ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'unverified';
     ALTER TABLE vets ADD COLUMN IF NOT EXISTS claimed_by INTEGER REFERENCES users(id);
@@ -19,7 +20,7 @@ exports.up = (pgm) => {
   `);
 };
 
-exports.down = (pgm) => {
+export const down = (pgm: MigrationBuilder): void => {
   pgm.sql(`
     ALTER TABLE vets DROP CONSTRAINT IF EXISTS vets_name_address_unique;
     ALTER TABLE vets DROP CONSTRAINT IF EXISTS vets_status_check;

@@ -1,4 +1,5 @@
-exports.up = (pgm) => {
+import type { MigrationBuilder } from 'node-pg-migrate';
+export const up = (pgm: MigrationBuilder): void => {
   // Bounds + enum integrity (verified: existing data conforms)
   pgm.sql(`
     ALTER TABLE vets DROP CONSTRAINT IF EXISTS vets_avg_rating_check;
@@ -11,7 +12,7 @@ exports.up = (pgm) => {
     ON adoption_posts(pet_id) WHERE status = 'available'`);
 };
 
-exports.down = (pgm) => {
+export const down = (pgm: MigrationBuilder): void => {
   pgm.sql(`
     DROP INDEX IF EXISTS adoption_posts_pet_available_uniq;
     ALTER TABLE vets DROP CONSTRAINT IF EXISTS vets_avg_rating_check;

@@ -1,4 +1,5 @@
-exports.up = (pgm) => {
+import type { MigrationBuilder } from 'node-pg-migrate';
+export const up = (pgm: MigrationBuilder): void => {
   pgm.sql(`
     ALTER TABLE vets ADD COLUMN IF NOT EXISTS avg_rating DECIMAL(3,2) DEFAULT 0;
     ALTER TABLE vets ADD COLUMN IF NOT EXISTS review_count INTEGER DEFAULT 0;
@@ -8,7 +9,7 @@ exports.up = (pgm) => {
   `);
 };
 
-exports.down = (pgm) => {
+export const down = (pgm: MigrationBuilder): void => {
   pgm.sql(`
     ALTER TABLE vets DROP COLUMN IF EXISTS avg_rating;
     ALTER TABLE vets DROP COLUMN IF EXISTS review_count;

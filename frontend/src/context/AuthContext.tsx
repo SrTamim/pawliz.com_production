@@ -4,9 +4,11 @@ import {
   useState,
   useEffect,
   useCallback,
+  type ReactNode,
 } from "react";
 import { authAPI } from "../lib/api";
 import { disconnectSocket } from "../lib/socket";
+import type { User } from "../types";
 
 /**
  * Auth context provider + hook
@@ -14,13 +16,28 @@ import { disconnectSocket } from "../lib/socket";
  * Provides: user, loading, login, register, logout, isAdmin, isVet
  */
 
-const AuthContext = createContext(null);
+interface AuthContextValue {
+  user: User | null;
+  loading: boolean;
+  login: (phone: string, password: string, rememberMe?: boolean) => Promise<User>;
+  register: (data: Record<string, any>) => Promise<User>;
+  logout: () => Promise<void>;
+  logoutAll: () => Promise<void>;
+  refreshUser: () => Promise<User | null>;
+  updateUser: (updatedUser: Partial<User>) => void;
+  can: (key: string) => boolean;
+  isStaff: boolean;
+  isAdmin: boolean;
+  isVet: boolean;
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
 
 /**
  * Auth provider: fetch user on mount, manage session
  */
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,13 +48,13 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const login = useCallback(async (phone, password, rememberMe = false) => {
+  const login = useCallback(async (phone: string, password: string, rememberMe = false) => {
     const res = await authAPI.login(phone, password, rememberMe);
     setUser(res.user);
     return res.user;
   }, []);
 
-  const register = useCallback(async (data) => {
+  const register = useCallback(async (data: Record<string, any>) => {
     const res = await authAPI.register(data);
     setUser(res.user);
     return res.user;
@@ -74,12 +91,12 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const updateUser = useCallback((updatedUser) => {
+  const updateUser = useCallback((updatedUser: Partial<User>) => {
     // Drop undefined keys so a partial update can't blank existing fields
     const patch = Object.fromEntries(
       Object.entries(updatedUser || {}).filter(([, v]) => v !== undefined),
     );
-    setUser((prev) => ({ ...prev, ...patch }));
+    setUser((prev) => ({ ...(prev as User), ...patch }));
   }, []);
 
   // RBAC: does the current user hold permission `key`?
@@ -89,10 +106,10 @@ export function AuthProvider({ children }) {
   //   parent page is granted (mirrors backend hasPermission; FE gate is cosmetic,
   //   backend enforces independently).
   const can = useCallback(
-    (key) => {
+    (key: string) => {
       if (!user) return false;
       if (user.role === "admin") return true;
-      const perms = user.permissions || {};
+      const perms = user.permissions || ({} as NonNullable<User["permissions"]>);
       const pages = Array.isArray(perms.pages) ? perms.pages : [];
       const ui = Array.isArray(perms.ui) ? perms.ui : [];
       if (key.includes(".")) {
@@ -107,7 +124,7 @@ export function AuthProvider({ children }) {
   // Can the user open the admin dashboard at all (admin OR ≥1 page permission)?
   const isStaff =
     user?.role === "admin" ||
-    (Array.isArray(user?.permissions?.pages) && user.permissions.pages.length > 0);
+    (Array.isArray(user?.permissions?.pages) && (user!.permissions!.pages.length > 0));
 
   return (
     <AuthContext.Provider
@@ -133,9 +150,8 @@ export function AuthProvider({ children }) {
 
 /**
  * Use auth context
- * @returns {{user, loading, login, register, logout, logoutAll, refreshUser, updateUser, can, isStaff, isAdmin, isVet}}
  */
-export const useAuth = () => {
+export const useAuth = (): AuthContextValue => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;

@@ -4,6 +4,7 @@ import {
   useState,
   useEffect,
   useCallback,
+  type ReactNode,
 } from "react";
 import i18n from "../lib/i18n";
 
@@ -16,12 +17,17 @@ const VALID_LANGS = ["en", "bn"];
  * Defaults to English; user switches via header toggle (client-only)
  */
 
-const LanguageContext = createContext();
+interface LanguageContextValue {
+  lang: string;
+  setLang: (l: string) => void;
+}
+
+const LanguageContext = createContext<LanguageContextValue | undefined>(undefined);
 
 /**
  * Apply language: update i18n + document lang attribute
  */
-function applyLang(lang) {
+function applyLang(lang: string): void {
   i18n.changeLanguage(lang);
   if (typeof document !== "undefined") {
     document.documentElement.setAttribute("lang", lang);
@@ -29,7 +35,7 @@ function applyLang(lang) {
   }
 }
 
-export function LanguageProvider({ children }) {
+export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState("en");
 
   // On mount: read localStorage preference, default English
@@ -41,7 +47,7 @@ export function LanguageProvider({ children }) {
     }
   }, []);
 
-  const setLang = useCallback((l) => {
+  const setLang = useCallback((l: string) => {
     if (!VALID_LANGS.includes(l)) return;
     applyLang(l);
     setLangState(l);
@@ -57,9 +63,8 @@ export function LanguageProvider({ children }) {
 
 /**
  * Use language context
- * @returns {{lang, setLang}}
  */
-export function useLang() {
+export function useLang(): LanguageContextValue {
   const ctx = useContext(LanguageContext);
   if (!ctx) throw new Error("useLang must be used within LanguageProvider");
   return ctx;

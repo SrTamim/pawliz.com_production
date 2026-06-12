@@ -4,6 +4,7 @@ import {
   useState,
   useEffect,
   useCallback,
+  type ReactNode,
 } from "react";
 
 /**
@@ -12,12 +13,27 @@ import {
  * Persists theme to localStorage
  */
 
-const NavbarContext = createContext();
+interface NavbarContextValue {
+  theme: string;
+  toggleTheme: () => void;
+  authOpen: boolean;
+  openAuth: (tab?: string) => void;
+  closeAuth: () => void;
+  authTab: string;
+  donateOpen: boolean;
+  openDonate: () => void;
+  closeDonate: () => void;
+  vetRegOpen: boolean;
+  openVetReg: () => void;
+  closeVetReg: () => void;
+}
+
+const NavbarContext = createContext<NavbarContextValue | undefined>(undefined);
 
 /**
  * Navbar provider: manage theme + modals
  */
-export function NavbarProvider({ children }) {
+export function NavbarProvider({ children }: { children: ReactNode }) {
   // Init deterministically to "dark" so the server and the client's first render
   // agree (no hydration mismatch). The blocking <script> in _document.jsx already
   // sets the `light` class pre-paint from localStorage to prevent FOUC, and the
@@ -88,9 +104,8 @@ export function NavbarProvider({ children }) {
 
 /**
  * Use navbar context
- * @returns {{theme, toggleTheme, authOpen, openAuth, closeAuth, authTab, donateOpen, openDonate, closeDonate, vetRegOpen, openVetReg, closeVetReg}}
  */
-export function useNavbar() {
+export function useNavbar(): NavbarContextValue {
   const context = useContext(NavbarContext);
   if (!context) {
     throw new Error("useNavbar must be used within NavbarProvider");

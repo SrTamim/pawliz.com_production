@@ -1,21 +1,33 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 
 /**
  * Toast notification context
  * Shows success/error messages at bottom-right, auto-dismiss after 3.5s
  */
 
-const ToastContext = createContext(null);
+type ToastType = 'success' | 'error';
+
+interface ToastContextValue {
+  toast: (msg: string, type?: ToastType) => void;
+}
+
+interface ToastEntry {
+  id: number;
+  msg: string;
+  type: ToastType;
+}
+
+const ToastContext = createContext<ToastContextValue | null>(null);
 
 let _toastId = 0;
 
 /**
  * Toast provider: manage notification queue + render toasts
  */
-export function ToastProvider({ children }) {
-  const [toasts, setToasts] = useState([]);
+export function ToastProvider({ children }: { children: ReactNode }) {
+  const [toasts, setToasts] = useState<ToastEntry[]>([]);
 
-  const toast = useCallback((msg, type = 'success') => {
+  const toast = useCallback((msg: string, type: ToastType = 'success') => {
     const id = ++_toastId;
     setToasts(prev => [...prev, { id, msg, type }]);
     setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3500);
@@ -52,6 +64,7 @@ export function ToastProvider({ children }) {
 
 /**
  * Use toast context
- * @returns {{toast: (msg: string, type?: 'success'|'error') => void}}
+ * NOTE: intentionally does NOT throw outside provider (mirrors original JS) —
+ * callers receive null and must guard, exactly as before.
  */
-export const useToast = () => useContext(ToastContext);
+export const useToast = () => useContext(ToastContext) as ToastContextValue;

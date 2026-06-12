@@ -5,24 +5,39 @@
  * 2. API base URL is configured correctly
  * 3. Required pages/components exist
  * 4. API endpoints called in frontend match backend routes
+ *
+ * Extension-agnostic: the frontend is TypeScript (.ts/.tsx); the helpers
+ * fall back across extensions so the suite stayed green during migration.
  */
 
 import fs from 'fs';
 import path from 'path';
 
 const FRONTEND_SRC = path.join(__dirname, '../../frontend/src');
-const API_LIB = path.join(FRONTEND_SRC, 'lib/api.js');
-const AUTH_CONTEXT = path.join(FRONTEND_SRC, 'context/AuthContext.jsx');
-const NAVBAR_CONTEXT = path.join(FRONTEND_SRC, 'context/NavbarContext.jsx');
-const LANG_CONTEXT = path.join(FRONTEND_SRC, 'context/LanguageContext.jsx');
 
-function readFile(filePath) {
-  return fs.readFileSync(filePath, 'utf8');
+/** Resolve a source file trying TS first, then legacy JS extensions. */
+function resolveSrc(base: string): string {
+  const candidates = base.match(/\.(jsx|tsx|js|ts)$/)
+    ? [base]
+    : [`${base}.tsx`, `${base}.ts`, `${base}.jsx`, `${base}.js`];
+  for (const c of candidates) {
+    const full = path.join(FRONTEND_SRC, c);
+    if (fs.existsSync(full)) return full;
+  }
+  return path.join(FRONTEND_SRC, candidates[0]);
 }
 
-describe('Frontend API lib (lib/api.js)', () => {
-  let apiSrc;
-  beforeAll(() => { apiSrc = readFile(API_LIB); });
+function existsSrc(base: string): boolean {
+  return fs.existsSync(resolveSrc(base));
+}
+
+function readSrc(base: string): string {
+  return fs.readFileSync(resolveSrc(base), 'utf8');
+}
+
+describe('Frontend API lib (lib/api)', () => {
+  let apiSrc: string;
+  beforeAll(() => { apiSrc = readSrc('lib/api'); });
 
   it('file exists and is non-empty', () => {
     expect(apiSrc.length).toBeGreaterThan(100);
@@ -58,8 +73,8 @@ describe('Frontend API lib (lib/api.js)', () => {
 });
 
 describe('Frontend AuthContext', () => {
-  let src;
-  beforeAll(() => { src = readFile(AUTH_CONTEXT); });
+  let src: string;
+  beforeAll(() => { src = readSrc('context/AuthContext'); });
 
   it('file exists', () => {
     expect(src.length).toBeGreaterThan(100);
@@ -80,133 +95,128 @@ describe('Frontend AuthContext', () => {
 });
 
 describe('Frontend pages exist', () => {
-  const PAGES_DIR = path.join(FRONTEND_SRC, 'pages');
-
   const REQUIRED_PAGES = [
-    'index.jsx',
-    '_app.jsx',
-    '_document.jsx',
-    'profile.jsx',
-    'lost-found.jsx',
-    'rescue.jsx',
-    'admin.jsx',
-    'vet-dashboard.jsx',
-    'about.jsx',
-    'privacy.jsx',
-    'terms.jsx',
+    'pages/index',
+    'pages/_app',
+    'pages/_document',
+    'pages/profile',
+    'pages/lost-found',
+    'pages/rescue',
+    'pages/admin',
+    'pages/vet-dashboard',
+    'pages/about',
+    'pages/privacy',
+    'pages/terms',
   ];
 
   REQUIRED_PAGES.forEach((page) => {
     it(`page ${page} exists`, () => {
-      expect(fs.existsSync(path.join(PAGES_DIR, page))).toBe(true);
+      expect(existsSrc(page)).toBe(true);
     });
   });
 
-  it('dynamic pet page [petId].jsx exists', () => {
-    expect(fs.existsSync(path.join(PAGES_DIR, 'pet', '[petId].jsx'))).toBe(true);
+  it('dynamic pet page [petId] exists', () => {
+    expect(existsSrc('pages/pet/[petId]')).toBe(true);
   });
 });
 
 describe('Frontend components exist', () => {
-  const COMPS = path.join(FRONTEND_SRC, 'components');
-
   const REQUIRED_COMPONENTS = [
-    'Auth/AuthModal.jsx',
-    'Auth/OtpVerifyPopup.jsx',
-    'Auth/VetRegisterModal.jsx',
-    'Auth/PasswordStrengthChecker.jsx',
-    'Map/MapView.jsx',
-    'Admin/AdminDashboard.jsx',
-    'LostFound/LostPetPostCard.jsx',
-    'LostFound/FoundPetPostCard.jsx',
-    'LostFound/CommentsSection.jsx',
-    'RescueAdoption/RescuePostCard.jsx',
-    'RescueAdoption/AdoptionPostCard.jsx',
-    'RescueAdoption/RescueAdoptionCommentsSection.jsx',
-    'Notifications/NotificationBell.jsx',
-    'Notifications/NotificationSettings.jsx',
-    'VetDashboard/VetDashboardLayout.jsx',
-    'VetDashboard/VetProfileDetails.jsx',
-    'VetDashboard/VetReviews.jsx',
-    'Vet/VetDetailPage.jsx',
-    'Profile/PetCard.jsx',
-    'Navbar.jsx',
-    'ErrorBoundary.jsx',
+    'components/Auth/AuthModal',
+    'components/Auth/OtpVerifyPopup',
+    'components/Auth/VetRegisterModal',
+    'components/Auth/PasswordStrengthChecker',
+    'components/Map/MapView',
+    'components/Admin/AdminDashboard',
+    'components/LostFound/LostPetPostCard',
+    'components/LostFound/FoundPetPostCard',
+    'components/LostFound/CommentsSection',
+    'components/RescueAdoption/RescuePostCard',
+    'components/RescueAdoption/AdoptionPostCard',
+    'components/RescueAdoption/RescueAdoptionCommentsSection',
+    'components/Notifications/NotificationBell',
+    'components/Notifications/NotificationSettings',
+    'components/VetDashboard/VetDashboardLayout',
+    'components/VetDashboard/VetProfileDetails',
+    'components/VetDashboard/VetReviews',
+    'components/Vet/VetDetailPage',
+    'components/Profile/PetCard',
+    'components/Navbar',
+    'components/ErrorBoundary',
   ];
 
   REQUIRED_COMPONENTS.forEach((comp) => {
     it(`component ${comp} exists`, () => {
-      expect(fs.existsSync(path.join(COMPS, comp))).toBe(true);
+      expect(existsSrc(comp)).toBe(true);
     });
   });
 });
 
 describe('Frontend contexts exist', () => {
-  const CONTEXTS = path.join(FRONTEND_SRC, 'context');
-  ['AuthContext.jsx', 'NavbarContext.jsx', 'LanguageContext.jsx', 'ToastContext.jsx'].forEach((ctx) => {
+  ['context/AuthContext', 'context/NavbarContext', 'context/LanguageContext', 'context/ToastContext'].forEach((ctx) => {
     it(`context ${ctx} exists`, () => {
-      expect(fs.existsSync(path.join(CONTEXTS, ctx))).toBe(true);
+      expect(existsSrc(ctx)).toBe(true);
     });
   });
 });
 
 describe('Frontend hooks', () => {
   it('useVets hook exists', () => {
-    expect(fs.existsSync(path.join(FRONTEND_SRC, 'hooks/useVets.js'))).toBe(true);
+    expect(existsSrc('hooks/useVets')).toBe(true);
   });
 
   it('useAsync hook exists', () => {
-    expect(fs.existsSync(path.join(FRONTEND_SRC, 'hooks/useAsync.js'))).toBe(true);
+    expect(existsSrc('hooks/useAsync')).toBe(true);
   });
 
   it('useVets calls /api/v1/vets endpoint', () => {
-    const src = readFile(path.join(FRONTEND_SRC, 'hooks/useVets.js'));
+    const src = readSrc('hooks/useVets');
     expect(src).toMatch(/\/api\/v1\/vets|\bvets\b/i);
   });
 });
 
 describe('i18n configuration', () => {
   it('i18n lib file exists', () => {
-    expect(fs.existsSync(path.join(FRONTEND_SRC, 'lib/i18n.js'))).toBe(true);
+    expect(existsSrc('lib/i18n')).toBe(true);
   });
 
   it('i18n supports en and bn', () => {
-    const src = readFile(path.join(FRONTEND_SRC, 'lib/i18n.js'));
+    const src = readSrc('lib/i18n');
     expect(src).toMatch(/en/);
     expect(src).toMatch(/bn/);
   });
 });
 
 describe('Socket.IO frontend integration', () => {
-  it('socket.js lib file exists', () => {
-    expect(fs.existsSync(path.join(FRONTEND_SRC, 'lib/socket.js'))).toBe(true);
+  it('socket lib file exists', () => {
+    expect(existsSrc('lib/socket')).toBe(true);
   });
 });
 
 describe('Map component', () => {
   it('MapView uses react-leaflet or leaflet', () => {
-    const src = readFile(path.join(FRONTEND_SRC, 'components/Map/MapView.jsx'));
+    const src = readSrc('components/Map/MapView');
     expect(src).toMatch(/leaflet|react-leaflet/i);
   });
 });
 
 describe('OTP popup component', () => {
   it('OtpVerifyPopup has verify UI', () => {
-    const src = readFile(path.join(FRONTEND_SRC, 'components/Auth/OtpVerifyPopup.jsx'));
+    const src = readSrc('components/Auth/OtpVerifyPopup');
     expect(src).toMatch(/verify|otp/i);
   });
 });
 
 describe('Admin dashboard', () => {
   it('AdminDashboard references vet approval operations', () => {
-    const src = readFile(path.join(FRONTEND_SRC, 'components/Admin/AdminDashboard.jsx'));
+    const src = readSrc('components/Admin/AdminDashboard');
     expect(src).toMatch(/approve|reject|vet/i);
   });
 });
 
 describe('LanguageContext', () => {
-  let src;
-  beforeAll(() => { src = readFile(LANG_CONTEXT); });
+  let src: string;
+  beforeAll(() => { src = readSrc('context/LanguageContext'); });
 
   it('persists lang to localStorage', () => {
     expect(src).toMatch(/localStorage/);

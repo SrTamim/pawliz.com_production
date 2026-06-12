@@ -1,14 +1,16 @@
-const pool = require("../config/database");
-const { deleteUploadedFiles } = require("../utils/fileUtils");
-const { logActivity } = require("../utils/activityLogger");
+import pool from '../config/database';
+import { deleteUploadedFiles } from '../utils/fileUtils';
+import { logActivity } from '../utils/activityLogger';
+
+/** Loose pet payload from request bodies — fields validated upstream. */
+type PetData = Record<string, any>;
 
 /**
  * Generate unique PAW-XXXXXX pet ID (6 alphanum suffix).
- * @returns {string} Pet ID in format PAW-XXXXXX
  */
-function generatePetId() {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let suffix = "";
+function generatePetId(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let suffix = '';
   for (let i = 0; i < 6; i++)
     suffix += chars[Math.floor(Math.random() * chars.length)];
   return `PAW-${suffix}`;
@@ -16,10 +18,8 @@ function generatePetId() {
 
 /**
  * List user's active pets + lost report metadata.
- * @param {number} userId - User ID
- * @returns {Promise<array>} Pet records with lost_pet_reports join
  */
-async function listUserPets(userId) {
+export async function listUserPets(userId: number): Promise<Record<string, any>[]> {
   const result = await pool.query(
     `SELECT p.*,
       lpr.lost_date, lpr.lost_location_name, lpr.lost_latitude, lpr.lost_longitude, lpr.additional_details
@@ -34,10 +34,8 @@ async function listUserPets(userId) {
 
 /**
  * Fetch public pet record by pet_id (QR code lookup).
- * @param {string} petId - Pet ID (PAW-XXXXXX)
- * @returns {Promise<object|null>} Pet + owner details or null
  */
-async function getPublicPet(petId) {
+export async function getPublicPet(petId: string): Promise<Record<string, any> | null> {
   const result = await pool.query(
     `SELECT p.id, p.pet_id, p.name, p.type, p.breed, p.gender, p.age, p.color, p.weight, p.images,
             p.vaccination_status, p.medical_conditions, p.allergies, p.is_lost,
@@ -54,12 +52,9 @@ async function getPublicPet(petId) {
 
 /**
  * Create pet for user (transaction with unique pet_id generation).
- * @param {number} userId - User ID
- * @param {object} data - Pet fields (name, type, breed, age, etc.)
- * @returns {Promise<object>} Created pet record
  * @throws {Error} If pet ID generation fails after retries
  */
-async function createPet(userId, data) {
+export async function createPet(userId: number, data: PetData): Promise<Record<string, any>> {
   const {
     name, type, breed, gender, age, color, weight,
     vaccination_status, last_vaccination_date, next_vaccination_date,
@@ -70,7 +65,7 @@ async function createPet(userId, data) {
 
   const client = await pool.connect();
   try {
-    await client.query("BEGIN");
+    await client.query('BEGIN');
 
     const tryInsert = async () => {
       const petId = generatePetId();
@@ -105,21 +100,21 @@ async function createPet(userId, data) {
       return r;
     };
 
-    let result = { rowCount: 0 };
+    let result: { rowCount: number | null; rows: any[] } = { rowCount: 0, rows: [] };
     for (let attempt = 0; attempt < 5 && result.rowCount === 0; attempt++) {
       result = await tryInsert();
     }
-    if (result.rowCount === 0) throw new Error("Failed to generate unique pet ID");
+    if (result.rowCount === 0) throw new Error('Failed to generate unique pet ID');
 
-    await client.query("COMMIT");
+    await client.query('COMMIT');
 
-    logActivity(userId, "pet_created", {
+    logActivity(userId, 'pet_created', {
       petDbId: result.rows[0].id, petUid: result.rows[0].pet_id, petName: name, petType: type,
     });
 
     return result.rows[0];
   } catch (err) {
-    await client.query("ROLLBACK");
+    await client.query('ROLLBACK');
     throw err;
   } finally {
     client.release();
@@ -128,14 +123,11 @@ async function createPet(userId, data) {
 
 /**
  * Update pet (ownership check, soft fields, coalesce provided values).
- * @param {number} petDbId - Pet DB ID
- * @param {number} userId - User ID (ownership check)
- * @param {object} data - Pet fields to update
- * @returns {Promise<object|null>} Updated pet or null if not found/owned
+ * @returns Updated pet or null if not found/owned
  */
-async function updatePet(petDbId, userId, data) {
+export async function updatePet(petDbId: number, userId: number, data: PetData): Promise<Record<string, any> | null> {
   const check = await pool.query(
-    "SELECT id FROM pets WHERE id = $1 AND user_id = $2 AND is_active = true",
+    'SELECT id FROM pets WHERE id = $1 AND user_id = $2 AND is_active = true',
     [petDbId, userId],
   );
   if (!check.rows[0]) return null;
@@ -188,44 +180,40 @@ async function updatePet(petDbId, userId, data) {
 
 /**
  * Soft-delete pet + clean images.
- * @param {number} petDbId - Pet DB ID
- * @param {number} userId - User ID (ownership check)
- * @returns {Promise<boolean>} True if deleted, false if not found/owned
+ * @returns True if deleted, false if not found/owned
  */
-async function deletePet(petDbId, userId) {
+export async function deletePet(petDbId: number, userId: number): Promise<boolean> {
   const client = await pool.connect();
   try {
-    await client.query("BEGIN");
+    await client.query('BEGIN');
 
     // Ownership check inside the txn with FOR UPDATE to prevent TOCTOU races
     const petCheck = await client.query(
-      "SELECT images FROM pets WHERE id = $1 AND user_id = $2 AND is_active = true FOR UPDATE",
+      'SELECT images FROM pets WHERE id = $1 AND user_id = $2 AND is_active = true FOR UPDATE',
       [petDbId, userId],
     );
     if (!petCheck.rows[0]) {
-      await client.query("ROLLBACK");
+      await client.query('ROLLBACK');
       return false;
     }
 
-    const imagesToDelete = petCheck.rows[0].images || [];
+    const imagesToDelete: string[] = petCheck.rows[0].images || [];
 
     await client.query(
-      "UPDATE pets SET is_active = false, updated_at = NOW() WHERE id = $1",
+      'UPDATE pets SET is_active = false, updated_at = NOW() WHERE id = $1',
       [petDbId],
     );
 
-    await client.query("COMMIT");
+    await client.query('COMMIT');
 
     try { if (imagesToDelete.length > 0) deleteUploadedFiles(imagesToDelete); } catch {}
-    logActivity(userId, "pet_deleted", { petDbId });
+    logActivity(userId, 'pet_deleted', { petDbId });
 
     return true;
   } catch (err) {
-    await client.query("ROLLBACK");
+    await client.query('ROLLBACK');
     throw err;
   } finally {
     client.release();
   }
 }
-
-module.exports = { listUserPets, getPublicPet, createPet, updatePet, deletePet };

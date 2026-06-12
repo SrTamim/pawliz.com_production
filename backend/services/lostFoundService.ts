@@ -1,25 +1,39 @@
-const pool = require("../config/database");
-const { deleteUploadedFiles } = require("../utils/fileUtils");
-const { createNotification } = require("./notificationService");
-const logger = require("../utils/logger");
+import pool from '../config/database';
+import { deleteUploadedFiles } from '../utils/fileUtils';
+import { createNotification } from './notificationService';
+import logger from '../utils/logger';
 
 /**
  * Lost & Found service
  * Handles lost pet reports, found pet reports, comments
  */
 
+interface FeedFilters {
+  pet_type?: string;
+  location?: string;
+}
+
+interface FeedPagination {
+  page?: number;
+  limit?: number;
+  offset?: number;
+}
+
+type Row = Record<string, any>;
+
 /**
  * Get lost pets feed with pagination
- * @param {object} filters - { pet_type, location }
- * @param {object} pagination - { page, limit, offset }
- * @returns {Promise<object>} { posts, total }
+ * @returns { posts, total }
  */
-async function getLostFeed({ pet_type, location } = {}, { page, limit, offset } = {}) {
+export async function getLostFeed(
+  { pet_type, location }: FeedFilters = {},
+  { page, limit, offset }: FeedPagination = {},
+): Promise<{ posts: Row[]; total: number }> {
   const baseFrom = `FROM lost_pet_reports lpr
     JOIN pets p ON p.id = lpr.pet_id
     JOIN users u ON u.id = p.user_id`;
   let where = ` WHERE p.is_active = true AND lpr.is_active = true AND lpr.is_found = false`;
-  const params = [];
+  const params: any[] = [];
 
   if (pet_type) {
     params.push(pet_type);
@@ -52,10 +66,8 @@ async function getLostFeed({ pet_type, location } = {}, { page, limit, offset } 
 
 /**
  * Get lost pet post by ID
- * @param {number} id - Post ID
- * @returns {Promise<object|null>} Post record with pet + owner details
  */
-async function getLostById(id) {
+export async function getLostById(id: number | string): Promise<Row | null> {
   const result = await pool.query(
     `SELECT lpr.*, p.id as pet_id, p.name, p.type, p.breed, p.color, p.images, p.gender, p.age, p.weight, p.potty_trained,
             u.id as owner_id, u.name as owner_name, u.profile_picture
@@ -70,15 +82,16 @@ async function getLostById(id) {
 
 /**
  * Get found pets feed with pagination
- * @param {object} filters - { pet_type, location }
- * @param {object} pagination - { page, limit, offset }
- * @returns {Promise<object>} { posts, total }
+ * @returns { posts, total }
  */
-async function getFoundFeed({ pet_type, location } = {}, { page, limit, offset } = {}) {
+export async function getFoundFeed(
+  { pet_type, location }: FeedFilters = {},
+  { page, limit, offset }: FeedPagination = {},
+): Promise<{ posts: Row[]; total: number }> {
   const baseFrom = `FROM found_pet_reports fpr
     JOIN users u ON u.id = fpr.user_id`;
   let where = ` WHERE fpr.is_active = true AND fpr.status = 'found'`;
-  const params = [];
+  const params: any[] = [];
 
   if (pet_type) {
     params.push(pet_type);
@@ -107,7 +120,7 @@ async function getFoundFeed({ pet_type, location } = {}, { page, limit, offset }
   return { posts: result.rows, total: parseInt(countResult.rows[0].count) };
 }
 
-async function getFoundById(id) {
+export async function getFoundById(id: number | string): Promise<Row | null> {
   const result = await pool.query(
     `SELECT fpr.*, u.id as owner_id, u.name as owner_name, u.profile_picture
      FROM found_pet_reports fpr
@@ -118,7 +131,7 @@ async function getFoundById(id) {
   return result.rows[0] || null;
 }
 
-async function createFoundReport(userId, data, imagePaths) {
+export async function createFoundReport(userId: number, data: Row, imagePaths: string[]): Promise<Row> {
   const {
     pet_type, color, gender, breed,
     found_location_name, found_latitude, found_longitude,
@@ -145,20 +158,20 @@ async function createFoundReport(userId, data, imagePaths) {
   pool.query(
     `INSERT INTO activity_logs (event_type, post_id, post_type, pet_type, pet_color, pet_gender, pet_breed, user_id, location_name, event_date, additional_details)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
-    ["found_report", result.rows[0].id, "found", pet_type, color || null, gender || null, breed || null, userId, found_location_name || null, found_date, description || null],
-  ).catch((err) => logger.error("activity_logs insert failed:", err.message));
+    ['found_report', result.rows[0].id, 'found', pet_type, color || null, gender || null, breed || null, userId, found_location_name || null, found_date, description || null],
+  ).catch((err: Error) => logger.error('activity_logs insert failed:', err.message));
 
   return result.rows[0];
 }
 
-async function updateFoundReport(postId, userId, data, newImagePaths) {
+export async function updateFoundReport(postId: number | string, userId: number, data: Row, newImagePaths: string[]): Promise<Row | null> {
   const check = await pool.query(
-    "SELECT images FROM found_pet_reports WHERE id = $1 AND user_id = $2 AND is_active = true",
+    'SELECT images FROM found_pet_reports WHERE id = $1 AND user_id = $2 AND is_active = true',
     [postId, userId],
   );
   if (!check.rows[0]) return null;
 
-  let images = check.rows[0].images || [];
+  let images: string[] = check.rows[0].images || [];
   if (newImagePaths.length > 0) {
     images = [...images, ...newImagePaths].slice(-3);
   }
@@ -197,14 +210,14 @@ async function updateFoundReport(postId, userId, data, newImagePaths) {
   return result.rows[0] || null;
 }
 
-async function deleteFoundReport(postId, userId) {
+export async function deleteFoundReport(postId: number | string, userId: number): Promise<boolean> {
   const check = await pool.query(
-    "SELECT images FROM found_pet_reports WHERE id = $1 AND user_id = $2",
+    'SELECT images FROM found_pet_reports WHERE id = $1 AND user_id = $2',
     [postId, userId],
   );
   if (!check.rows[0]) return false;
 
-  const images = check.rows[0].images || [];
+  const images: string[] = check.rows[0].images || [];
   if (images.length > 0) deleteUploadedFiles(images);
 
   await pool.query(
@@ -215,12 +228,18 @@ async function deleteFoundReport(postId, userId) {
   pool.query(
     `INSERT INTO activity_logs (event_type, post_id, post_type, user_id) VALUES ('found_report_deleted', $1, 'found', $2)`,
     [postId, userId],
-  ).catch((err) => logger.error("activity_logs insert failed:", err.message));
+  ).catch((err: Error) => logger.error('activity_logs insert failed:', err.message));
 
   return true;
 }
 
-async function addComment(postId, postType, userId, commentText, commenterName) {
+export async function addComment(
+  postId: number | string,
+  postType: string,
+  userId: number,
+  commentText: string,
+  commenterName?: string | null,
+): Promise<Row> {
   const [commentResult, ownerResult] = await Promise.all([
     pool.query(
       `WITH inserted AS (
@@ -232,7 +251,7 @@ async function addComment(postId, postType, userId, commentText, commenterName) 
       [postId, postType, userId, commentText],
     ),
     pool.query(
-      postType === "lost"
+      postType === 'lost'
         ? `SELECT p.user_id FROM lost_pet_reports lpr JOIN pets p ON p.id = lpr.pet_id WHERE lpr.id = $1`
         : `SELECT user_id FROM found_pet_reports WHERE id = $1`,
       [postId],
@@ -242,13 +261,13 @@ async function addComment(postId, postType, userId, commentText, commenterName) 
   if (ownerResult.rows[0]) {
     const { user_id: postOwnerId } = ownerResult.rows[0];
     if (postOwnerId !== userId) {
-      const name = commenterName || "Someone";
+      const name = commenterName || 'Someone';
       await createNotification(
         postOwnerId,
-        "comment_on_post",
+        'comment_on_post',
         `New comment on your ${postType} post`,
-        `${name} commented on your ${postType} pet post: "${commentText.substring(0, 50)}${commentText.length > 50 ? "..." : ""}"`,
-        postId,
+        `${name} commented on your ${postType} pet post: "${commentText.substring(0, 50)}${commentText.length > 50 ? '...' : ''}"`,
+        postId as number,
         postType,
         userId,
         `/lost-found?post=${postId}&type=${postType}`,
@@ -259,7 +278,12 @@ async function addComment(postId, postType, userId, commentText, commenterName) 
   return commentResult.rows[0];
 }
 
-async function getComments(postType, postId, limit = 20, offset = 0) {
+export async function getComments(
+  postType: string,
+  postId: number | string,
+  limit = 20,
+  offset = 0,
+): Promise<{ rows: Row[]; total: number }> {
   const [result, countResult] = await Promise.all([
     pool.query(
       `SELECT pc.*, u.name, u.profile_picture FROM post_comments pc
@@ -278,21 +302,14 @@ async function getComments(postType, postId, limit = 20, offset = 0) {
   return { rows: result.rows, total };
 }
 
-async function deleteComment(commentId, userId) {
+export async function deleteComment(commentId: number | string, userId: number): Promise<'not_found' | 'forbidden' | 'ok'> {
   const check = await pool.query(
-    "SELECT user_id FROM post_comments WHERE id = $1",
+    'SELECT user_id FROM post_comments WHERE id = $1',
     [commentId],
   );
-  if (!check.rows[0]) return "not_found";
-  if (check.rows[0].user_id !== userId) return "forbidden";
+  if (!check.rows[0]) return 'not_found';
+  if (check.rows[0].user_id !== userId) return 'forbidden';
 
-  await pool.query("UPDATE post_comments SET is_active = false WHERE id = $1", [commentId]);
-  return "ok";
+  await pool.query('UPDATE post_comments SET is_active = false WHERE id = $1', [commentId]);
+  return 'ok';
 }
-
-module.exports = {
-  getLostFeed, getLostById,
-  getFoundFeed, getFoundById,
-  createFoundReport, updateFoundReport, deleteFoundReport,
-  addComment, getComments, deleteComment,
-};

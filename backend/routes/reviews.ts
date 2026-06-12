@@ -1,11 +1,11 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
-const pool = require("../config/database");
-const { authenticate, requirePermission } = require("../middleware/auth");
-const { hasPermission } = require("../utils/permissions");
-const { body, validationResult } = require("express-validator");
-const logger = require("../utils/logger");
-const vetsCache = require("../utils/vetsCache");
+import pool from '../config/database';
+import { authenticate, requirePermission } from '../middleware/auth';
+import { hasPermission } from '../utils/permissions';
+import { body, validationResult } from 'express-validator';
+import logger from '../utils/logger';
+import * as vetsCache from '../utils/vetsCache';
 
 /**
  * Vet review routes
@@ -81,8 +81,8 @@ router.post(
 
 // GET /api/reviews - Admin: Get all reviews
 router.get("/", authenticate, requirePermission("reviews"), async (req, res) => {
-  const page = Math.max(1, parseInt(req.query.page) || 1);
-  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
   const offset = (page - 1) * limit;
   const { search } = req.query;
   try {
@@ -140,4 +140,4 @@ router.delete("/:id", authenticate, async (req, res) => {
   }
 });
 
-module.exports = router;
+export = router;

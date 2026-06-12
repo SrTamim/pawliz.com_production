@@ -1,9 +1,9 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
-const pool = require("../config/database");
-const { authenticate } = require("../middleware/auth");
-const { body, validationResult } = require("express-validator");
-const logger = require("../utils/logger");
+import pool from '../config/database';
+import { authenticate } from '../middleware/auth';
+import { body, validationResult } from 'express-validator';
+import logger from '../utils/logger';
 
 const REPORT_HIDE_THRESHOLD = 3;
 const VALID_REASONS = ["spam", "harassment", "inappropriate", "misinformation", "other"];
@@ -73,4 +73,4 @@ router.post(
   }
 );
 
-module.exports = router;
+export = router;

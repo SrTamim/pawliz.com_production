@@ -7,13 +7,16 @@ const API_SERVER_BASE =
   );
 
 // Module-level singleton — one socket per browser session
-let _socket = null;
+import type { Socket } from 'socket.io-client';
+import type { ServerToClientEvents, ClientToServerEvents } from '../types';
+type AppSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
+let _socket: AppSocket | null = null;
 
 /**
  * Get or create the shared Socket.IO instance.
  * Reconnects if previously disconnected.
  */
-export function getSocket() {
+export function getSocket(): AppSocket {
   if (!_socket || _socket.disconnected) {
     _socket = io(API_SERVER_BASE, {
       withCredentials: true,
@@ -30,7 +33,7 @@ export function getSocket() {
  * Disconnect and destroy the shared socket.
  * Call on logout to prevent stale connections carrying over to the next user session.
  */
-export function disconnectSocket() {
+export function disconnectSocket(): void {
   if (_socket) {
     _socket.disconnect();
     _socket = null;

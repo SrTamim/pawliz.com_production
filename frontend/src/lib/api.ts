@@ -13,10 +13,13 @@ const REQUEST_TIMEOUT_MS = 30000;
 // hop + free-tier cold-start delay from image LCP.
 const R2_PUBLIC = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
 
-export function getImageUrl(imagePath) {
+/** Loose request payloads/responses — endpoint shapes typed at call sites as needed. */
+type Params = Record<string, any>;
+
+export function getImageUrl(imagePath: string | null | undefined): string | null {
   if (!imagePath) return null;
   if (imagePath.startsWith("http")) return imagePath; // already absolute (Unsplash etc)
-  const file = imagePath.split(/[\\/]/).pop(); // leaf filename
+  const file = imagePath.split(/[\\/]/).pop() as string; // leaf filename
   // Public uploads → direct R2. Mirrors backend resolveLocation():
   //   "/uploads/public/<f>" and bare "/uploads/<f>" → R2 key "public/<f>".
   // Private vet docs ("/api/v1/files/<f>") are never "/uploads/" → stay on the authed backend route.
@@ -28,9 +31,9 @@ export function getImageUrl(imagePath) {
   return `${API_SERVER}/uploads/${imagePath}`;
 }
 
-let _refreshing = null;
+let _refreshing: Promise<boolean> | null = null;
 
-async function tryRefresh() {
+async function tryRefresh(): Promise<boolean> {
   if (_refreshing) return _refreshing;
   _refreshing = fetch(`${API_BASE}/auth/refresh`, {
     method: "POST",
@@ -57,8 +60,14 @@ async function tryRefresh() {
   return _refreshing;
 }
 
-async function request(path, method = "GET", body = null, isFormData = false, signal = null) {
-  const headers = {};
+async function request(
+  path: string,
+  method: string = "GET",
+  body: any = null,
+  isFormData: boolean = false,
+  signal: AbortSignal | null = null,
+): Promise<any> {
+  const headers: Record<string, string> = {};
   if (!isFormData) headers["Content-Type"] = "application/json";
 
   const controller = new AbortController();
@@ -84,7 +93,7 @@ async function request(path, method = "GET", body = null, isFormData = false, si
         body: isFormData ? body : body ? JSON.stringify(body) : null,
         signal: finalSignal,
       });
-      let retryData;
+      let retryData: any;
       try { retryData = await retryRes.json(); } catch { retryData = {}; }
       if (!retryRes.ok) {
         const msg = retryData.errors?.[0]?.msg || retryData.error || "Request failed";
@@ -94,7 +103,7 @@ async function request(path, method = "GET", body = null, isFormData = false, si
     }
   }
 
-  let data;
+  let data: any;
   try {
     data = await res.json();
   } catch {
@@ -107,7 +116,7 @@ async function request(path, method = "GET", body = null, isFormData = false, si
   }
   return data;
   } catch (err) {
-    if (err.name === "AbortError") {
+    if ((err as Error).name === "AbortError") {
       throw new Error(`Request timeout (${REQUEST_TIMEOUT_MS / 1000}s)`);
     }
     throw err;
@@ -119,34 +128,34 @@ async function request(path, method = "GET", body = null, isFormData = false, si
 
 // ─── AUTH ──────────────────────────────────────────────────────────────────
 export const authAPI = {
-  login: (phone, password, rememberMe = false) =>
+  login: (phone: string, password: string, rememberMe = false) =>
     request("/auth/login", "POST", { phone, password, rememberMe }),
-  register: (data) => request("/auth/register", "POST", data),
+  register: (data: Params) => request("/auth/register", "POST", data),
   me: () => request("/auth/me"),
   logout: () => request("/auth/logout", "POST"),
   logoutAll: () => request("/auth/logout-all", "POST"),
   refresh: () => request("/auth/refresh", "POST"),
-  sendOtp: (phone) => request("/otp/send", "POST", { phone }),
-  verifyOtp: (phone, otp) => request("/otp/verify", "POST", { phone, otp }),
-  forgotPasswordSendOtp: (phone) =>
+  sendOtp: (phone: string) => request("/otp/send", "POST", { phone }),
+  verifyOtp: (phone: string, otp: string) => request("/otp/verify", "POST", { phone, otp }),
+  forgotPasswordSendOtp: (phone: string) =>
     request("/auth/forgot-password/send-otp", "POST", { phone }),
-  forgotPasswordReset: (phone, otp, new_password) =>
+  forgotPasswordReset: (phone: string, otp: string, new_password: string) =>
     request("/auth/forgot-password/reset", "POST", { phone, otp, new_password }),
 };
 
 // ─── VETS ──────────────────────────────────────────────────────────────────
 export const vetsAPI = {
-  getAll: (params = {}) => {
+  getAll: (params: Params = {}) => {
     const q = new URLSearchParams(params).toString();
     return request(`/vets${q ? "?" + q : ""}`);
   },
   getMap: () => request("/vets/map"),
   getLocations: () => request("/vets/locations"),
-  getById: (id) => request(`/vets/${id}`),
-  create: (data) => request("/vets", "POST", data),
-  update: (id, data) => request(`/vets/${id}`, "PUT", data),
-  delete: (id) => request(`/vets/${id}`, "DELETE"),
-  uploadImage: (id, file) => {
+  getById: (id: number | string) => request(`/vets/${id}`),
+  create: (data: Params) => request("/vets", "POST", data),
+  update: (id: number | string, data: Params) => request(`/vets/${id}`, "PUT", data),
+  delete: (id: number | string) => request(`/vets/${id}`, "DELETE"),
+  uploadImage: (id: number | string, file: File) => {
     const fd = new FormData();
     fd.append("image", file);
     return request(`/vets/${id}/image`, "POST", fd, true);
@@ -155,93 +164,93 @@ export const vetsAPI = {
 
 // ─── REVIEWS ───────────────────────────────────────────────────────────────
 export const reviewsAPI = {
-  add: (vet_id, rating, comment) =>
+  add: (vet_id: number | string, rating: number, comment: string) =>
     request("/reviews", "POST", { vet_id, rating, comment }),
-  getAll: (params = {}) => {
+  getAll: (params: Params = {}) => {
     const q = new URLSearchParams(params).toString();
     return request(`/reviews${q ? "?" + q : ""}`);
   },
-  delete: (id) => request(`/reviews/${id}`, "DELETE"),
+  delete: (id: number | string) => request(`/reviews/${id}`, "DELETE"),
 };
 
 // ─── ADMIN ─────────────────────────────────────────────────────────────────
 export const adminAPI = {
   stats: () => request("/admin/stats"),
-  getUsers: (params = {}) => {
+  getUsers: (params: Params = {}) => {
     const q = new URLSearchParams(params).toString();
     return request(`/admin/users${q ? "?" + q : ""}`);
   },
-  updateUser: (id, data) => request(`/admin/users/${id}`, "PUT", data),
-  resetUserPassword: (id, new_password) => request(`/admin/users/${id}`, "PUT", { new_password }),
-  deleteUser: (id) => request(`/admin/users/${id}`, "DELETE"),
-  getVets: (params = {}) => {
+  updateUser: (id: number | string, data: Params) => request(`/admin/users/${id}`, "PUT", data),
+  resetUserPassword: (id: number | string, new_password: string) => request(`/admin/users/${id}`, "PUT", { new_password }),
+  deleteUser: (id: number | string) => request(`/admin/users/${id}`, "DELETE"),
+  getVets: (params: Params = {}) => {
     const q = new URLSearchParams(params).toString();
     return request(`/admin/vets${q ? "?" + q : ""}`);
   },
-  createVet: (data) => request("/admin/vets", "POST", data),
-  getVet: (id) => request(`/admin/vets/${id}`),
-  updateVetStatus: (id, is_active) =>
+  createVet: (data: Params) => request("/admin/vets", "POST", data),
+  getVet: (id: number | string) => request(`/admin/vets/${id}`),
+  updateVetStatus: (id: number | string, is_active: boolean) =>
     request(`/admin/vets/${id}`, "PUT", { is_active }),
-  updateVet: (id, data) => request(`/admin/vets/${id}`, "PUT", data),
-  approveVet: (id) => request(`/admin/vets/${id}/approve`, "PUT"),
-  rejectVet: (id, reason) => request(`/admin/vets/${id}/reject`, "PUT", { reason }),
-  deleteVet: (id) => request(`/admin/vets/${id}`, "DELETE"),
-  deleteVetQualification: (id) => request(`/admin/vet-qualifications/${id}`, "DELETE"),
-  deleteClinicContact: (id) => request(`/admin/clinic-contacts/${id}`, "DELETE"),
-  deleteClinicVet: (id) => request(`/admin/clinic-vets/${id}`, "DELETE"),
+  updateVet: (id: number | string, data: Params) => request(`/admin/vets/${id}`, "PUT", data),
+  approveVet: (id: number | string) => request(`/admin/vets/${id}/approve`, "PUT"),
+  rejectVet: (id: number | string, reason: string) => request(`/admin/vets/${id}/reject`, "PUT", { reason }),
+  deleteVet: (id: number | string) => request(`/admin/vets/${id}`, "DELETE"),
+  deleteVetQualification: (id: number | string) => request(`/admin/vet-qualifications/${id}`, "DELETE"),
+  deleteClinicContact: (id: number | string) => request(`/admin/clinic-contacts/${id}`, "DELETE"),
+  deleteClinicVet: (id: number | string) => request(`/admin/clinic-vets/${id}`, "DELETE"),
   getSettings: () => request("/admin/settings"),
-  updateSettings: (settings) => request("/admin/settings", "PUT", { settings }),
-  getPets: (params = {}) => {
+  updateSettings: (settings: Params) => request("/admin/settings", "PUT", { settings }),
+  getPets: (params: Params = {}) => {
     const q = new URLSearchParams(params).toString();
     return request(`/admin/pets${q ? "?" + q : ""}`);
   },
-  updatePet: (id, data) => request(`/admin/pets/${id}`, "PUT", data),
-  deletePet: (id) => request(`/admin/pets/${id}`, "DELETE"),
-  getFoundPets: (params = {}) => {
+  updatePet: (id: number | string, data: Params) => request(`/admin/pets/${id}`, "PUT", data),
+  deletePet: (id: number | string) => request(`/admin/pets/${id}`, "DELETE"),
+  getFoundPets: (params: Params = {}) => {
     const q = new URLSearchParams(params).toString();
     return request(`/admin/found-pets${q ? "?" + q : ""}`);
   },
-  updateFoundPet: (id, data) => request(`/admin/found-pets/${id}`, "PUT", data),
-  deleteFoundPet: (id) => request(`/admin/found-pets/${id}`, "DELETE"),
-  getRescuePets: (params = {}) => {
+  updateFoundPet: (id: number | string, data: Params) => request(`/admin/found-pets/${id}`, "PUT", data),
+  deleteFoundPet: (id: number | string) => request(`/admin/found-pets/${id}`, "DELETE"),
+  getRescuePets: (params: Params = {}) => {
     const q = new URLSearchParams(params).toString();
     return request(`/admin/rescue-pets${q ? "?" + q : ""}`);
   },
-  updateRescuePet: (id, data) => request(`/admin/rescue-pets/${id}`, "PUT", data),
-  deleteRescuePet: (id) => request(`/admin/rescue-pets/${id}`, "DELETE"),
+  updateRescuePet: (id: number | string, data: Params) => request(`/admin/rescue-pets/${id}`, "PUT", data),
+  deleteRescuePet: (id: number | string) => request(`/admin/rescue-pets/${id}`, "DELETE"),
   getReportedComments: () => request("/admin/comments/reported"),
-  deleteComment: (id) => request(`/admin/comments/${id}`, "DELETE"),
-  dismissComment: (id) => request(`/admin/comments/${id}/dismiss`, "POST"),
-  getActivityLogs: (params = {}) => {
+  deleteComment: (id: number | string) => request(`/admin/comments/${id}`, "DELETE"),
+  dismissComment: (id: number | string) => request(`/admin/comments/${id}/dismiss`, "POST"),
+  getActivityLogs: (params: Params = {}) => {
     const q = new URLSearchParams(params).toString();
     return request(`/admin/activity-logs${q ? "?" + q : ""}`);
   },
   getClaimRequests: () => request("/admin/vets/claim-requests"),
-  approveClaimRequest: (vetId) => request(`/admin/vets/claim-requests/${vetId}/approve`, "PATCH"),
-  rejectClaimRequest: (vetId) => request(`/admin/vets/claim-requests/${vetId}/reject`, "PATCH"),
+  approveClaimRequest: (vetId: number | string) => request(`/admin/vets/claim-requests/${vetId}/approve`, "PATCH"),
+  rejectClaimRequest: (vetId: number | string) => request(`/admin/vets/claim-requests/${vetId}/reject`, "PATCH"),
   getSmsSettings: () => request("/admin/sms/settings"),
-  updateSmsSettings: (data) => request("/admin/sms/settings", "PATCH", data),
+  updateSmsSettings: (data: Params) => request("/admin/sms/settings", "PATCH", data),
   getSmsBalance: () => request("/admin/sms/balance"),
   // ── Role Manager (RBAC) ──
   getRoles: () => request("/admin/roles"),
   getPermissionRegistry: () => request("/admin/roles/registry"),
-  createRole: (data) => request("/admin/roles", "POST", data),
-  updateRole: (name, data) => request(`/admin/roles/${encodeURIComponent(name)}`, "PUT", data),
-  deleteRole: (name) => request(`/admin/roles/${encodeURIComponent(name)}`, "DELETE"),
-  assignUserRole: (id, role) => request(`/admin/users/${id}`, "PUT", { role }),
+  createRole: (data: Params) => request("/admin/roles", "POST", data),
+  updateRole: (name: string, data: Params) => request(`/admin/roles/${encodeURIComponent(name)}`, "PUT", data),
+  deleteRole: (name: string) => request(`/admin/roles/${encodeURIComponent(name)}`, "DELETE"),
+  assignUserRole: (id: number | string, role: string) => request(`/admin/users/${id}`, "PUT", { role }),
 };
 
 // ─── DONATIONS ─────────────────────────────────────────────────────────────
 export const donationsAPI = {
   get: () => request("/donations"),
-  create: (data) => {
+  create: (data: Params) => {
     const fd = new FormData();
     if (data.title) fd.append("title", data.title);
     if (data.message) fd.append("message", data.message);
     if (data.qr_code_image) fd.append("qr_code_image", data.qr_code_image);
     return request("/donations", "POST", fd, true);
   },
-  update: (id, data) => {
+  update: (id: number | string, data: Params) => {
     const fd = new FormData();
     if (data.title) fd.append("title", data.title);
     if (data.message) fd.append("message", data.message);
@@ -253,10 +262,10 @@ export const donationsAPI = {
 // ─── PROFILE ───────────────────────────────────────────────────────────────
 export const profileAPI = {
   get: () => request("/profile"),
-  update: (data) => request("/profile", "PUT", data),
-  updatePassword: (data) => request("/profile/password", "PUT", data),
+  update: (data: Params) => request("/profile", "PUT", data),
+  updatePassword: (data: Params) => request("/profile/password", "PUT", data),
   completion: () => request("/profile/completion"),
-  uploadPicture: (file) => {
+  uploadPicture: (file: File) => {
     const fd = new FormData();
     fd.append("image", file);
     return request("/profile/picture", "POST", fd, true);
@@ -266,25 +275,30 @@ export const profileAPI = {
 // ─── PETS ──────────────────────────────────────────────────────────────────
 export const petsAPI = {
   getAll: () => request("/pets"),
-  getPublic: (petId) => request(`/pets/public/${petId}`),
-  create: (data) => request("/pets", "POST", data),
-  update: (id, data) => request(`/pets/${id}`, "PUT", data),
-  delete: (id) => request(`/pets/${id}`, "DELETE"),
-  markLost: (id, data) => request(`/pets/${id}/lost`, "POST", data),
-  markFound: (id) => request(`/pets/${id}/found`, "PUT"),
-  markForAdoption: (id, data) => request(`/pets/${id}/adoption`, "POST", data),
-  markAdopted: (id) => request(`/pets/${id}/adopted`, "PUT"),
-  uploadImages: (id, files) => {
+  getPublic: (petId: string) => request(`/pets/public/${petId}`),
+  create: (data: Params) => request("/pets", "POST", data),
+  update: (id: number | string, data: Params) => request(`/pets/${id}`, "PUT", data),
+  delete: (id: number | string) => request(`/pets/${id}`, "DELETE"),
+  markLost: (id: number | string, data: Params) => request(`/pets/${id}/lost`, "POST", data),
+  markFound: (id: number | string) => request(`/pets/${id}/found`, "PUT"),
+  markForAdoption: (id: number | string, data: Params) => request(`/pets/${id}/adoption`, "POST", data),
+  markAdopted: (id: number | string) => request(`/pets/${id}/adopted`, "PUT"),
+  uploadImages: (id: number | string, files: File[]) => {
     const fd = new FormData();
     files.forEach((file) => fd.append("images", file));
     return request(`/pets/${id}/images`, "POST", fd, true);
   },
-  deleteImage: (id, imageIndex) =>
+  deleteImage: (id: number | string, imageIndex: number) =>
     request(`/pets/${id}/images/${imageIndex}`, "DELETE"),
 };
 
 // ─── GEOLOCATION ───────────────────────────────────────────────────────────
-export function getNearbyVets(vets, userLat, userLng, radiusKm = 10) {
+export function getNearbyVets<T extends { latitude: any; longitude: any }>(
+  vets: T[],
+  userLat: number,
+  userLng: number,
+  radiusKm = 10,
+): (T & { distance: number })[] {
   return vets
     .map((vet) => ({
       ...vet,
@@ -294,12 +308,12 @@ export function getNearbyVets(vets, userLat, userLng, radiusKm = 10) {
     .sort((a, b) => a.distance - b.distance);
 }
 
-export function fetchNearbyVets(lat, lng, radius = 10, limit = 20) {
-  const params = new URLSearchParams({ lat, lng, radius, limit });
+export function fetchNearbyVets(lat: number, lng: number, radius = 10, limit = 20): Promise<any> {
+  const params = new URLSearchParams({ lat, lng, radius, limit } as any);
   return request(`/vets/nearby?${params}`);
 }
 
-function haversine(lat1, lon1, lat2, lon2) {
+function haversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
@@ -313,135 +327,135 @@ function haversine(lat1, lon1, lat2, lon2) {
 
 // ─── LOST & FOUND ──────────────────────────────────────────────────────────
 export const lostFoundAPI = {
-  getLostPets: (params = {}) => {
+  getLostPets: (params: Params = {}) => {
     const q = new URLSearchParams(params).toString();
     return request(`/lost-found/lost${q ? "?" + q : ""}`);
   },
-  getLostPetDetails: (id) => request(`/lost-found/lost/${id}`),
-  getFoundPets: (params = {}) => {
+  getLostPetDetails: (id: number | string) => request(`/lost-found/lost/${id}`),
+  getFoundPets: (params: Params = {}) => {
     const q = new URLSearchParams(params).toString();
     return request(`/lost-found/found${q ? "?" + q : ""}`);
   },
-  getFoundPetDetails: (id) => request(`/lost-found/found/${id}`),
-  createFoundPet: (data) => {
+  getFoundPetDetails: (id: number | string) => request(`/lost-found/found/${id}`),
+  createFoundPet: (data: Params) => {
     const fd = new FormData();
     Object.keys(data).forEach((key) => {
       if (key === "images" && Array.isArray(data[key])) {
-        data[key].forEach((file) => fd.append("images", file));
+        data[key].forEach((file: File) => fd.append("images", file));
       } else if (data[key] !== null && data[key] !== undefined && data[key] !== "") {
         fd.append(key, data[key]);
       }
     });
     return request("/lost-found/found", "POST", fd, true);
   },
-  updateFoundPet: (id, data) => {
+  updateFoundPet: (id: number | string, data: Params) => {
     const fd = new FormData();
     Object.keys(data).forEach((key) => {
       if (key === "images" && Array.isArray(data[key])) {
-        data[key].forEach((file) => fd.append("images", file));
+        data[key].forEach((file: File) => fd.append("images", file));
       } else if (data[key] !== null && data[key] !== undefined && data[key] !== "") {
         fd.append(key, data[key]);
       }
     });
     return request(`/lost-found/found/${id}`, "PUT", fd, true);
   },
-  deleteFoundPet: (id) => request(`/lost-found/found/${id}`, "DELETE"),
-  addComment: (postId, postType, commentText) =>
+  deleteFoundPet: (id: number | string) => request(`/lost-found/found/${id}`, "DELETE"),
+  addComment: (postId: number | string, postType: string, commentText: string) =>
     request("/lost-found/comments", "POST", {
       post_id: postId,
       post_type: postType,
       comment_text: commentText,
     }),
-  getComments: (postType, postId, offset = 0) =>
+  getComments: (postType: string, postId: number | string, offset = 0) =>
     request(`/lost-found/comments/${postType}/${postId}?limit=20&offset=${offset}`),
-  deleteComment: (id) => request(`/lost-found/comments/${id}`, "DELETE"),
-  reportComment: (id, reason) =>
+  deleteComment: (id: number | string) => request(`/lost-found/comments/${id}`, "DELETE"),
+  reportComment: (id: number | string, reason: string) =>
     request(`/comments/${id}/report`, "POST", { reason }),
 };
 
 // ─── RESCUE & ADOPTION ────────────────────────────────────────────────────
 export const rescueAdoptionAPI = {
-  getRescuePosts: (params = {}) => {
+  getRescuePosts: (params: Params = {}) => {
     const q = new URLSearchParams(params).toString();
     return request(`/rescue-adoption/rescue${q ? "?" + q : ""}`);
   },
-  getRescuePostDetails: (id) => request(`/rescue-adoption/rescue/${id}`),
-  createRescuePost: (data) => {
+  getRescuePostDetails: (id: number | string) => request(`/rescue-adoption/rescue/${id}`),
+  createRescuePost: (data: Params) => {
     const fd = new FormData();
     Object.keys(data).forEach((key) => {
       if (key === "images" && Array.isArray(data[key])) {
-        data[key].forEach((file) => fd.append("images", file));
+        data[key].forEach((file: File) => fd.append("images", file));
       } else if (data[key] !== null && data[key] !== undefined && data[key] !== "") {
         fd.append(key, data[key]);
       }
     });
     return request("/rescue-adoption/rescue", "POST", fd, true);
   },
-  updateRescuePost: (id, data) => {
+  updateRescuePost: (id: number | string, data: Params) => {
     const fd = new FormData();
     Object.keys(data).forEach((key) => {
       if (key === "images" && Array.isArray(data[key])) {
-        data[key].forEach((file) => fd.append("images", file));
+        data[key].forEach((file: File) => fd.append("images", file));
       } else if (data[key] !== null && data[key] !== undefined && data[key] !== "") {
         fd.append(key, data[key]);
       }
     });
     return request(`/rescue-adoption/rescue/${id}`, "PUT", fd, true);
   },
-  deleteRescuePost: (id) => request(`/rescue-adoption/rescue/${id}`, "DELETE"),
-  getAdoptionPosts: (params = {}) => {
+  deleteRescuePost: (id: number | string) => request(`/rescue-adoption/rescue/${id}`, "DELETE"),
+  getAdoptionPosts: (params: Params = {}) => {
     const q = new URLSearchParams(params).toString();
     return request(`/rescue-adoption/adoption${q ? "?" + q : ""}`);
   },
-  getAdoptionPostDetails: (id) => request(`/rescue-adoption/adoption/${id}`),
-  addComment: (postId, postType, commentText) =>
+  getAdoptionPostDetails: (id: number | string) => request(`/rescue-adoption/adoption/${id}`),
+  addComment: (postId: number | string, postType: string, commentText: string) =>
     request("/rescue-adoption/comments", "POST", {
       post_id: postId,
       post_type: postType,
       comment_text: commentText,
     }),
-  getComments: (postType, postId, offset = 0) =>
+  getComments: (postType: string, postId: number | string, offset = 0) =>
     request(`/rescue-adoption/comments/${postType}/${postId}?limit=20&offset=${offset}`),
-  deleteComment: (id) => request(`/rescue-adoption/comments/${id}`, "DELETE"),
-  reportComment: (id, reason) =>
+  deleteComment: (id: number | string) => request(`/rescue-adoption/comments/${id}`, "DELETE"),
+  reportComment: (id: number | string, reason: string) =>
     request(`/comments/${id}/report`, "POST", { reason }),
 };
 
 // ─── VET AUTH ─────────────────────────────────────────────────────────────
 export const vetAuthAPI = {
-  register: (data) => request("/vet-auth/register", "POST", data),
-  claimVet: (vetId, data) => request(`/vet-auth/${vetId}/claim`, "POST", data),
+  register: (data: Params) => request("/vet-auth/register", "POST", data),
+  claimVet: (vetId: number | string, data: Params) => request(`/vet-auth/${vetId}/claim`, "POST", data),
 };
 
 // ─── VET DASHBOARD ────────────────────────────────────────────────────────
 export const vetDashboardAPI = {
   getProfile: () => request("/vet-dashboard/profile"),
-  updateProfile: (data) => request("/vet-dashboard/profile", "PUT", data),
-  updatePassword: (data) => request("/vet-dashboard/profile/password", "PUT", data),
-  uploadCoverImage: (file) => {
+  updateProfile: (data: Params) => request("/vet-dashboard/profile", "PUT", data),
+  updatePassword: (data: Params) => request("/vet-dashboard/profile/password", "PUT", data),
+  uploadCoverImage: (file: File) => {
     const fd = new FormData();
     fd.append("image", file);
     return request("/vet-dashboard/cover-image", "POST", fd, true);
   },
-  uploadVetImage: (file) => {
+  uploadVetImage: (file: File) => {
     const fd = new FormData();
     fd.append("image", file);
     return request("/vet-dashboard/vet-image", "POST", fd, true);
   },
-  addQualification: (qualification, institute) =>
+  addQualification: (qualification: string, institute: string) =>
     request("/vet-dashboard/qualifications", "POST", { qualification, institute }),
-  deleteQualification: (id) => request(`/vet-dashboard/qualifications/${id}`, "DELETE"),
-  uploadDocument: (file, doc_type) => {
+  deleteQualification: (id: number | string) => request(`/vet-dashboard/qualifications/${id}`, "DELETE"),
+  uploadDocument: (file: File, doc_type: string) => {
     const fd = new FormData();
     fd.append("file", file);
     fd.append("doc_type", doc_type);
     return request("/vet-dashboard/documents", "POST", fd, true);
   },
-  deleteDocument: (id) => request(`/vet-dashboard/documents/${id}`, "DELETE"),
-  addClinicContact: (contact_type, contact_value) =>
+  deleteDocument: (id: number | string) => request(`/vet-dashboard/documents/${id}`, "DELETE"),
+  addClinicContact: (contact_type: string, contact_value: string) =>
     request("/vet-dashboard/clinic-contacts", "POST", { contact_type, contact_value }),
-  deleteClinicContact: (id) => request(`/vet-dashboard/clinic-contacts/${id}`, "DELETE"),
-  addClinicVet: (data, imageFile) => {
+  deleteClinicContact: (id: number | string) => request(`/vet-dashboard/clinic-contacts/${id}`, "DELETE"),
+  addClinicVet: (data: Params, imageFile?: File | null) => {
     const fd = new FormData();
     Object.keys(data).forEach((key) => {
       if (key === "weekly_holidays" && Array.isArray(data[key])) {
@@ -453,7 +467,7 @@ export const vetDashboardAPI = {
     if (imageFile) fd.append("vet_image", imageFile);
     return request("/vet-dashboard/clinic-vets", "POST", fd, true);
   },
-  updateClinicVet: (id, data, imageFile) => {
+  updateClinicVet: (id: number | string, data: Params, imageFile?: File | null) => {
     const fd = new FormData();
     Object.keys(data).forEach((key) => {
       if (key === "weekly_holidays" && Array.isArray(data[key])) {
@@ -465,30 +479,30 @@ export const vetDashboardAPI = {
     if (imageFile) fd.append("vet_image", imageFile);
     return request(`/vet-dashboard/clinic-vets/${id}`, "PUT", fd, true);
   },
-  deleteClinicVet: (id) => request(`/vet-dashboard/clinic-vets/${id}`, "DELETE"),
-  addClinicVetQualification: (clinicVetId, qualification, institute) =>
+  deleteClinicVet: (id: number | string) => request(`/vet-dashboard/clinic-vets/${id}`, "DELETE"),
+  addClinicVetQualification: (clinicVetId: number | string, qualification: string, institute: string) =>
     request(`/vet-dashboard/clinic-vets/${clinicVetId}/qualifications`, "POST", { qualification, institute }),
-  deleteClinicVetQualification: (clinicVetId, qualId) =>
+  deleteClinicVetQualification: (clinicVetId: number | string, qualId: number | string) =>
     request(`/vet-dashboard/clinic-vets/${clinicVetId}/qualifications/${qualId}`, "DELETE"),
 };
 
 // ─── CONTACT POST ─────────────────────────────────────────────────────────
 export const contactPostAPI = {
-  send: (post_id, post_type, sender_phone, message) =>
+  send: (post_id: number | string, post_type: string, sender_phone: string, message: string) =>
     request("/contact-post", "POST", { post_id, post_type, sender_phone, message }),
 };
 
 // ─── NOTIFICATIONS ────────────────────────────────────────────────────────
 export const notificationsAPI = {
-  getAll: (params = {}) => {
+  getAll: (params: Params = {}) => {
     const q = new URLSearchParams(params).toString();
     return request(`/notifications${q ? "?" + q : ""}`);
   },
   getUnreadCount: () => request("/notifications/unread-count"),
-  markAsRead: (id) => request(`/notifications/${id}/read`, "PUT"),
+  markAsRead: (id: number | string) => request(`/notifications/${id}/read`, "PUT"),
   markAllAsRead: () => request("/notifications/read-all/all", "PUT"),
-  delete: (id) => request(`/notifications/${id}`, "DELETE"),
+  delete: (id: number | string) => request(`/notifications/${id}`, "DELETE"),
   deleteAll: () => request("/notifications", "DELETE"),
   getPreferences: () => request("/notifications/preferences/settings"),
-  updatePreferences: (prefs) => request("/notifications/preferences/settings", "PUT", prefs),
+  updatePreferences: (prefs: Params) => request("/notifications/preferences/settings", "PUT", prefs),
 };

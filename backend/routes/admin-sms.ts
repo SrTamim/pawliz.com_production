@@ -1,8 +1,8 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
-const pool = require("../config/database");
-const { authenticate, requirePermission } = require("../middleware/auth");
-const smsService = require("../services/smsService");
+import pool from '../config/database';
+import { authenticate, requirePermission } from '../middleware/auth';
+import * as smsService from '../services/smsService';
 
 // GET /api/v1/admin/sms/balance
 router.get("/balance", authenticate, requirePermission("sms-settings"), async (req, res) => {
@@ -20,7 +20,7 @@ router.get("/settings", authenticate, requirePermission("sms-settings"), async (
     const result = await pool.query(
       "SELECT key, value FROM site_settings WHERE key IN ('sms_enabled', 'admin_phone')",
     );
-    const settings = {};
+    const settings: Record<string, any> = {};
     for (const row of result.rows) {
       settings[row.key] = row.value;
     }
@@ -62,4 +62,4 @@ router.patch("/settings", authenticate, requirePermission("sms-settings.edit"), 
   }
 });
 
-module.exports = router;
+export = router;

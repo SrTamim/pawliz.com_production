@@ -1,9 +1,9 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
-const pool = require("../config/database");
-const { authenticate, requirePermission } = require("../middleware/auth");
-const { logActivity } = require("../utils/activityLogger");
-const logger = require("../utils/logger");
+import pool from '../config/database';
+import { authenticate, requirePermission } from '../middleware/auth';
+import { logActivity } from '../utils/activityLogger';
+import logger from '../utils/logger';
 
 // GET /api/v1/admin/comments/reported
 router.get("/reported", authenticate, requirePermission("comments"), async (req, res) => {
@@ -60,4 +60,4 @@ router.post("/:id/dismiss", authenticate, requirePermission("comments.delete"), 
   }
 });
 
-module.exports = router;
+export = router;

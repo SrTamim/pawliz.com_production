@@ -1,8 +1,8 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
-const pool = require("../config/database");
-const { authenticate, requirePermission } = require("../middleware/auth");
-const { logActivity } = require("../utils/activityLogger");
+import pool from '../config/database';
+import { authenticate, requirePermission } from '../middleware/auth';
+import { logActivity } from '../utils/activityLogger';
 
 // Only these keys may be updated via PUT /admin/settings
 // SMS settings (sms_enabled, admin_phone) are managed by PATCH /admin/sms/settings
@@ -83,8 +83,8 @@ router.put("/settings", authenticate, requirePermission("settings.edit"), async 
 
 // GET /api/v1/admin/activity-logs
 router.get("/activity-logs", authenticate, requirePermission("overview"), async (req, res) => {
-  const page = Math.max(1, parseInt(req.query.page) || 1);
-  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 50));
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 50));
   const offset = (page - 1) * limit;
   const { event_type } = req.query;
   try {
@@ -110,4 +110,4 @@ router.get("/activity-logs", authenticate, requirePermission("overview"), async 
   }
 });
 
-module.exports = router;
+export = router;

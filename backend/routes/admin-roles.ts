@@ -1,10 +1,10 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const pool = require('../config/database');
-const { authenticate, requireSuperAdmin, evictUsersByRole } = require('../middleware/auth');
-const { body } = require('express-validator');
-const validate = require('../middleware/validate');
-const { logActivity } = require('../utils/activityLogger');
+import pool from '../config/database';
+import { authenticate, requireSuperAdmin, evictUsersByRole } from '../middleware/auth';
+import { body } from 'express-validator';
+import validate from '../middleware/validate';
+import { logActivity } from '../utils/activityLogger';
 const {
   ASSIGNABLE_PAGES,
   sanitizePermissions,
@@ -162,4 +162,4 @@ router.delete('/:name', authenticate, requireSuperAdmin, async (req, res) => {
   }
 });
 
-module.exports = router;
+export = router;

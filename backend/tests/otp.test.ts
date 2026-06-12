@@ -1,7 +1,7 @@
-require('./setup');
-const request = require('supertest');
-const express = require('express');
-const cookieParser = require('cookie-parser');
+import './setup';
+import request from 'supertest';
+import express from 'express';
+import cookieParser from 'cookie-parser';
 
 // Mock smsService before requiring router
 jest.mock('../services/smsService', () => ({
@@ -10,7 +10,8 @@ jest.mock('../services/smsService', () => ({
   verifyOtp: jest.fn(),
   markVerified: jest.fn(),
 }));
-const smsService = require('../services/smsService');
+import * as _smsService from '../services/smsService';
+const smsService = _smsService as any;
 
 function buildApp() {
   const app = express();

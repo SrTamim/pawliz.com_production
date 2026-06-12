@@ -1,6 +1,7 @@
-require('./setup');
-const jwt = require('jsonwebtoken');
-const pool = require('../config/database');
+import './setup';
+import jwt from 'jsonwebtoken';
+import _pool from '../config/database';
+const pool = _pool as any;
 
 // We test middleware functions directly, not via supertest
 // This gives granular coverage of all branches
@@ -19,7 +20,7 @@ describe('Auth middleware unit tests', () => {
     jest.clearAllMocks();
   });
 
-  function makeReq(overrides = {}) {
+  function makeReq(overrides: any = {}): any {
     return {
       cookies: {},
       headers: {},

@@ -1,9 +1,10 @@
-require('./setup');
-const request = require('supertest');
-const express = require('express');
-const cookieParser = require('cookie-parser');
-const jwt = require('jsonwebtoken');
-const pool = require('../config/database');
+import './setup';
+import request from 'supertest';
+import express from 'express';
+import cookieParser from 'cookie-parser';
+import jwt from 'jsonwebtoken';
+import _pool from '../config/database';
+const pool = _pool as any;
 
 const mockClient = pool._mockClient;
 

@@ -145,8 +145,8 @@ describeIfInteg('DB Schema integration tests', () => {
 
 // ─── Unit-level schema tests (always run) ─────────────────────────────────────
 // These test the schema SQL file itself (static analysis)
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 describe('Schema SQL static analysis', () => {
   let schemaSQL;

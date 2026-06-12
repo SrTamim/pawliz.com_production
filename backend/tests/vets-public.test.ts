@@ -1,8 +1,9 @@
-require('./setup');
-const request = require('supertest');
-const express = require('express');
-const cookieParser = require('cookie-parser');
-const pool = require('../config/database');
+import './setup';
+import request from 'supertest';
+import express from 'express';
+import cookieParser from 'cookie-parser';
+import _pool from '../config/database';
+const pool = _pool as any;
 
 // Mock vetsCache so cache logic doesn't interfere
 jest.mock('../utils/vetsCache', () => ({
@@ -10,7 +11,8 @@ jest.mock('../utils/vetsCache', () => ({
   set: jest.fn().mockImplementation((key, body) => ({ etag: '"test-etag"', body })),
   bust: jest.fn(),
 }));
-const vetsCache = require('../utils/vetsCache');
+import * as _vetsCache from '../utils/vetsCache';
+const vetsCache = _vetsCache as any;
 
 function buildApp() {
   const app = express();

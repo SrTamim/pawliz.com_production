@@ -1,12 +1,14 @@
-require('./setup');
-const pool = require('../config/database');
+import './setup';
+import _pool from '../config/database';
+const pool = _pool as any;
 
 jest.mock('../utils/fileUtils', () => ({ deleteUploadedFiles: jest.fn() }));
 jest.mock('../utils/activityLogger', () => ({ logActivity: jest.fn() }));
 
-const petService = require('../services/petService');
-const { deleteUploadedFiles } = require('../utils/fileUtils');
-const { logActivity } = require('../utils/activityLogger');
+import * as _petService from '../services/petService';
+const petService = _petService as any;
+import { deleteUploadedFiles } from '../utils/fileUtils';
+import { logActivity } from '../utils/activityLogger';
 
 // client returned by pool.connect() for transaction tests
 const mockClient = pool._mockClient;

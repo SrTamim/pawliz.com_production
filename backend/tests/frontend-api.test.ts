@@ -7,8 +7,8 @@
  * 4. API endpoints called in frontend match backend routes
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 const FRONTEND_SRC = path.join(__dirname, '../../frontend/src');
 const API_LIB = path.join(FRONTEND_SRC, 'lib/api.js');

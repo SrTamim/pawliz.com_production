@@ -1,8 +1,9 @@
-require('./setup');
-const request = require('supertest');
-const express = require('express');
-const cookieParser = require('cookie-parser');
-const pool = require('../config/database');
+import './setup';
+import request from 'supertest';
+import express from 'express';
+import cookieParser from 'cookie-parser';
+import _pool from '../config/database';
+const pool = _pool as any;
 
 function buildApp() {
   const app = express();

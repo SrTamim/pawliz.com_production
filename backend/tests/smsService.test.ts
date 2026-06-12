@@ -1,8 +1,9 @@
-require('./setup');
+import './setup';
 
 // Mock https and DB — smsService uses both
 jest.mock('https');
-const pool = require('../config/database');
+import _pool from '../config/database';
+const pool = _pool as any;
 
 // Re-require after mock so module cache is fresh
 let smsService;

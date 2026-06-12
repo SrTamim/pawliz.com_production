@@ -32,10 +32,11 @@ export interface PageDef {
   adminOnly?: boolean;
 }
 
-/** Minimal user shape permission checks rely on (req.user-compatible). */
+/** Minimal user shape permission checks rely on (req.user-compatible).
+ *  permissions is unknown by contract: normalize() default-denies malformed blobs. */
 interface PermissionUser {
   role: string;
-  permissions?: RolePermissions | null;
+  permissions?: unknown;
 }
 
 export const PAGES: PageDef[] = [

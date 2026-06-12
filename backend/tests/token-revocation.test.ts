@@ -1,10 +1,11 @@
-require('./setup');
-const request = require('supertest');
-const express = require('express');
-const cookieParser = require('cookie-parser');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const pool = require('../config/database');
+import './setup';
+import request from 'supertest';
+import express from 'express';
+import cookieParser from 'cookie-parser';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import _pool from '../config/database';
+const pool = _pool as any;
 
 function buildApp() {
   const app = express();
@@ -65,7 +66,7 @@ describe('Token revocation and refresh', () => {
         .set('Cookie', 'pawliz_refresh=validtoken');
       expect(res.status).toBe(401);
       expect(res.body.error).toBe('User not found or inactive');
-      const cookies = res.headers['set-cookie'].join('');
+      const cookies = (res.headers['set-cookie'] as unknown as string[]).join('');
       expect(cookies).toContain('pawliz_access=;');
     });
 
@@ -80,7 +81,7 @@ describe('Token revocation and refresh', () => {
         .set('Cookie', 'pawliz_refresh=validtoken');
       expect(res.status).toBe(200);
       expect(res.body.message).toBe('Token refreshed');
-      const cookies = res.headers['set-cookie'].join('');
+      const cookies = (res.headers['set-cookie'] as unknown as string[]).join('');
       expect(cookies).toContain('pawliz_access');
       expect(cookies).toContain('pawliz_refresh');
     });
@@ -136,7 +137,7 @@ describe('Token revocation and refresh', () => {
       const res = await request(app)
         .post('/api/v1/auth/logout')
         .set('Cookie', 'pawliz_refresh=sessiontoken');
-      const cookies = res.headers['set-cookie'].join('');
+      const cookies = (res.headers['set-cookie'] as unknown as string[]).join('');
       expect(cookies).toContain('pawliz_access=;');
       expect(cookies).toContain('pawliz_refresh=;');
     });
@@ -170,7 +171,7 @@ describe('Token revocation and refresh', () => {
       const res = await request(app)
         .post('/api/v1/auth/logout-all')
         .set('Authorization', `Bearer ${makeAccessToken()}`);
-      const cookies = res.headers['set-cookie'].join('');
+      const cookies = (res.headers['set-cookie'] as unknown as string[]).join('');
       expect(cookies).toContain('pawliz_access=;');
       expect(cookies).toContain('pawliz_refresh=;');
     });
@@ -198,7 +199,7 @@ describe('Token revocation and refresh', () => {
       expect(res.status).toBe(200);
       expect(res.body.message).toBe('Login successful');
       expect(res.body.user.password).toBeUndefined();
-      const cookies = res.headers['set-cookie'].join('');
+      const cookies = (res.headers['set-cookie'] as unknown as string[]).join('');
       expect(cookies).toContain('pawliz_access');
       expect(cookies).toContain('pawliz_refresh');
     });
@@ -231,7 +232,7 @@ describe('Token revocation and refresh', () => {
         .send({ name: 'New User', phone: '01987654321', password: 'Secure123', address: 'Dhaka' });
       expect(res.status).toBe(201);
       expect(res.body.message).toBe('Registration successful');
-      const cookies = res.headers['set-cookie'].join('');
+      const cookies = (res.headers['set-cookie'] as unknown as string[]).join('');
       expect(cookies).toContain('pawliz_access');
       expect(cookies).toContain('pawliz_refresh');
     });

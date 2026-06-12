@@ -1,9 +1,10 @@
-require('./setup');
-const request = require('supertest');
-const express = require('express');
-const cookieParser = require('cookie-parser');
-const jwt = require('jsonwebtoken');
-const pool = require('../config/database');
+import './setup';
+import request from 'supertest';
+import express from 'express';
+import cookieParser from 'cookie-parser';
+import jwt from 'jsonwebtoken';
+import _pool from '../config/database';
+const pool = _pool as any;
 
 function buildApp() {
   const app = express();
@@ -79,7 +80,7 @@ describe('Comments routes', () => {
     it('returns 409 if already reported by same user', async () => {
       mockUser(10);
       pool.query.mockResolvedValueOnce({ rows: [{ id: 1, user_id: 20 }] }); // comment by different user
-      const uniqueErr = new Error('duplicate key');
+      const uniqueErr: any = new Error('duplicate key');
       uniqueErr.code = '23505';
       pool.query.mockRejectedValueOnce(uniqueErr); // duplicate report insert
       const res = await request(app)

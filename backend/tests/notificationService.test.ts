@@ -1,6 +1,7 @@
-require('./setup');
-const pool = require('../config/database');
-const { createNotification } = require('../services/notificationService');
+import './setup';
+import _pool from '../config/database';
+const pool = _pool as any;
+import { createNotification } from '../services/notificationService';
 
 beforeEach(() => {
   jest.clearAllMocks();

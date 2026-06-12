@@ -1,16 +1,18 @@
-require('./setup');
-const request = require('supertest');
-const express = require('express');
-const cookieParser = require('cookie-parser');
-const jwt = require('jsonwebtoken');
-const pool = require('../config/database');
+import './setup';
+import request from 'supertest';
+import express from 'express';
+import cookieParser from 'cookie-parser';
+import jwt from 'jsonwebtoken';
+import _pool from '../config/database';
+const pool = _pool as any;
 
 jest.mock('../services/smsService', () => ({
   getBalance: jest.fn(),
   getSmsEnabled: jest.fn(),
   bustSmsSettingsCache: jest.fn(),
 }));
-const smsService = require('../services/smsService');
+import * as _smsService from '../services/smsService';
+const smsService = _smsService as any;
 
 function buildApp() {
   const app = express();

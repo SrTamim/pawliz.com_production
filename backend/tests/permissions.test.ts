@@ -1,6 +1,6 @@
 'use strict';
 
-const P = require('../utils/permissions');
+import * as P from '../utils/permissions';
 
 describe('RBAC permissions helpers', () => {
   describe('hasPermission', () => {

@@ -1,4 +1,4 @@
-require('./setup');
+import './setup';
 
 jest.mock('https');
 

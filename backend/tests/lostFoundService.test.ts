@@ -1,14 +1,17 @@
-require('./setup');
-const pool = require('../config/database');
+import './setup';
+import _pool from '../config/database';
+const pool = _pool as any;
 
 jest.mock('../utils/fileUtils', () => ({ deleteUploadedFiles: jest.fn() }));
 jest.mock('../services/notificationService', () => ({
   createNotification: jest.fn().mockResolvedValue({ id: 1 }),
 }));
 
-const lostFoundService = require('../services/lostFoundService');
-const { deleteUploadedFiles } = require('../utils/fileUtils');
-const { createNotification } = require('../services/notificationService');
+import * as _lostFoundService from '../services/lostFoundService';
+const lostFoundService = _lostFoundService as any;
+import { deleteUploadedFiles } from '../utils/fileUtils';
+import { createNotification as _createNotification } from '../services/notificationService';
+const createNotification = _createNotification as any;
 
 const pagination = { page: 1, limit: 20, offset: 0 };
 

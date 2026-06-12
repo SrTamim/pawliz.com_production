@@ -1,8 +1,8 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
-const pool = require("../config/database");
-const logger = require("../utils/logger");
-const vetsCache = require("../utils/vetsCache");
+import pool from '../config/database';
+import logger from '../utils/logger';
+import * as vetsCache from '../utils/vetsCache';
 
 const SLIM_COLS = `SELECT v.id, v.name, v.location_name, v.latitude, v.longitude, v.address, v.contact, v.image, v.cover_image, v.vet_type, v.avg_rating, v.review_count, v.status, v.approval_status, v.user_id`;
 const FULL_COLS = `SELECT v.id, v.name, v.location_name, v.latitude, v.longitude, v.address, v.contact, v.email, v.website, v.image, v.cover_image, v.description, v.services, v.vet_type, v.checkup_start, v.checkup_end, v.weekly_holidays, v.is_active, v.created_at, v.updated_at, v.avg_rating, v.review_count, v.status, v.approval_status, v.user_id`;
@@ -14,22 +14,22 @@ const FULL_COLS = `SELECT v.id, v.name, v.location_name, v.latitude, v.longitude
  * Search/location/paginated cursor paths bypass cache and return full columns.
  */
 router.get("/", async (req, res) => {
-  const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 50));
+  const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 50));
   const { location, search } = req.query;
 
   const useCursor = "cursor" in req.query;
-  const rawCursor = req.query.cursor;
+  const rawCursor = req.query.cursor as string | undefined;
   const cursorId = rawCursor ? parseInt(Buffer.from(rawCursor, "base64").toString(), 10) : null;
 
-  const page = Math.max(1, parseInt(req.query.page) || 1);
-  const offset = req.query.offset !== undefined ? parseInt(req.query.offset) : (page - 1) * limit;
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const offset = req.query.offset !== undefined ? parseInt(req.query.offset as string) : (page - 1) * limit;
 
   const isCacheableHome =
     !search &&
     !location &&
     (!useCursor || (!Number.isFinite(cursorId) && (rawCursor === "" || rawCursor === undefined))) &&
     page === 1 &&
-    (req.query.offset === undefined || parseInt(req.query.offset) === 0) &&
+    (req.query.offset === undefined || parseInt(req.query.offset as string) === 0) &&
     limit === 50;
 
   const cacheKey = isCacheableHome ? (useCursor ? "home:cursor" : "home:offset") : null;
@@ -76,12 +76,12 @@ router.get("/", async (req, res) => {
 
     const result = await pool.query(queryStr, params);
     const hasMore = result.rows.length > limit;
-    const vets = hasMore ? result.rows.slice(0, limit) : result.rows;
+    const vets: any[] = hasMore ? result.rows.slice(0, limit) : result.rows;
     const nextCursor = hasMore
       ? Buffer.from(String(vets[vets.length - 1].id)).toString("base64")
       : null;
 
-    const response = { vets };
+    const response: Record<string, any> = { vets };
     if (useCursor) {
       response.next_cursor = nextCursor;
     } else {
@@ -123,13 +123,13 @@ router.get("/locations", async (req, res) => {
  * Server-side Haversine distance filter. No PostGIS required.
  */
 router.get("/nearby", async (req, res) => {
-  const lat = parseFloat(req.query.lat);
-  const lng = parseFloat(req.query.lng);
+  const lat = parseFloat(req.query.lat as string);
+  const lng = parseFloat(req.query.lng as string);
   if (isNaN(lat) || isNaN(lng)) {
     return res.status(400).json({ error: "lat and lng are required" });
   }
-  const radius = Math.min(50, parseFloat(req.query.radius) || 10);
-  const limit = Math.min(50, parseInt(req.query.limit) || 20);
+  const radius = Math.min(50, parseFloat(req.query.radius as string) || 10);
+  const limit = Math.min(50, parseInt(req.query.limit as string) || 20);
   const boxDelta = radius / 111.0;
   try {
     const result = await pool.query(
@@ -198,8 +198,8 @@ router.get("/map", async (req, res) => {
  */
 router.get("/:id/reviews", async (req, res) => {
   try {
-    const page = Math.max(1, parseInt(req.query.page) || 1);
-    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
     const offset = (page - 1) * limit;
     const [reviewsResult, countResult] = await Promise.all([
       pool.query(
@@ -275,4 +275,4 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-module.exports = router;
+export = router;

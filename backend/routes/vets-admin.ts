@@ -1,12 +1,12 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
-const pool = require("../config/database");
-const { authenticate, requirePermission } = require("../middleware/auth");
-const upload = require("../middleware/upload");
-const { body, validationResult } = require("express-validator");
-const { deleteUploadedFile } = require("../utils/fileUtils");
-const logger = require("../utils/logger");
-const vetsCache = require("../utils/vetsCache");
+import pool from '../config/database';
+import { authenticate, requirePermission } from '../middleware/auth';
+import upload from '../middleware/upload';
+import { body, validationResult } from 'express-validator';
+import { deleteUploadedFile } from '../utils/fileUtils';
+import logger from '../utils/logger';
+import * as vetsCache from '../utils/vetsCache';
 
 /**
  * POST /api/v1/vets-admin
@@ -177,4 +177,4 @@ router.post(
   },
 );
 
-module.exports = router;
+export = router;

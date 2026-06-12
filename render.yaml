@@ -8,8 +8,10 @@ services:
     region: singapore        # closest Render region to Bangladesh
     plan: free               # $0; sleeps after 15min idle (cold start ~30s, Socket.IO drops while asleep)
     rootDir: backend
-    buildCommand: npm install
-    startCommand: npm run migrate && node server.js
+    # npm install includes devDependencies (typescript) needed for tsc build.
+    buildCommand: npm install && npm run build
+    # Migrations run from compiled output (dist/migrate.js -> dist/migrations).
+    startCommand: npm run migrate:prod && node dist/server.js
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:

@@ -1,7 +1,9 @@
 [build]
 builder = "nixpacks"
-buildCommand = "cd backend && npm install"
+# npm install includes devDependencies (typescript) needed for the build step.
+buildCommand = "cd backend && npm install && npm run build"
 
 [deploy]
-startCommand = "cd backend && npm run migrate && node server.js"
+# Migrations run from the compiled output (dist/migrate.js -> dist/migrations).
+startCommand = "cd backend && npm run migrate:prod && node dist/server.js"
 restartPolicyType = "on_failure"

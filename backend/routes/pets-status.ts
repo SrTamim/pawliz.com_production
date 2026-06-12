@@ -1,11 +1,11 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
-const { body } = require("express-validator");
-const pool = require("../config/database");
-const { authenticate } = require("../middleware/auth");
-const validate = require("../middleware/validate");
-const logger = require('../utils/logger');
-const { logActivity } = require("../utils/activityLogger");
+import { body } from 'express-validator';
+import pool from '../config/database';
+import { authenticate } from '../middleware/auth';
+import validate from '../middleware/validate';
+import logger from '../utils/logger';
+import { logActivity } from '../utils/activityLogger';
 
 // POST /api/v1/pets/:id/lost
 router.post("/:id/lost", authenticate, [
@@ -156,4 +156,4 @@ router.put("/:id/adopted", authenticate, async (req, res) => {
   }
 });
 
-module.exports = router;
+export = router;

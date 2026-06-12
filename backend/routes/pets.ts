@@ -1,11 +1,11 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
-const { body } = require("express-validator");
-const QRCode = require("qrcode");
-const { authenticate } = require("../middleware/auth");
-const validate = require("../middleware/validate");
-const logger = require('../utils/logger');
-const petService = require("../services/petService");
+import { body } from 'express-validator';
+import QRCode from 'qrcode';
+import { authenticate } from '../middleware/auth';
+import validate from '../middleware/validate';
+import logger from '../utils/logger';
+import * as petService from '../services/petService';
 
 /**
  * Pet routes (user and public)
@@ -122,4 +122,4 @@ router.delete("/:id", authenticate, async (req, res) => {
 router.use("/", require("./pets-media"));
 router.use("/", require("./pets-status"));
 
-module.exports = router;
+export = router;

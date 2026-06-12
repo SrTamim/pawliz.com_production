@@ -1,10 +1,10 @@
-const express = require("express");
+import express from 'express';
 const router = express.Router();
-const pool = require("../config/database");
-const { authenticate } = require("../middleware/auth");
-const upload = require("../middleware/upload");
-const { deleteUploadedFile, deleteUploadedFiles } = require("../utils/fileUtils");
-const logger = require("../utils/logger");
+import pool from '../config/database';
+import { authenticate } from '../middleware/auth';
+import upload from '../middleware/upload';
+import { deleteUploadedFile, deleteUploadedFiles } from '../utils/fileUtils';
+import logger from '../utils/logger';
 
 // POST /api/v1/pets/:id/images
 router.post("/:id/images", authenticate, upload.array("images", 3), async (req, res) => {
@@ -21,7 +21,7 @@ router.post("/:id/images", authenticate, upload.array("images", 3), async (req, 
     if (!check.rows[0]) return res.status(404).json({ error: "Pet not found" });
 
     const existingImages = check.rows[0].images || [];
-    const newImages = req.files.map((f) => `/uploads/public/${f.filename}`);
+    const newImages = (req.files as Express.Multer.File[]).map((f) => `/uploads/public/${f.filename}`);
     const allImages = [...existingImages, ...newImages].slice(-3);
     const removedImages = [...existingImages, ...newImages].slice(0, -3);
     if (removedImages.length > 0) deleteUploadedFiles(removedImages);
@@ -75,4 +75,4 @@ router.delete("/:id/images/:imageIndex", authenticate, async (req, res) => {
   }
 });
 
-module.exports = router;
+export = router;

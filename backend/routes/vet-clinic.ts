@@ -1,10 +1,10 @@
-const express = require('express');
-const pool = require('../config/database');
-const { authenticate, requireVet } = require('../middleware/auth');
-const upload = require('../middleware/upload');
-const { deleteUploadedFile } = require('../utils/fileUtils');
-const logger = require('../utils/logger');
-const { getOwnedVet } = require('../utils/vetHelpers');
+import express from 'express';
+import pool from '../config/database';
+import { authenticate, requireVet } from '../middleware/auth';
+import upload from '../middleware/upload';
+import { deleteUploadedFile } from '../utils/fileUtils';
+import logger from '../utils/logger';
+import { getOwnedVet } from '../utils/vetHelpers';
 
 function parseHolidays(value) {
   if (!value) return [];
@@ -225,4 +225,4 @@ async function deleteClinicVetQualification(req, res) {
 
 vetsRouter.delete('/:vetId/qualifications/:qualId', deleteClinicVetQualification);
 
-module.exports = { contactsRouter, vetsRouter };
+export = { contactsRouter, vetsRouter };

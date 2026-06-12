@@ -1,10 +1,10 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const pool = require('../config/database');
-const { authenticate, requireVet } = require('../middleware/auth');
-const { deleteUploadedFile } = require('../utils/fileUtils');
-const logger = require('../utils/logger');
-const { getOwnedVet } = require('../utils/vetHelpers');
+import pool from '../config/database';
+import { authenticate, requireVet } from '../middleware/auth';
+import { deleteUploadedFile } from '../utils/fileUtils';
+import logger from '../utils/logger';
+import { getOwnedVet } from '../utils/vetHelpers';
 
 router.use(authenticate, requireVet);
 
@@ -51,4 +51,4 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-module.exports = router;
+export = router;

@@ -9,7 +9,7 @@ import validate from '../middleware/validate';
 import { logActivity } from '../utils/activityLogger';
 import logger from '../utils/logger';
 import { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN } from '../utils/constants';
-import { setCookies, clearCookies, createTokens, hashPassword, verifyPassword } from '../utils/authHelpers';
+import { setCookies, clearCookies, createTokens, hashPassword, verifyPassword, hashRefreshToken } from '../utils/authHelpers';
 import * as smsService from '../services/smsService';
 
 // Pre-computed hash for constant-time comparison when user not found (timing oracle prevention)
@@ -160,7 +160,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
   try {
     const stored = await pool.query(
       'SELECT id, user_id FROM refresh_tokens WHERE token = $1 AND expires_at > NOW()',
-      [token]
+      [hashRefreshToken(token)]
     );
     if (!stored.rows[0]) {
       clearCookies(res);
@@ -203,7 +203,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
 router.post('/logout', async (req: Request, res: Response) => {
   const token = req.cookies?.pawliz_refresh;
   if (token) {
-    await pool.query('DELETE FROM refresh_tokens WHERE token = $1', [token]).catch(() => {});
+    await pool.query('DELETE FROM refresh_tokens WHERE token = $1', [hashRefreshToken(token)]).catch(() => {});
   }
   clearCookies(res);
   res.json({ message: 'Logged out' });

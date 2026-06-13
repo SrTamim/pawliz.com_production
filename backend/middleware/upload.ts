@@ -46,6 +46,27 @@ const multerInstance = multer({
 });
 
 /**
+ * Magic-byte check for document uploads. The fileFilter only sees the declared
+ * extension + MIME type, so a renamed file (e.g. script.exe → doc.pdf) slips
+ * through. Images are already implicitly validated — sharp() throws on non-image
+ * bytes — but PDFs/docs pass through untouched, so verify their signature here.
+ *
+ * Returns true if the buffer starts with a plausible PDF / OOXML(docx) / OLE2(doc)
+ * container header. This is a sanity check on the container, not deep validation.
+ */
+function hasValidDocSignature(buffer: Buffer): boolean {
+  if (buffer.length < 8) return false;
+  // PDF: "%PDF"
+  if (buffer.subarray(0, 4).toString('latin1') === '%PDF') return true;
+  // DOCX (and any OOXML): ZIP local file header "PK\x03\x04"
+  if (buffer[0] === 0x50 && buffer[1] === 0x4b && buffer[2] === 0x03 && buffer[3] === 0x04) return true;
+  // Legacy DOC: OLE2 compound file "D0 CF 11 E0 A1 B1 1A E1"
+  const ole2 = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1];
+  if (ole2.every((b, i) => buffer[i] === b)) return true;
+  return false;
+}
+
+/**
  * Push one in-memory multer file to R2 and decorate it with the fields
  * downstream code expects (.filename). Mutates the file object in place.
  *
@@ -67,6 +88,11 @@ async function pushToR2(file: Express.Multer.File, visibility: 'public' | 'priva
       .toBuffer();
     mimetype = 'image/webp';
     ext = '.webp';
+  } else if (ALLOWED_DOC_TYPES.includes(mimetype) && !hasValidDocSignature(buffer)) {
+    // Doc passthrough path: confirm the bytes match a real PDF/doc container,
+    // not just a renamed file with a doc extension + spoofed MIME type.
+    logger.warn(`Upload blocked (bad signature): ${file.originalname} (${mimetype})`);
+    throw new Error('File content does not match its type');
   }
 
   // Unique, extension-correct filename (R2 keys are ext-agnostic; DB stores this verbatim).

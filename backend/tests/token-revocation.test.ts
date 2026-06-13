@@ -4,6 +4,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import { hashRefreshToken } from '../utils/authHelpers';
 import _pool from '../config/database';
 const pool = _pool as any;
 
@@ -128,7 +129,7 @@ describe('Token revocation and refresh', () => {
       expect(res.status).toBe(200);
       expect(pool.query).toHaveBeenCalledWith(
         'DELETE FROM refresh_tokens WHERE token = $1',
-        ['sessiontoken']
+        [hashRefreshToken('sessiontoken')]
       );
     });
 

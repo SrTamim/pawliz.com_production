@@ -65,9 +65,10 @@ export async function createTokens(
   const refreshToken = crypto.randomBytes(40).toString('hex');
   const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRES_MS);
   try {
+    // Store only the SHA-256 hash — a DB read-leak can't replay sessions.
     await db.query(
       'INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)',
-      [userId, refreshToken, expiresAt]
+      [userId, hashRefreshToken(refreshToken), expiresAt]
     );
   } catch (err) {
     logger.error('Failed to create refresh token:', err);
@@ -88,4 +89,13 @@ export async function hashPassword(password: string): Promise<string> {
  */
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
   return bcrypt.compare(password, hash);
+}
+
+/**
+ * Hash a refresh token for storage/lookup. Plain SHA-256 (no salt) is fine here:
+ * the token is 320 bits of crypto.randomBytes entropy, so it's not brute-forceable.
+ * We persist and query by this hash so the cleartext only ever lives in the cookie.
+ */
+export function hashRefreshToken(token: string): string {
+  return crypto.createHash('sha256').update(token).digest('hex');
 }

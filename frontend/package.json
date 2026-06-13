@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "Pawliz - Veterinary Platform Frontend",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "node scripts/run-next.cjs dev",
+    "build": "node scripts/run-next.cjs build",
+    "start": "node scripts/run-next.cjs start",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

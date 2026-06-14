@@ -13,6 +13,19 @@ function parseHolidays(value: any): any {
   try { return JSON.parse(value); } catch { return []; }
 }
 
+// weekly_schedule arrives as a JSON string (FormData) or object. Returns a JSON string
+// for the jsonb column, or null when empty/invalid.
+function parseSchedule(value: any): string | null {
+  if (!value) return null;
+  if (typeof value === 'object') return JSON.stringify(value);
+  try {
+    const parsed = JSON.parse(value);
+    return parsed ? JSON.stringify(parsed) : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Add clinic contact (phone, email, etc.)
  */
@@ -59,7 +72,7 @@ async function deleteClinicContact(req: Request, res: Response) {
  * Add clinic vet staff member
  */
 async function addClinicVet(req: Request, res: Response) {
-  const { name, designation, bvc_reg_number, bmdc_reg_number, checkup_start, checkup_end, weekly_holidays } = req.body;
+  const { name, designation, bvc_reg_number, bmdc_reg_number, checkup_start, checkup_end, weekly_holidays, weekly_schedule } = req.body;
   if (!name) return res.status(400).json({ error: 'Name is required' });
   try {
     const vet = await getOwnedVet(req.user!.id);
@@ -68,11 +81,12 @@ async function addClinicVet(req: Request, res: Response) {
 
     const imageUrl = req.file ? `/uploads/public/${req.file.filename}` : null;
     const holidays = parseHolidays(weekly_holidays);
+    const schedule = parseSchedule(weekly_schedule);
 
     const result = await pool.query(
-      `INSERT INTO clinic_vets (clinic_id, vet_image, name, designation, bvc_reg_number, bmdc_reg_number, checkup_start, checkup_end, weekly_holidays)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-      [vet.id, imageUrl, name, designation || null, bvc_reg_number || null, bmdc_reg_number || null, checkup_start || null, checkup_end || null, holidays]
+      `INSERT INTO clinic_vets (clinic_id, vet_image, name, designation, bvc_reg_number, bmdc_reg_number, checkup_start, checkup_end, weekly_holidays, weekly_schedule)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      [vet.id, imageUrl, name, designation || null, bvc_reg_number || null, bmdc_reg_number || null, checkup_start || null, checkup_end || null, holidays, schedule]
     );
     res.status(201).json({ clinic_vet: result.rows[0] });
   } catch (err) {
@@ -107,7 +121,7 @@ async function updateClinicVet(req: Request, res: Response) {
     );
     if (!existing.rows[0]) return res.status(404).json({ error: 'Clinic vet not found' });
 
-    const { name, designation, bvc_reg_number, bmdc_reg_number, checkup_start, checkup_end, weekly_holidays } = req.body;
+    const { name, designation, bvc_reg_number, bmdc_reg_number, checkup_start, checkup_end, weekly_holidays, weekly_schedule } = req.body;
     const updates = [];
     const values = [];
     let p = 1;
@@ -121,6 +135,10 @@ async function updateClinicVet(req: Request, res: Response) {
     if (weekly_holidays !== undefined) {
       updates.push(`weekly_holidays=$${p++}`);
       values.push(parseHolidays(weekly_holidays));
+    }
+    if (weekly_schedule !== undefined) {
+      updates.push(`weekly_schedule=$${p++}`);
+      values.push(parseSchedule(weekly_schedule));
     }
     if (req.file) {
       updates.push(`vet_image=$${p++}`);

@@ -388,6 +388,16 @@ DO $$ BEGIN
   END IF;
 END $$;
 DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='vets' AND column_name='weekly_schedule') THEN
+    ALTER TABLE vets ADD COLUMN weekly_schedule JSONB;
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='clinic_vets' AND column_name='weekly_schedule') THEN
+    ALTER TABLE clinic_vets ADD COLUMN weekly_schedule JSONB;
+  END IF;
+END $$;
+DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='vets' AND column_name='account_owner_name') THEN
     ALTER TABLE vets ADD COLUMN account_owner_name VARCHAR(200);
   END IF;
@@ -476,6 +486,7 @@ CREATE TABLE IF NOT EXISTS clinic_vets (
   checkup_start TIME,
   checkup_end TIME,
   weekly_holidays TEXT[],
+  weekly_schedule JSONB,
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

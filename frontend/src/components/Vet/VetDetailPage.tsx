@@ -16,13 +16,40 @@ function fmt12(t: any) {
   return `${hour % 12 || 12}:${m} ${ampm}`;
 }
 
-export default function VetDetailPage({ vetId, open, onClose, onAuthRequired }: any) {
-  const [vet, setVet] = useState<any>(null);
+const DAY_KEYS = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+
+// True when at least one day has hours set.
+function hasSchedule(ws: any) {
+  return !!ws && typeof ws === 'object' && DAY_KEYS.some((k) => ws[k] && ws[k].open);
+}
+
+// Per-day schedule list. `closedLabel` localizes the closed text.
+function WeeklyScheduleView({ schedule, closedLabel = 'Closed' }: any) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {DAYS.map((d: string) => {
+        const day = schedule?.[d.toLowerCase()];
+        const isOpen = !!(day && day.open);
+        return (
+          <div key={d} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 13 }}>
+            <span style={{ color: 'var(--text-secondary)' }}>{d}</span>
+            <span style={{ color: isOpen ? 'var(--text-primary)' : '#ff4f6a', fontWeight: isOpen ? 500 : 600 }}>
+              {isOpen ? `${fmt12(day.open)} – ${fmt12(day.close)}` : closedLabel}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export default function VetDetailPage({ vetId, open, onClose, onAuthRequired, fullPage = false, initialVet = null }: any) {
+  const [vet, setVet] = useState<any>(initialVet);
   const [reviews, setReviews] = useState<any[]>([]);
   const [qualifications, setQualifications] = useState<any[]>([]);
   const [clinicContacts, setClinicContacts] = useState<any[]>([]);
   const [clinicVets, setClinicVets] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialVet);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -63,7 +90,10 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired }: 
     finally { setSubmitting(false); }
   };
 
-  if (!open) return null;
+  if (!open && !fullPage) return null;
+
+  // Canonical shareable URL for this vet (dedicated page). Used by the Share button.
+  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/vets/${vetId}` : '';
 
   const filteredReviews = reviewFilter > 0
     ? reviews.filter(r => r.rating === reviewFilter)
@@ -74,26 +104,41 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired }: 
   const avatarUrl = getImageUrl(vet?.image);
   const hasCover = !!coverUrl;
 
+  // Outer wrapper differs by mode: fixed overlay (modal) vs in-document page.
+  // Inline (not a nested component) so children don't remount on each render.
+  const wrapperProps = fullPage
+    ? {
+        style: {
+          minHeight: '100vh',
+          background: 'var(--bg-primary)',
+          paddingTop: 'calc(var(--header-height) + 16px)',
+          paddingBottom: 'calc(80px + env(safe-area-inset-bottom) + 16px)',
+          paddingLeft: 16,
+          paddingRight: 16,
+        } as any,
+      }
+    : {
+        onClick: (e: any) => e.target === e.currentTarget && onClose(),
+        style: {
+          position: 'fixed', inset: 0,
+          background: 'rgba(0,0,0,0.82)',
+          backdropFilter: 'blur(12px)',
+          zIndex: 1500,
+          overflowY: 'auto',
+          animation: 'fadeIn 0.3s ease',
+        } as any,
+      };
+
   return (
-    <div
-      onClick={e => e.target === e.currentTarget && onClose()}
-      style={{
-        position: 'fixed', inset: 0,
-        background: 'rgba(0,0,0,0.82)',
-        backdropFilter: 'blur(12px)',
-        zIndex: 1500,
-        overflowY: 'auto',
-        animation: 'fadeIn 0.3s ease',
-      }}
-    >
+    <div {...wrapperProps}>
       <div style={{
         maxWidth: 900,
-        margin: '80px auto 60px',
+        margin: fullPage ? '0 auto' : '80px auto 60px',
         background: 'var(--bg-card)',
         border: '1px solid var(--border)',
         borderRadius: 20,
         overflow: 'hidden',
-        animation: 'slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1)',
+        animation: fullPage ? undefined : 'slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1)',
         boxShadow: 'var(--shadow-lg)',
       }}>
         {loading ? (
@@ -108,17 +153,19 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired }: 
                 ? <img src={coverUrl} alt={`${vet.name} cover`} style={{ width: '100%', display: 'block', objectFit: 'cover', maxHeight: 280 }} onError={e => (e.target as any).style.display = 'none'} />
                 : <div style={{ width: '100%', height: 180, background: 'linear-gradient(135deg, var(--bg-elevated), var(--bg-secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 80 }}>🏥</div>
               }
-              <button
-                onClick={onClose}
-                style={{
-                  position: 'absolute', top: 16, left: 16,
-                  background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255,255,255,0.1)', color: 'white',
-                  width: 38, height: 38, borderRadius: 10,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', fontSize: 16,
-                }}
-              >←</button>
+              {!fullPage && (
+                <button
+                  onClick={onClose}
+                  style={{
+                    position: 'absolute', top: 16, left: 16,
+                    background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255,255,255,0.1)', color: 'white',
+                    width: 38, height: 38, borderRadius: 10,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', fontSize: 16,
+                  }}
+                >←</button>
+              )}
             </div>
 
             {/* Profile header — below hero */}
@@ -152,7 +199,7 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired }: 
                         : <Badge color="gray">Unverified</Badge>
                     }
                     <ShareButton
-                      url={typeof window !== 'undefined' ? window.location.origin : ''}
+                      url={shareUrl}
                       text={`🏥 ${vet.name} in ${vet.address || 'Bangladesh'}. ★ ${parseFloat(vet.avg_rating || 0).toFixed(1)} rating. Find vets & clinics on Pawliz! #Pawliz #VetBD`}
                     />
                   </div>
@@ -252,15 +299,34 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired }: 
                                 {cv.qualifications.map((q: any) => q.qualification).join(' · ')}
                               </div>
                             )}
-                            {(cv.checkup_start || cv.checkup_end) && (
-                              <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
-                                🕐 {fmt12(cv.checkup_start)} – {fmt12(cv.checkup_end)}
+                            {hasSchedule(cv.weekly_schedule) ? (
+                              <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 4 }}>
+                                {DAYS.map((d: string) => {
+                                  const day = cv.weekly_schedule[d.toLowerCase()];
+                                  const isOpen = !!(day && day.open);
+                                  return (
+                                    <div key={d} style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                                      <span>{d.slice(0, 3)}</span>
+                                      <span style={{ color: isOpen ? 'var(--text-secondary)' : '#ff4f6a' }}>
+                                        {isOpen ? `${fmt12(day.open)} – ${fmt12(day.close)}` : t("detail.closed")}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
                               </div>
-                            )}
-                            {Array.isArray(cv.weekly_holidays) && cv.weekly_holidays.length > 0 && (
-                              <div style={{ fontSize: 11, color: '#ff4f6a', marginTop: 2 }}>
-                                Off: {cv.weekly_holidays.join(', ')}
-                              </div>
+                            ) : (
+                              <>
+                                {(cv.checkup_start || cv.checkup_end) && (
+                                  <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
+                                    🕐 {fmt12(cv.checkup_start)} – {fmt12(cv.checkup_end)}
+                                  </div>
+                                )}
+                                {Array.isArray(cv.weekly_holidays) && cv.weekly_holidays.length > 0 && (
+                                  <div style={{ fontSize: 11, color: '#ff4f6a', marginTop: 2 }}>
+                                    Off: {cv.weekly_holidays.join(', ')}
+                                  </div>
+                                )}
+                              </>
                             )}
                           </div>
                         </div>
@@ -288,8 +354,14 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired }: 
                 </Section>
               )}
 
-              {/* Schedule */}
-              {(vet.checkup_start || vet.checkup_end || (Array.isArray(vet.weekly_holidays) && vet.weekly_holidays.length > 0)) && (
+              {/* Schedule — prefer per-day weekly_schedule, fall back to legacy single-range + holidays */}
+              {hasSchedule(vet.weekly_schedule) ? (
+                <Section title={t("detail.schedule")}>
+                  <div style={{ padding: 14, background: 'var(--bg-elevated)', borderRadius: 10, maxWidth: 360 }}>
+                    <WeeklyScheduleView schedule={vet.weekly_schedule} closedLabel={t("detail.closed")} />
+                  </div>
+                </Section>
+              ) : (vet.checkup_start || vet.checkup_end || (Array.isArray(vet.weekly_holidays) && vet.weekly_holidays.length > 0)) && (
                 <Section title={t("detail.schedule")}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
                     {(vet.checkup_start || vet.checkup_end) && (

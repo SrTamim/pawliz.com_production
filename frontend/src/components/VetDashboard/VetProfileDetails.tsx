@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { vetDashboardAPI } from "../../lib/api";
 import { useToast } from "../../context/ToastContext";
 import PasswordStrengthChecker from "../Auth/PasswordStrengthChecker";
+import WeeklyScheduleEditor, { buildScheduleFromLegacy } from "./WeeklyScheduleEditor";
 
 const DAYS = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const DOC_TYPES_CLINIC = [
@@ -105,6 +106,7 @@ const buildProfile = (v: any) => ({
   checkup_start: normalizeTime(v?.checkup_start),
   checkup_end: normalizeTime(v?.checkup_end),
   weekly_holidays: v?.weekly_holidays || [],
+  weekly_schedule: buildScheduleFromLegacy(v?.weekly_schedule, v?.checkup_start, v?.checkup_end, v?.weekly_holidays),
   account_owner_name: v?.account_owner_name || "",
   contact: v?.contact || "",
   services: (v?.services || []).join(", "),
@@ -251,7 +253,7 @@ export default function VetProfileDetails({ vet, qualifications, documents, clin
   };
 
   const [showAddClinicVet, setShowAddClinicVet] = useState(false);
-  const [newClinicVet, setNewClinicVet] = useState({ name: "", designation: "", bvc_reg_number: "", bmdc_reg_number: "", checkup_start: "", checkup_end: "", weekly_holidays: [] as any[] });
+  const [newClinicVet, setNewClinicVet] = useState({ name: "", designation: "", bvc_reg_number: "", bmdc_reg_number: "", checkup_start: "", checkup_end: "", weekly_holidays: [] as any[], weekly_schedule: buildScheduleFromLegacy(null) });
   const [newClinicVetImage, setNewClinicVetImage] = useState<any>(null);
   const [newClinicVetQuals, setNewClinicVetQuals] = useState([{ qualification: "", institute: "" }]);
   const [cvSaving, setCvSaving] = useState(false);
@@ -374,7 +376,7 @@ export default function VetProfileDetails({ vet, qualifications, documents, clin
       }
       toast("Vet added to clinic");
       setShowAddClinicVet(false);
-      setNewClinicVet({ name: "", designation: "", bvc_reg_number: "", bmdc_reg_number: "", checkup_start: "", checkup_end: "", weekly_holidays: [] as any[] });
+      setNewClinicVet({ name: "", designation: "", bvc_reg_number: "", bmdc_reg_number: "", checkup_start: "", checkup_end: "", weekly_holidays: [] as any[], weekly_schedule: buildScheduleFromLegacy(null) });
       setNewClinicVetImage(null);
       setNewClinicVetQuals([{ qualification: "", institute: "" }]);
       const servicesArr = profile.services.split(",").map((s: any) => s.trim()).filter(Boolean);
@@ -509,40 +511,16 @@ export default function VetProfileDetails({ vet, qualifications, documents, clin
         </Field>
       </Section>
 
-      {/* 3. Clinic Opening Hours */}
-      <Section title={t("profileForm.clinicHours")}>
-        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14, marginBottom: 16 }}>
-          <Field label={t("profileForm.startTime")}>
-            <select style={inputStyle} value={profile.checkup_start} onChange={(e: any) => setP("checkup_start", e.target.value)}>
-              {TIME_OPTIONS.map((t: any) => <option key={t.value} value={t.value}>{t.label}</option>)}
-            </select>
-          </Field>
-          <Field label={t("profileForm.endTime")}>
-            <select style={inputStyle} value={profile.checkup_end} onChange={(e: any) => setP("checkup_end", e.target.value)}>
-              {TIME_OPTIONS.map((t: any) => <option key={t.value} value={t.value}>{t.label}</option>)}
-            </select>
-          </Field>
+      {/* 3. Clinic Opening Hours — per-day schedule */}
+      <Section title={t("profileForm.weeklySchedule") || t("profileForm.clinicHours")}>
+        <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 12 }}>
+          {t("profileForm.scheduleHint")}
         </div>
-        <Field label={t("profileForm.weeklyHolidays")}>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {DAYS.map((day: any) => (
-              <button
-                key={day}
-                type="button"
-                onClick={() => toggleHoliday(day)}
-                style={{
-                  padding: "5px 14px", borderRadius: 20, fontSize: 13, cursor: "pointer",
-                  fontFamily: "DM Sans, sans-serif", border: "1px solid var(--border)",
-                  background: profile.weekly_holidays.includes(day) ? "#ff4f6a22" : "var(--bg-elevated)",
-                  color: profile.weekly_holidays.includes(day) ? "#ff4f6a" : "var(--text-secondary)",
-                  fontWeight: profile.weekly_holidays.includes(day) ? 600 : 400,
-                }}
-              >
-                {day}
-              </button>
-            ))}
-          </div>
-        </Field>
+        <WeeklyScheduleEditor
+          value={profile.weekly_schedule}
+          onChange={(next: any) => setP("weekly_schedule", next)}
+          labels={{ open: t("profileForm.open"), closed: t("profileForm.closed") }}
+        />
       </Section>
 
       {/* 4. Clinic Contact Details */}
@@ -636,45 +614,16 @@ export default function VetProfileDetails({ vet, qualifications, documents, clin
                   </label>
                 </div>
               </div>
-              <div>
-                <label style={{ fontSize: 12, color: "var(--text-secondary)", display: "block", marginBottom: 5 }}>{t("profileForm.checkupStart")}</label>
-                <select style={inputStyle} value={newClinicVet.checkup_start} onChange={(e: any) => setNewClinicVet((n: any) => ({ ...n, checkup_start: e.target.value }))}>
-                  {TIME_OPTIONS.map((t: any) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                </select>
-              </div>
-              <div>
-                <label style={{ fontSize: 12, color: "var(--text-secondary)", display: "block", marginBottom: 5 }}>{t("profileForm.checkupEnd")}</label>
-                <select style={inputStyle} value={newClinicVet.checkup_end} onChange={(e: any) => setNewClinicVet((n: any) => ({ ...n, checkup_end: e.target.value }))}>
-                  {TIME_OPTIONS.map((t: any) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                </select>
-              </div>
             </div>
 
             <div style={{ marginBottom: 12 }}>
-              <label style={{ fontSize: 12, color: "var(--text-secondary)", display: "block", marginBottom: 6 }}>{t("profileForm.weeklyHolidays")}</label>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                {DAYS.map((day: any) => (
-                  <button
-                    key={day}
-                    type="button"
-                    onClick={() => {
-                      const h = newClinicVet.weekly_holidays;
-                      setNewClinicVet((n: any) => ({
-                        ...n,
-                        weekly_holidays: h.includes(day) ? h.filter((d: any) => d !== day) : [...h, day],
-                      }));
-                    }}
-                    style={{
-                      padding: "4px 12px", borderRadius: 20, fontSize: 12, cursor: "pointer",
-                      fontFamily: "DM Sans, sans-serif", border: "1px solid var(--border)",
-                      background: newClinicVet.weekly_holidays.includes(day) ? "#ff4f6a22" : "var(--bg-elevated)",
-                      color: newClinicVet.weekly_holidays.includes(day) ? "#ff4f6a" : "var(--text-secondary)",
-                    }}
-                  >
-                    {day}
-                  </button>
-                ))}
-              </div>
+              <label style={{ fontSize: 12, color: "var(--text-secondary)", display: "block", marginBottom: 6 }}>{t("profileForm.weeklySchedule")}</label>
+              <WeeklyScheduleEditor
+                value={newClinicVet.weekly_schedule}
+                onChange={(next: any) => setNewClinicVet((n: any) => ({ ...n, weekly_schedule: next }))}
+                labels={{ open: t("profileForm.open"), closed: t("profileForm.closed") }}
+                compact
+              />
             </div>
 
             <div style={{ marginBottom: 14 }}>

@@ -18,6 +18,15 @@ export interface User {
   meta?: Record<string, unknown> | null;
 }
 
+export interface DaySchedule {
+  open: string;
+  close: string;
+}
+
+// Per-day opening hours keyed by lowercase day name (saturday..friday).
+// A day mapped to null (or absent) means closed.
+export type WeeklySchedule = Record<string, DaySchedule | null>;
+
 export interface Vet {
   id: number;
   name: string;
@@ -36,6 +45,7 @@ export interface Vet {
   checkup_start?: string | null;
   checkup_end?: string | null;
   weekly_holidays?: string[] | null;
+  weekly_schedule?: WeeklySchedule | null;
   avg_rating: string | null;
   review_count: number | null;
   status: string | null;

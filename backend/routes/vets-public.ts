@@ -6,7 +6,7 @@ import logger from '../utils/logger';
 import * as vetsCache from '../utils/vetsCache';
 
 const SLIM_COLS = `SELECT v.id, v.name, v.location_name, v.latitude, v.longitude, v.address, v.contact, v.image, v.cover_image, v.vet_type, v.avg_rating, v.review_count, v.status, v.approval_status, v.user_id`;
-const FULL_COLS = `SELECT v.id, v.name, v.location_name, v.latitude, v.longitude, v.address, v.contact, v.email, v.website, v.image, v.cover_image, v.description, v.services, v.vet_type, v.checkup_start, v.checkup_end, v.weekly_holidays, v.is_active, v.created_at, v.updated_at, v.avg_rating, v.review_count, v.status, v.approval_status, v.user_id`;
+const FULL_COLS = `SELECT v.id, v.name, v.location_name, v.latitude, v.longitude, v.address, v.contact, v.email, v.website, v.image, v.cover_image, v.description, v.services, v.vet_type, v.checkup_start, v.checkup_end, v.weekly_holidays, v.weekly_schedule, v.is_active, v.created_at, v.updated_at, v.avg_rating, v.review_count, v.status, v.approval_status, v.user_id`;
 
 /**
  * GET /api/v1/vets
@@ -231,7 +231,7 @@ router.get("/:id/reviews", async (req: Request, res: Response) => {
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const vetResult = await pool.query(
-      `SELECT v.id, v.name, v.location_name, v.latitude, v.longitude, v.address, v.contact, v.email, v.website, v.image, v.cover_image, v.description, v.services, v.clinic_reg_number, v.vet_type, v.checkup_start, v.checkup_end, v.weekly_holidays, v.social_facebook, v.social_instagram, v.social_linkedin, v.social_whatsapp, v.is_active, v.created_at, v.updated_at, v.status, v.approval_status, v.user_id, COALESCE(AVG(r.rating), 0)::DECIMAL(3,2) AS avg_rating, COUNT(r.id)::INTEGER AS review_count FROM vets v LEFT JOIN reviews r ON v.id = r.vet_id AND r.is_active = true WHERE v.id = $1 AND v.is_active = true AND (v.approval_status = 'approved' OR v.approval_status IS NULL) GROUP BY v.id`,
+      `SELECT v.id, v.name, v.location_name, v.latitude, v.longitude, v.address, v.contact, v.email, v.website, v.image, v.cover_image, v.description, v.services, v.clinic_reg_number, v.vet_type, v.checkup_start, v.checkup_end, v.weekly_holidays, v.weekly_schedule, v.social_facebook, v.social_instagram, v.social_linkedin, v.social_whatsapp, v.is_active, v.created_at, v.updated_at, v.status, v.approval_status, v.user_id, COALESCE(AVG(r.rating), 0)::DECIMAL(3,2) AS avg_rating, COUNT(r.id)::INTEGER AS review_count FROM vets v LEFT JOIN reviews r ON v.id = r.vet_id AND r.is_active = true WHERE v.id = $1 AND v.is_active = true AND (v.approval_status = 'approved' OR v.approval_status IS NULL) GROUP BY v.id`,
       [req.params.id],
     );
     if (!vetResult.rows[0])

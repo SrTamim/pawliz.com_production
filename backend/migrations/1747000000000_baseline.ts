@@ -51,6 +51,7 @@ export const up = (pgm: MigrationBuilder): void => {
       checkup_start TIME,
       checkup_end TIME,
       weekly_holidays TEXT[],
+      weekly_schedule JSONB,
       account_owner_name VARCHAR(200),
       rejection_reason TEXT,
       social_facebook VARCHAR(300),
@@ -327,6 +328,7 @@ export const up = (pgm: MigrationBuilder): void => {
       checkup_start TIME,
       checkup_end TIME,
       weekly_holidays TEXT[],
+      weekly_schedule JSONB,
       is_active BOOLEAN DEFAULT true,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

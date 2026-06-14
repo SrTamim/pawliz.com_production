@@ -458,7 +458,7 @@ export const vetDashboardAPI = {
   addClinicVet: (data: Params, imageFile?: File | null) => {
     const fd = new FormData();
     Object.keys(data).forEach((key: any) => {
-      if (key === "weekly_holidays" && Array.isArray(data[key])) {
+      if ((key === "weekly_holidays" || key === "weekly_schedule") && data[key] && typeof data[key] === "object") {
         fd.append(key, JSON.stringify(data[key]));
       } else if (data[key] !== null && data[key] !== undefined) {
         fd.append(key, data[key]);
@@ -470,7 +470,7 @@ export const vetDashboardAPI = {
   updateClinicVet: (id: number | string, data: Params, imageFile?: File | null) => {
     const fd = new FormData();
     Object.keys(data).forEach((key: any) => {
-      if (key === "weekly_holidays" && Array.isArray(data[key])) {
+      if ((key === "weekly_holidays" || key === "weekly_schedule") && data[key] && typeof data[key] === "object") {
         fd.append(key, JSON.stringify(data[key]));
       } else if (data[key] !== null && data[key] !== undefined) {
         fd.append(key, data[key]);

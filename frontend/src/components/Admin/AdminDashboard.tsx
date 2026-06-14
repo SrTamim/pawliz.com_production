@@ -14,6 +14,7 @@ import {
 import { useToast } from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext";
 import { PAGES } from "./permissions";
+import WeeklyScheduleEditor, { buildScheduleFromLegacy } from "../VetDashboard/WeeklyScheduleEditor";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -714,6 +715,7 @@ function VetForm({ vet, onSave, onCancel }: any) {
     checkup_start: vet?.checkup_start ? vet.checkup_start.slice(0, 5) : "",
     checkup_end: vet?.checkup_end ? vet.checkup_end.slice(0, 5) : "",
     weekly_holidays: Array.isArray(vet?.weekly_holidays) ? vet.weekly_holidays.join(", ") : (vet?.weekly_holidays || ""),
+    weekly_schedule: buildScheduleFromLegacy(vet?.weekly_schedule, vet?.checkup_start, vet?.checkup_end, vet?.weekly_holidays),
     account_owner_name: vet?.account_owner_name || "",
   });
   const [qualifications, setQualifications] = useState<any[]>([]);
@@ -744,6 +746,7 @@ function VetForm({ vet, onSave, onCancel }: any) {
           checkup_start: v.checkup_start ? v.checkup_start.slice(0, 5) : "",
           checkup_end: v.checkup_end ? v.checkup_end.slice(0, 5) : "",
           weekly_holidays: Array.isArray(v.weekly_holidays) ? v.weekly_holidays.join(", ") : (v.weekly_holidays || ""),
+          weekly_schedule: buildScheduleFromLegacy(v.weekly_schedule, v.checkup_start, v.checkup_end, v.weekly_holidays),
           account_owner_name: v.account_owner_name || "",
         }));
         setQualifications(res.qualifications || []);
@@ -1104,8 +1107,15 @@ function VetForm({ vet, onSave, onCancel }: any) {
           </div>
         </div>
         <div style={{ marginBottom: 14 }}>
-          <label className="label">Weekly Holidays (comma-separated)</label>
+          <label className="label">Weekly Holidays (comma-separated) — legacy</label>
           <input className="input-field" placeholder="Friday, Saturday" {...F("weekly_holidays")} />
+        </div>
+        <div style={{ marginBottom: 14 }}>
+          <label className="label">Weekly Schedule (per-day hours)</label>
+          <WeeklyScheduleEditor
+            value={form.weekly_schedule}
+            onChange={(next: any) => setForm((f: any) => ({ ...f, weekly_schedule: next }))}
+          />
         </div>
         <div style={{ marginBottom: 14 }}>
           <label className="label">Profile Image URL / Path</label>

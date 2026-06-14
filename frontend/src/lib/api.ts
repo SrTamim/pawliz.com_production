@@ -290,6 +290,15 @@ export const petsAPI = {
   },
   deleteImage: (id: number | string, imageIndex: number) =>
     request(`/pets/${id}/images/${imageIndex}`, "DELETE"),
+  // Vaccination records
+  listVaccinations: (id: number | string) => request(`/pets/${id}/vaccinations`),
+  addVaccination: (id: number | string, data: Params) => request(`/pets/${id}/vaccinations`, "POST", data),
+  updateVaccination: (id: number | string, recordId: number | string, data: Params) =>
+    request(`/pets/${id}/vaccinations/${recordId}`, "PUT", data),
+  deleteVaccination: (id: number | string, recordId: number | string) =>
+    request(`/pets/${id}/vaccinations/${recordId}`, "DELETE"),
+  // Weight logs (read-only; entries are auto-created on pet weight change)
+  listWeightLogs: (id: number | string) => request(`/pets/${id}/weight-logs`),
 };
 
 // ─── GEOLOCATION ───────────────────────────────────────────────────────────

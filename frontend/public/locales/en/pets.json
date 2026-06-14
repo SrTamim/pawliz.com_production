@@ -25,7 +25,43 @@
   "tabs": {
     "basic": "Basic",
     "medical": "Medical",
+    "food": "Food",
     "behavior": "Behavior"
+  },
+  "food": {
+    "foodTypes": "Food Types (comma separated)",
+    "mealsPerDay": "Meals per Day",
+    "dietaryRestrictions": "Dietary Restrictions",
+    "appetiteNotes": "Appetite / Eating Behaviour"
+  },
+  "health": {
+    "vaccinations": "Vaccinations",
+    "weightLog": "Weight Log",
+    "add": "Add",
+    "edit": "Edit",
+    "remove": "Remove",
+    "noVaccinations": "No vaccination records yet.",
+    "noWeightLogs": "No weight entries yet. Update the weight field to start tracking.",
+    "vaccineName": "Vaccine Name",
+    "dateGiven": "Date Given",
+    "nextDue": "Next Due",
+    "nextDueHint": "Leave empty for one-time vaccines",
+    "vetName": "Vet Name",
+    "notes": "Notes",
+    "date": "Date",
+    "given": "given",
+    "due": "due",
+    "badgeOverdue": "Overdue {{days}}d",
+    "badgeDueSoon": "Due {{days}}d",
+    "badgeOk": "OK",
+    "badgeDone": "Done",
+    "alertOverdue": "{{name}} overdue by {{days}} day(s)",
+    "alertDueSoon": "{{name}} due in {{days}} day(s)",
+    "saveFirstVaccinations": "Save the pet first, then add vaccination records.",
+    "vaccinationAdded": "Vaccination record added",
+    "vaccinationUpdated": "Vaccination record updated",
+    "vaccinationRemoved": "Vaccination record removed",
+    "saveFailed": "Failed to save"
   },
   "basic": {
     "type": "Type",

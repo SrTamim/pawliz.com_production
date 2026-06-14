@@ -439,6 +439,13 @@ export default function PublicPetProfile({ initialPet = null }: any) {
                     >
                       <span style={{ fontWeight: 600 }}>Vaccination: </span>
                       {pet.vaccination_status}
+                      {pet.next_vaccination_due && (
+                        <span>
+                          {" "}
+                          (next due{" "}
+                          {new Date(pet.next_vaccination_due).toLocaleDateString()})
+                        </span>
+                      )}
                     </div>
                   )}
                   {pet.medical_conditions && (

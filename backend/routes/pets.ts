@@ -73,6 +73,10 @@ router.post("/", authenticate, [
   body("temperament").optional().isLength({ max: 1000 }).withMessage("Temperament max 1000 chars"),
   body("special_notes").optional().isLength({ max: 1000 }).withMessage("Special notes max 1000 chars"),
   body("gender").optional().isIn(["male", "female", "unknown"]).withMessage("Gender must be male, female, or unknown"),
+  body("food_types").optional().isLength({ max: 1000 }).withMessage("Food types max 1000 chars"),
+  body("meals_per_day").optional().isLength({ max: 50 }).withMessage("Meals per day max 50 chars"),
+  body("dietary_restrictions").optional().isLength({ max: 1000 }).withMessage("Dietary restrictions max 1000 chars"),
+  body("appetite_notes").optional().isLength({ max: 1000 }).withMessage("Appetite notes max 1000 chars"),
 ], validate, async (req: Request, res: Response) => {
   try {
     const pet = await petService.createPet(req.user!.id, req.body);
@@ -94,6 +98,10 @@ router.put("/:id", authenticate, [
   body("temperament").optional().isLength({ max: 1000 }).withMessage("Temperament max 1000 chars"),
   body("special_notes").optional().isLength({ max: 1000 }).withMessage("Special notes max 1000 chars"),
   body("gender").optional().isIn(["male", "female", "unknown"]).withMessage("Gender must be male, female, or unknown"),
+  body("food_types").optional().isLength({ max: 1000 }).withMessage("Food types max 1000 chars"),
+  body("meals_per_day").optional().isLength({ max: 50 }).withMessage("Meals per day max 50 chars"),
+  body("dietary_restrictions").optional().isLength({ max: 1000 }).withMessage("Dietary restrictions max 1000 chars"),
+  body("appetite_notes").optional().isLength({ max: 1000 }).withMessage("Appetite notes max 1000 chars"),
 ], validate, async (req: Request, res: Response) => {
   const petDbId = parseInt(req.params.id);
   if (isNaN(petDbId)) return res.status(400).json({ error: "Invalid pet ID" });
@@ -122,5 +130,6 @@ router.delete("/:id", authenticate, async (req: Request, res: Response) => {
 
 router.use("/", require("./pets-media"));
 router.use("/", require("./pets-status"));
+router.use("/", require("./pet-health"));
 
 export = router;

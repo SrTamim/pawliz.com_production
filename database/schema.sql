@@ -102,9 +102,10 @@ CREATE TABLE IF NOT EXISTS pets (
   age INTEGER,
   color VARCHAR(100),
   weight DECIMAL(5,2),
-  vaccination_status VARCHAR(50),
-  last_vaccination_date DATE,
-  next_vaccination_date DATE,
+  food_types TEXT,
+  meals_per_day VARCHAR(50),
+  dietary_restrictions TEXT,
+  appetite_notes TEXT,
   medical_conditions TEXT,
   allergies TEXT,
   current_medicines TEXT,
@@ -121,6 +122,28 @@ CREATE TABLE IF NOT EXISTS pets (
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Pet vaccination records table
+CREATE TABLE IF NOT EXISTS pet_vaccination_records (
+  id SERIAL PRIMARY KEY,
+  pet_id INTEGER REFERENCES pets(id) ON DELETE CASCADE,
+  vaccine_name VARCHAR(100) NOT NULL,
+  date_given DATE,
+  next_due_date DATE,
+  vet_name VARCHAR(100),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Pet weight logs table
+CREATE TABLE IF NOT EXISTS pet_weight_logs (
+  id SERIAL PRIMARY KEY,
+  pet_id INTEGER REFERENCES pets(id) ON DELETE CASCADE,
+  weight DECIMAL(5,2) NOT NULL,
+  logged_date DATE NOT NULL,
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Lost pet reports table
@@ -509,6 +532,8 @@ CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone);
 CREATE INDEX IF NOT EXISTS idx_pets_user_id ON pets(user_id);
 CREATE INDEX IF NOT EXISTS idx_pets_pet_id ON pets(pet_id);
 CREATE INDEX IF NOT EXISTS idx_lost_pets_pet_id ON lost_pet_reports(pet_id);
+CREATE INDEX IF NOT EXISTS idx_pet_vaccination_records_pet_id ON pet_vaccination_records(pet_id);
+CREATE INDEX IF NOT EXISTS idx_pet_weight_logs_pet_id ON pet_weight_logs(pet_id);
 CREATE INDEX IF NOT EXISTS idx_lost_pets_created ON lost_pet_reports(reported_at);
 CREATE INDEX IF NOT EXISTS idx_found_pets_user_id ON found_pet_reports(user_id);
 CREATE INDEX IF NOT EXISTS idx_found_pets_created ON found_pet_reports(created_at);

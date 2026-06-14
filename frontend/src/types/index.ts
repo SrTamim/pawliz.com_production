@@ -68,7 +68,12 @@ export interface Pet {
   weight: string | null;
   images: string[] | null;
   is_lost?: boolean;
-  vaccination_status?: string | null;
+  vaccination_status?: string | null; // derived from pet_vaccination_records
+  next_vaccination_due?: string | null; // derived: soonest future next_due_date
+  food_types?: string | null;
+  meals_per_day?: string | null;
+  dietary_restrictions?: string | null;
+  appetite_notes?: string | null;
   [key: string]: unknown;
 }
 

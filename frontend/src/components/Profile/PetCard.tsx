@@ -1334,10 +1334,10 @@ function WeightSection({ logs }: any) {
   // Chart geometry: wide viewBox, scaled uniformly (no aspect distortion so text
   // stays legible). Top band reserved for weight value labels, bottom for dates.
   const W = 600;
-  const H = isMobile ? 120 : 75;
+  const H = 75;
   const PAD_X = 24;
-  const PAD_TOP = 14; // room for weight value labels above points
-  const PAD_BOT = 16; // room for date ticks below
+  const PAD_TOP = isMobile ? 18 : 14; // room for weight value labels above points
+  const PAD_BOT = isMobile ? 18 : 16; // room for date ticks below
   const min = Math.min(...points.map((p: any) => p.w));
   const max = Math.max(...points.map((p: any) => p.w));
   const span = max - min || 1;
@@ -1415,7 +1415,7 @@ function WeightSection({ logs }: any) {
                   x={x(i)}
                   y={y(p.w) - 5}
                   textAnchor="middle"
-                  fontSize={7}
+                  fontSize={isMobile ? 11 : 7}
                   fontWeight={700}
                   fill="var(--text-primary)"
                 >
@@ -1425,9 +1425,9 @@ function WeightSection({ logs }: any) {
                 {showTick && (
                   <text
                     x={x(i)}
-                    y={H - 5}
+                    y={H - 4}
                     textAnchor="middle"
-                    fontSize={6.5}
+                    fontSize={isMobile ? 10 : 6.5}
                     fill="var(--text-muted)"
                   >
                     {fmtDate(p.d)}

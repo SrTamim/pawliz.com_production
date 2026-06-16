@@ -89,6 +89,7 @@ export default function FoundPetPostCard({ post, onPostDeleted }: any) {
           <div className="flex gap-1 sm:gap-2 mt-3">
             <ShareButton
               text={`📢 Found ${post.pet_type ? post.pet_type.charAt(0).toUpperCase() + post.pet_type.slice(1) : "a pet"} in ${post.found_location_name || "Bangladesh"}! Help find the owner. #Pawliz #FoundPet`}
+              url={typeof window !== "undefined" ? `${window.location.origin}/help-board?post=${post.id}&type=found` : undefined}
               className="shrink-0"
             />
             <button

@@ -90,6 +90,7 @@ export default function LostPetPostCard({ post, onPostDeleted }: any) {
           <div className="flex gap-1 sm:gap-2 mt-3">
             <ShareButton
               text={`🚨 Help find ${post.name || "this pet"}! ${post.type ? post.type.charAt(0).toUpperCase() + post.type.slice(1) : "Pet"} lost in ${post.lost_location_name || "Bangladesh"}. Please share to help reunite them! #Pawliz #LostPet`}
+              url={typeof window !== "undefined" ? `${window.location.origin}/help-board?post=${post.id}&type=lost` : undefined}
               className="shrink-0"
             />
             <button

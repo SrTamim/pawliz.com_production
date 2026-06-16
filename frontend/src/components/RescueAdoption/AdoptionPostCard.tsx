@@ -86,6 +86,7 @@ export default function AdoptionPostCard({ post, onPostDeleted }: any) {
           <div className="flex gap-1 sm:gap-2 mt-3">
             <ShareButton
               text={`🏠 ${post.name || "A pet"} needs a loving home! ${post.type ? post.type.charAt(0).toUpperCase() + post.type.slice(1) : "Pet"} available for adoption. #Pawliz #AdoptDontShop`}
+              url={typeof window !== "undefined" ? `${window.location.origin}/help-board?post=${post.id}&type=adoption` : undefined}
               className="shrink-0"
             />
             <button

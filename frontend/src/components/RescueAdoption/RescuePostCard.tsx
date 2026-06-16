@@ -97,6 +97,7 @@ export default function RescuePostCard({ post, onPostDeleted }: any) {
           <div className="flex gap-1 sm:gap-2 mt-3">
             <ShareButton
               text={`🚨 ${post.pet_type ? post.pet_type.charAt(0).toUpperCase() + post.pet_type.slice(1) : "Animal"} needs rescue in ${post.rescue_location_name || "Bangladesh"}! Please help share. #Pawliz #RescuePet`}
+              url={typeof window !== "undefined" ? `${window.location.origin}/help-board?post=${post.id}&type=rescue` : undefined}
               className="shrink-0"
             />
             <button

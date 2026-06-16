@@ -380,6 +380,14 @@ export const lostFoundAPI = {
   deleteComment: (id: number | string) => request(`/lost-found/comments/${id}`, "DELETE"),
   reportComment: (id: number | string, reason: string) =>
     request(`/comments/${id}/report`, "POST", { reason }),
+  setReaction: (postId: number | string, postType: string, reactionType: string) =>
+    request("/lost-found/reactions", "POST", {
+      post_id: postId,
+      post_type: postType,
+      reaction_type: reactionType,
+    }),
+  getReactions: (postType: string, postId: number | string) =>
+    request(`/lost-found/reactions/${postType}/${postId}`),
 };
 
 // ─── RESCUE & ADOPTION ────────────────────────────────────────────────────
@@ -428,6 +436,14 @@ export const rescueAdoptionAPI = {
   deleteComment: (id: number | string) => request(`/rescue-adoption/comments/${id}`, "DELETE"),
   reportComment: (id: number | string, reason: string) =>
     request(`/comments/${id}/report`, "POST", { reason }),
+  setReaction: (postId: number | string, postType: string, reactionType: string) =>
+    request("/rescue-adoption/reactions", "POST", {
+      post_id: postId,
+      post_type: postType,
+      reaction_type: reactionType,
+    }),
+  getReactions: (postType: string, postId: number | string) =>
+    request(`/rescue-adoption/reactions/${postType}/${postId}`),
 };
 
 // ─── VET AUTH ─────────────────────────────────────────────────────────────

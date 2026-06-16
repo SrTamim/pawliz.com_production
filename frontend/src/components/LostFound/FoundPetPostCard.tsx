@@ -1,6 +1,7 @@
 import { useState } from "react";
 import PostDetailsModal from "./PostDetailsModal";
 import ShareButton from "../ShareButton";
+import ReactionBar from "../ReactionBar";
 import { useTranslation } from "react-i18next";
 import { getImageUrl } from "../../lib/api";
 import { parseImages, formatShortDate } from "../../lib/postUtils";
@@ -77,12 +78,20 @@ export default function FoundPetPostCard({ post, onPostDeleted }: any) {
             </p>
           )}
 
-          {/* Comments & Owner */}
-          <div className="flex items-center justify-between text-[10px] sm:text-xs text-[var(--text-secondary)] border-t border-[var(--border)] pt-1.5 sm:pt-3 gap-1">
+          {/* Reactions & Comments */}
+          <div className="flex items-center text-[10px] sm:text-xs text-[var(--text-secondary)] border-t border-[var(--border)] pt-1.5 sm:pt-3 gap-2">
+            <ReactionBar
+              base="lost-found"
+              postType="found"
+              postId={post.id}
+              initialCounts={{
+                love: Number(post.love_count) || 0,
+                sad: Number(post.sad_count) || 0,
+                angry: Number(post.angry_count) || 0,
+              }}
+              initialUserReaction={post.user_reaction ?? null}
+            />
             <span className="shrink-0">💬 {post.comment_count || 0}</span>
-            <span className="font-semibold text-[var(--text-primary)] truncate text-right">
-              👤 {post.owner_name || t("common:words.anonymous")}
-            </span>
           </div>
 
           {/* Actions */}

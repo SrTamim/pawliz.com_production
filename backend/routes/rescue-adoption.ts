@@ -3,9 +3,10 @@ import express from 'express';
 const router = express.Router();
 import { body, validationResult } from 'express-validator';
 import pool from '../config/database';
-import { authenticate } from '../middleware/auth';
+import { authenticate, optionalAuth } from '../middleware/auth';
 import upload from '../middleware/upload';
 import { deleteUploadedFiles } from '../utils/fileUtils';
+import * as reactionService from '../services/reactionService';
 import { createNotification } from '../services/notificationService';
 import logger from '../utils/logger';
 import validate from '../middleware/validate';
@@ -43,13 +44,24 @@ router.get("/rescue", async (req: Request, res: Response) => {
     params.push(limit, offset);
     const result = await pool.query(
       `SELECT rp.*, u.id as owner_id, u.name as owner_name, u.profile_picture,
-             COALESCE(cc.comment_count, 0) as comment_count
+             COALESCE(cc.comment_count, 0) as comment_count,
+             COALESCE(rc.love_count, 0) as love_count,
+             COALESCE(rc.sad_count, 0) as sad_count,
+             COALESCE(rc.angry_count, 0) as angry_count
       ${baseFrom}
       LEFT JOIN (
         SELECT post_id, COUNT(*) AS comment_count
         FROM post_comments WHERE post_type = 'rescue' AND is_active = true
         GROUP BY post_id
       ) cc ON cc.post_id = rp.id
+      LEFT JOIN (
+        SELECT post_id,
+          COUNT(*) FILTER (WHERE reaction_type = 'love')  AS love_count,
+          COUNT(*) FILTER (WHERE reaction_type = 'sad')   AS sad_count,
+          COUNT(*) FILTER (WHERE reaction_type = 'angry') AS angry_count
+        FROM post_reactions WHERE post_type = 'rescue'
+        GROUP BY post_id
+      ) rc ON rc.post_id = rp.id
       ${where}
       ORDER BY rp.created_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
       params,
@@ -68,9 +80,20 @@ router.get("/rescue/:id", async (req: Request, res: Response) => {
     if (isNaN(postId)) return res.status(400).json({ error: "Invalid post ID" });
 
     const result = await pool.query(
-      `SELECT rp.*, u.id as owner_id, u.name as owner_name, u.profile_picture
+      `SELECT rp.*, u.id as owner_id, u.name as owner_name, u.profile_picture,
+              COALESCE(rc.love_count, 0) as love_count,
+              COALESCE(rc.sad_count, 0) as sad_count,
+              COALESCE(rc.angry_count, 0) as angry_count
        FROM rescue_posts rp
        JOIN users u ON u.id = rp.user_id
+       LEFT JOIN (
+         SELECT post_id,
+           COUNT(*) FILTER (WHERE reaction_type = 'love')  AS love_count,
+           COUNT(*) FILTER (WHERE reaction_type = 'sad')   AS sad_count,
+           COUNT(*) FILTER (WHERE reaction_type = 'angry') AS angry_count
+         FROM post_reactions WHERE post_type = 'rescue'
+         GROUP BY post_id
+       ) rc ON rc.post_id = rp.id
        WHERE rp.id = $1 AND rp.is_active = true`,
       [postId],
     );
@@ -278,13 +301,24 @@ router.get("/adoption", async (req: Request, res: Response) => {
     const result = await pool.query(
       `SELECT ap.*, p.id as pet_db_id, p.pet_id, p.name, p.type, p.breed, p.color, p.images, p.gender, p.age, p.weight, p.potty_trained,
              u.id as owner_id, u.name as owner_name, u.profile_picture,
-             COALESCE(cc.comment_count, 0) as comment_count
+             COALESCE(cc.comment_count, 0) as comment_count,
+             COALESCE(rc.love_count, 0) as love_count,
+             COALESCE(rc.sad_count, 0) as sad_count,
+             COALESCE(rc.angry_count, 0) as angry_count
       ${baseFrom}
       LEFT JOIN (
         SELECT post_id, COUNT(*) AS comment_count
         FROM post_comments WHERE post_type = 'adoption' AND is_active = true
         GROUP BY post_id
       ) cc ON cc.post_id = ap.id
+      LEFT JOIN (
+        SELECT post_id,
+          COUNT(*) FILTER (WHERE reaction_type = 'love')  AS love_count,
+          COUNT(*) FILTER (WHERE reaction_type = 'sad')   AS sad_count,
+          COUNT(*) FILTER (WHERE reaction_type = 'angry') AS angry_count
+        FROM post_reactions WHERE post_type = 'adoption'
+        GROUP BY post_id
+      ) rc ON rc.post_id = ap.id
       ${where}
       ORDER BY ap.posted_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
       params,
@@ -304,10 +338,21 @@ router.get("/adoption/:id", async (req: Request, res: Response) => {
 
     const result = await pool.query(
       `SELECT ap.*, p.id as pet_db_id, p.pet_id, p.name, p.type, p.breed, p.color, p.images, p.gender, p.age, p.weight, p.potty_trained,
-              u.id as owner_id, u.name as owner_name, u.profile_picture
+              u.id as owner_id, u.name as owner_name, u.profile_picture,
+              COALESCE(rc.love_count, 0) as love_count,
+              COALESCE(rc.sad_count, 0) as sad_count,
+              COALESCE(rc.angry_count, 0) as angry_count
        FROM adoption_posts ap
        JOIN pets p ON p.id = ap.pet_id
        JOIN users u ON u.id = p.user_id
+       LEFT JOIN (
+         SELECT post_id,
+           COUNT(*) FILTER (WHERE reaction_type = 'love')  AS love_count,
+           COUNT(*) FILTER (WHERE reaction_type = 'sad')   AS sad_count,
+           COUNT(*) FILTER (WHERE reaction_type = 'angry') AS angry_count
+         FROM post_reactions WHERE post_type = 'adoption'
+         GROUP BY post_id
+       ) rc ON rc.post_id = ap.id
        WHERE ap.id = $1 AND p.is_active = true`,
       [postId],
     );
@@ -502,6 +547,49 @@ router.delete("/comments/:id", authenticate, async (req: Request, res: Response)
     res.json({ message: "Comment deleted successfully" });
   } catch (err) {
     logger.error("Delete comment error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ==================== REACTIONS ====================
+
+// POST /api/v1/rescue-adoption/reactions - Toggle a reaction (love/sad/angry) on a post
+router.post(
+  "/reactions",
+  authenticate,
+  [
+    body("post_id").isInt().withMessage("Invalid post ID"),
+    body("post_type").isIn(["rescue", "adoption"]).withMessage("Invalid post type"),
+    body("reaction_type").isIn(["love", "sad", "angry"]).withMessage("Invalid reaction type"),
+  ],
+  async (req: Request, res: Response) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    const { post_id, post_type, reaction_type } = req.body;
+    try {
+      const state = await reactionService.toggleReaction(post_type, parseInt(post_id), req.user!.id, reaction_type);
+      res.json(state);
+    } catch (err) {
+      logger.error("Toggle reaction error:", err);
+      res.status(500).json({ error: "Server error" });
+    }
+  },
+);
+
+// GET /api/v1/rescue-adoption/reactions/:postType/:postId - Counts + this user's reaction
+router.get("/reactions/:postType/:postId", optionalAuth, async (req: Request, res: Response) => {
+  try {
+    const { postType, postId } = req.params;
+    if (!reactionService.isPostType(postType))
+      return res.status(400).json({ error: "Invalid post type" });
+    const id = parseInt(postId);
+    if (isNaN(id)) return res.status(400).json({ error: "Invalid post ID" });
+
+    const state = await reactionService.getReactionState(postType, id, req.user?.id ?? null);
+    res.json(state);
+  } catch (err) {
+    logger.error("Get reactions error:", err);
     res.status(500).json({ error: "Server error" });
   }
 });

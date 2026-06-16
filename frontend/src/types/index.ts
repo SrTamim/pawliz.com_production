@@ -86,8 +86,19 @@ export interface LostFoundPost {
   profile_picture?: string | null;
   images: string[] | string | null;
   comment_count?: number | string;
+  love_count?: number | string;
+  sad_count?: number | string;
+  angry_count?: number | string;
+  user_reaction?: "love" | "sad" | "angry" | null;
   status?: string;
   [key: string]: unknown;
+}
+
+export type ReactionType = "love" | "sad" | "angry";
+
+export interface ReactionState {
+  counts: { love: number; sad: number; angry: number };
+  user_reaction: ReactionType | null;
 }
 
 export interface Comment {

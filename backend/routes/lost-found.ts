@@ -2,9 +2,10 @@ import type { Request, Response, NextFunction } from 'express';
 import express from 'express';
 const router = express.Router();
 import { body, validationResult } from 'express-validator';
-import { authenticate } from '../middleware/auth';
+import { authenticate, optionalAuth } from '../middleware/auth';
 import upload from '../middleware/upload';
 import * as lostFoundService from '../services/lostFoundService';
+import * as reactionService from '../services/reactionService';
 import logger from '../utils/logger';
 import pool from '../config/database';
 
@@ -304,6 +305,49 @@ router.delete("/comments/:id", authenticate, async (req: Request, res: Response)
     res.json({ message: "Comment deleted successfully" });
   } catch (err) {
     logger.error("Delete comment error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ==================== REACTIONS ====================
+
+// POST /api/v1/lost-found/reactions - Toggle a reaction (love/sad/angry) on a post
+router.post(
+  "/reactions",
+  authenticate,
+  [
+    body("post_id").isInt().withMessage("Invalid post ID"),
+    body("post_type").isIn(["lost", "found"]).withMessage("Invalid post type"),
+    body("reaction_type").isIn(["love", "sad", "angry"]).withMessage("Invalid reaction type"),
+  ],
+  async (req: Request, res: Response) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    const { post_id, post_type, reaction_type } = req.body;
+    try {
+      const state = await reactionService.toggleReaction(post_type, parseInt(post_id), req.user!.id, reaction_type);
+      res.json(state);
+    } catch (err) {
+      logger.error("Toggle reaction error:", err);
+      res.status(500).json({ error: "Server error" });
+    }
+  },
+);
+
+// GET /api/v1/lost-found/reactions/:postType/:postId - Counts + this user's reaction
+router.get("/reactions/:postType/:postId", optionalAuth, async (req: Request, res: Response) => {
+  try {
+    const { postType, postId } = req.params;
+    if (!reactionService.isPostType(postType))
+      return res.status(400).json({ error: "Invalid post type" });
+    const id = parseInt(postId);
+    if (isNaN(id)) return res.status(400).json({ error: "Invalid post ID" });
+
+    const state = await reactionService.getReactionState(postType, id, req.user?.id ?? null);
+    res.json(state);
+  } catch (err) {
+    logger.error("Get reactions error:", err);
     res.status(500).json({ error: "Server error" });
   }
 });

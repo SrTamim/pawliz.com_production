@@ -5,6 +5,7 @@ import { useToast } from "../../context/ToastContext";
 import { useNavbar } from "../../context/NavbarContext";
 import { lostFoundAPI, getImageUrl } from "../../lib/api";
 import CommentsSection from "./CommentsSection";
+import ReactionBar from "../ReactionBar";
 import FoundPetModal from "./FoundPetModal";
 import ContactFormModal from "../ContactFormModal";
 
@@ -367,6 +368,25 @@ export default function PostDetailsModal({
                 📞 Contact Now
               </button>
             </div>
+          </div>
+
+          {/* Reactions */}
+          <div className="border-t border-[var(--border)] pt-4 mt-2">
+            <p className="text-sm font-semibold text-[var(--text-primary)] mb-2.5">
+              {t("details.reactions", "Reactions")}
+            </p>
+            <ReactionBar
+              size="lg"
+              base="lost-found"
+              postType={postType}
+              postId={post.id}
+              initialCounts={{
+                love: Number(post.love_count) || 0,
+                sad: Number(post.sad_count) || 0,
+                angry: Number(post.angry_count) || 0,
+              }}
+              initialUserReaction={post.user_reaction ?? null}
+            />
           </div>
 
           {/* Comments Section */}

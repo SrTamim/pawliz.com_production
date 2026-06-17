@@ -94,6 +94,40 @@ export interface LostFoundPost {
   [key: string]: unknown;
 }
 
+export interface CommunityTag {
+  id: number;
+  slug: string;
+  label: string;
+}
+
+export interface CommunityPostPet {
+  id: number;
+  pet_id: string;
+  name: string;
+  images: string[] | string | null;
+}
+
+export interface CommunityPost {
+  id: number;
+  user_id: number;
+  body: string;
+  images: string[];
+  media_purged: boolean;
+  pet_id: number | null;
+  pet: CommunityPostPet | null;
+  comment_count: number;
+  love_count: number;
+  sad_count: number;
+  angry_count: number;
+  is_hidden?: boolean;
+  created_at: string;
+  updated_at: string;
+  author_name: string;
+  author_picture?: string | null;
+  tags: CommunityTag[];
+  user_reaction?: ReactionType | null;
+}
+
 export type ReactionType = "love" | "sad" | "angry";
 
 export interface ReactionState {

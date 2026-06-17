@@ -446,6 +446,68 @@ export const rescueAdoptionAPI = {
     request(`/rescue-adoption/reactions/${postType}/${postId}`),
 };
 
+// ─── COMMUNITY ─────────────────────────────────────────────────────────────
+function communityFormData(data: Params): FormData {
+  const fd = new FormData();
+  Object.keys(data).forEach((key: any) => {
+    if (key === "images" && Array.isArray(data[key])) {
+      data[key].forEach((file: File) => fd.append("images", file));
+    } else if (key === "tags" && Array.isArray(data[key])) {
+      fd.append("tags", JSON.stringify(data[key]));
+    } else if (data[key] !== null && data[key] !== undefined && data[key] !== "") {
+      fd.append(key, data[key]);
+    }
+  });
+  return fd;
+}
+
+export const communityAPI = {
+  getFeed: ({ tags, cursor, limit }: { tags?: string[]; cursor?: string | null; limit?: number } = {}) => {
+    const q = new URLSearchParams();
+    if (tags && tags.length) q.set("tags", tags.join(","));
+    if (cursor) q.set("cursor", cursor);
+    if (limit) q.set("limit", String(limit));
+    const s = q.toString();
+    return request(`/community/posts${s ? "?" + s : ""}`);
+  },
+  getTags: () => request("/community/tags"),
+  getPost: (id: number | string) => request(`/community/posts/${id}`),
+  getUserPosts: (userId: number | string, cursor?: string | null, limit?: number) => {
+    const q = new URLSearchParams();
+    if (cursor) q.set("cursor", cursor);
+    if (limit) q.set("limit", String(limit));
+    const s = q.toString();
+    return request(`/community/users/${userId}/posts${s ? "?" + s : ""}`);
+  },
+  createPost: (data: Params) => request("/community/posts", "POST", communityFormData(data), true),
+  updatePost: (id: number | string, data: Params) =>
+    request(`/community/posts/${id}`, "PUT", communityFormData(data), true),
+  deletePost: (id: number | string) => request(`/community/posts/${id}`, "DELETE"),
+  reportPost: (id: number | string, reason: string) =>
+    request(`/community/posts/${id}/report`, "POST", { reason }),
+  // Comment/reaction signatures mirror lostFoundAPI so shared components
+  // (CommentsSection, ReactionBar) can use this api interchangeably. postType
+  // is accepted-but-ignored — the community endpoints are already scoped.
+  addComment: (postId: number | string, _postType: string, commentText: string) =>
+    request("/community/comments", "POST", { post_id: postId, comment_text: commentText }),
+  getComments: (_postType: string, postId: number | string, offset = 0) =>
+    request(`/community/comments/${postId}?limit=20&offset=${offset}`),
+  deleteComment: (id: number | string) => request(`/community/comments/${id}`, "DELETE"),
+  reportComment: (id: number | string, reason: string) =>
+    request(`/comments/${id}/report`, "POST", { reason }),
+  setReaction: (postId: number | string, _postType: string, reactionType: string) =>
+    request("/community/reactions", "POST", { post_id: postId, reaction_type: reactionType }),
+  getReactions: (_postType: string, postId: number | string) =>
+    request(`/community/reactions/${postId}`),
+};
+
+// ─── ADMIN COMMUNITY (reported posts) ───────────────────────────────────────
+export const adminCommunityAPI = {
+  getReported: () => request("/admin/community-posts/reported"),
+  deletePost: (id: number | string) => request(`/admin/community-posts/${id}`, "DELETE"),
+  dismissPost: (id: number | string) => request(`/admin/community-posts/${id}/dismiss`, "POST"),
+};
+
 // ─── VET AUTH ─────────────────────────────────────────────────────────────
 export const vetAuthAPI = {
   register: (data: Params) => request("/vet-auth/register", "POST", data),

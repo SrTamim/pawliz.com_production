@@ -1,0 +1,78 @@
+{
+  "title": "Community",
+  "subtitle": "Share tips, ask questions, help other pet parents",
+  "composePrompt": "What's on your mind?",
+  "loginToPost": "Please log in to post",
+  "feed": {
+    "window20": "Showing posts from the last 20 days",
+    "window45": "Showing the last 45 days — filtered",
+    "empty": "No posts yet. Be the first to share something!",
+    "emptyFiltered": "No posts match these tags.",
+    "loadError": "Failed to load the feed.",
+    "newPosts": "New posts",
+    "edited": "Edited"
+  },
+  "filter": {
+    "all": "All"
+  },
+  "compose": {
+    "createTitle": "Create post",
+    "editTitle": "Edit post",
+    "bodyPlaceholder": "Share something with the community…",
+    "bodyRequired": "Post text is required",
+    "tagsLabel": "Tags",
+    "tagsRequired": "Select at least one tag",
+    "petLabel": "Link a pet (optional)",
+    "noPet": "No pet",
+    "images": "Photos (up to 2)",
+    "addImage": "Add photo",
+    "submit": "Post",
+    "save": "Save",
+    "submitting": "Posting…",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "maxImages": "You can attach up to 2 photos"
+  },
+  "card": {
+    "react": "React",
+    "comment": "Comment",
+    "comments": "{{count}} comments",
+    "comment_one": "{{count}} comment",
+    "share": "Share",
+    "seeMore": "…see more",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this post?",
+    "deleted": "Post deleted",
+    "report": "Report",
+    "reportTitle": "Report this post",
+    "reportThanks": "Thanks, we'll review this post",
+    "alreadyReported": "You already reported this post",
+    "viewPet": "View pet"
+  },
+  "reasons": {
+    "spam": "Spam",
+    "harassment": "Harassment",
+    "inappropriate": "Inappropriate",
+    "misinformation": "Misinformation",
+    "other": "Other"
+  },
+  "details": {
+    "title": "Post"
+  },
+  "admin": {
+    "title": "Reported Posts",
+    "author": "Author",
+    "reports": "Reports",
+    "reasons": "Reasons",
+    "delete": "Delete",
+    "dismiss": "Dismiss",
+    "empty": "No reported posts",
+    "deleted": "Post deleted",
+    "dismissed": "Post cleared"
+  },
+  "profile": {
+    "title": "Community posts",
+    "empty": "No community posts yet"
+  }
+}

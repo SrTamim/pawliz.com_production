@@ -11,6 +11,7 @@ import cron from 'node-cron';
 import pool from './config/database';
 import logger from './utils/logger';
 import * as smsService from './services/smsService';
+import * as communityService from './services/communityService';
 import * as socketModule from './socket';
 import { REQUEST_TIMEOUT_MS, RATE_LIMIT_API_MAX } from './utils/constants';
 
@@ -209,6 +210,7 @@ app.use("/api/v1/admin", require("./routes/admin"));
 app.use("/api/v1/donations", require("./routes/donations"));
 app.use("/api/v1/pets", require("./routes/pets"));
 app.use("/api/v1/lost-found", require("./routes/lost-found"));
+app.use("/api/v1/community", require("./routes/community"));
 app.use("/api/v1/rescue-adoption", require("./routes/rescue-adoption"));
 app.use("/api/v1/notifications", require("./routes/notifications"));
 app.use("/api/v1/profile", require("./routes/profile"));
@@ -300,6 +302,16 @@ cron.schedule("0 4 * * *", () => {
 // 16:00 UTC = 22:00 (10 PM) Asia/Dhaka — Render runs UTC
 cron.schedule("0 16 * * *", () => {
   smsService.checkAndAlertLowBalance().catch((err) => logger.error("SMS balance check failed:", err));
+});
+
+// Community maintenance: 45-day media purge + denormalized-counter drift heal.
+// NOTE (infra phase): when multi-instance, move these to a single-runner cron so
+// they don't double-run.
+cron.schedule("15 4 * * *", () => {
+  communityService.purgeOldMedia().catch((err) => logger.error("Community media purge failed:", err));
+});
+cron.schedule("45 4 * * *", () => {
+  communityService.reconcileCounts().catch((err) => logger.error("Community count reconcile failed:", err));
 });
 
 httpServer.listen(PORT, () => {

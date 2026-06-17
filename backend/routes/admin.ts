@@ -7,6 +7,7 @@ router.use("/users", require("./admin-users"));
 router.use("/vets", require("./admin-vets"));
 router.use("/", require("./admin-pets"));
 router.use("/comments", require("./admin-comments"));
+router.use("/community-posts", require("./admin-community"));
 router.use("/sms", require("./admin-sms"));
 
 export = router;

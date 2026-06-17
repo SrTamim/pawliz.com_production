@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { useNavbar } from "../context/NavbarContext";
-import { lostFoundAPI, rescueAdoptionAPI } from "../lib/api";
+import { lostFoundAPI, rescueAdoptionAPI, communityAPI } from "../lib/api";
 import type { ReactionType, ReactionState } from "../types";
 
-type Base = "lost-found" | "rescue-adoption";
+type Base = "lost-found" | "rescue-adoption" | "community";
 type Size = "sm" | "lg";
 
 interface ReactionBarProps {
@@ -45,7 +45,8 @@ export default function ReactionBar({
   const [userReaction, setUserReaction] = useState<ReactionType | null>(initialUserReaction);
   const [busy, setBusy] = useState(false);
 
-  const api = base === "lost-found" ? lostFoundAPI : rescueAdoptionAPI;
+  const api =
+    base === "lost-found" ? lostFoundAPI : base === "community" ? communityAPI : rescueAdoptionAPI;
 
   // Sync counts when parent provides fresh initial values (e.g. feed refetch).
   useEffect(() => {

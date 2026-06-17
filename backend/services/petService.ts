@@ -54,6 +54,7 @@ export async function getPublicPet(petId: string): Promise<Record<string, any> |
             p.medical_conditions, p.allergies, p.is_lost,
             p.temperament, p.potty_trained, p.knows_commands,
             p.good_with_strangers, p.good_with_kids, p.good_with_pets, p.special_notes,
+            p.food_types, p.meals_per_day, p.dietary_restrictions, p.appetite_notes,
             u.name as owner_name,
             vsum.next_vaccination_due,
             vsum.vaccination_status

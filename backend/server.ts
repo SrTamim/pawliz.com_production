@@ -179,7 +179,7 @@ app.use("/uploads", (req, res) => {
 
 const otpLimiter = rateLimit({
   windowMs: 5 * 60 * 1000,
-  max: 5, // Reduced from 10: phone-absent reqs fall to IP key, halve to prevent double-slot bypass
+  max: 3, // Reduced to 3: each call sends an SMS + overwrites the OTP store; cap SMS cost and store churn. Phone-absent reqs fall to IP key.
   standardHeaders: true,
   legacyHeaders: false,
   // Always key on valid phone when present; fall back to IP for missing/invalid phone
@@ -239,7 +239,13 @@ app.post("/api/v1/csp-report", express.json({ type: "application/csp-report" }),
 app.get("/api/health", async (req, res) => {
   try {
     await pool.query("SELECT 1");
-    res.json({ status: "ok", db: "connected", timestamp: new Date().toISOString() });
+    res.json({
+      status: "ok",
+      db: "connected",
+      timestamp: new Date().toISOString(),
+      // Pool saturation signal: alert on waiting > 0 before connections starve.
+      pool: { total: pool.totalCount, idle: pool.idleCount, waiting: pool.waitingCount },
+    });
   } catch {
     res.status(500).json({ status: "error", db: "disconnected" });
   }

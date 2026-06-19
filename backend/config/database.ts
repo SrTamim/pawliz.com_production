@@ -8,12 +8,14 @@ dotenv.config();
 
 const isProd = process.env.NODE_ENV === 'production';
 
-// Scale pool with CPU cores; cap at 50 to avoid overwhelming Postgres.
-// Override via DB_POOL_MAX env var.
+// Scale pool with CPU cores; cap at 15 to stay under Supabase's connection
+// ceiling (direct ~60, pooler lower) if DB_POOL_MAX is forgotten in prod.
+// Override via DB_POOL_MAX env var (set to 10 in prod, route runtime via the
+// transaction pooler on port 6543).
 const cpuCount = os.cpus().length;
 const poolMax = process.env.DB_POOL_MAX
   ? parseInt(process.env.DB_POOL_MAX)
-  : Math.min(cpuCount * 5, 50);
+  : Math.min(cpuCount * 5, 15);
 
 const baseConfig: PoolConfig = {
   max: poolMax,

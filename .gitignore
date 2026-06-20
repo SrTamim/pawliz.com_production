@@ -37,3 +37,26 @@ CLAUDE.commands.md
 CLAUDE.files.md
 CODEMAP.md
 .vercel
+
+# Playwright CLI artifacts
+.playwright-cli/
+**/.playwright-cli/
+
+# Playwright generated artifacts (specs/config stay tracked)
+test-results/
+**/test-results/
+playwright-report/
+**/playwright-report/
+blob-report/
+**/blob-report/
+playwright/.cache/
+**/playwright/.cache/
+
+# Playwright test scripts (kept local, not committed)
+frontend/e2e/
+frontend/playwright.config.ts
+
+# Test session artifacts (root)
+/helpboard-lost.yaml
+/package.json
+/package-lock.json

@@ -174,6 +174,9 @@ export function Modal({ open, onClose, title, children, maxWidth = 440 }: any) {
   if (!open) return null;
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={typeof title === 'string' ? title : undefined}
       onClick={e => e.target === e.currentTarget && onClose()}
       style={{
         position: 'fixed', inset: 0,

@@ -6,6 +6,7 @@ import { useToast } from "../context/ToastContext";
 import { useNavbar } from "../context/NavbarContext";
 import { profileAPI, getImageUrl } from "../lib/api";
 import PetCard, { AddPetCard } from "../components/Profile/PetCard";
+import ProfileCommunityPosts from "../components/Community/ProfileCommunityPosts";
 import ProfileCompletion from "../components/Profile/ProfileCompletion";
 import PasswordStrengthChecker from "../components/Auth/PasswordStrengthChecker";
 import { useTranslation } from "react-i18next";
@@ -864,6 +865,9 @@ export default function ProfilePage() {
               <AddPetCard onCreated={handlePetCreated} />
             </div>
           </div>
+
+          {/* Community posts */}
+          {user?.id && <ProfileCommunityPosts userId={user.id} />}
         </div>
       </div>
     </>

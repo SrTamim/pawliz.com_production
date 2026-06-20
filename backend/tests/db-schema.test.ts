@@ -26,6 +26,7 @@ describeIfInteg('DB Schema integration tests', () => {
     'found_pet_reports', 'rescue_posts', 'adoption_posts',
     'post_comments', 'comment_reports', 'notifications',
     'contact_notifications', 'refresh_tokens', 'activity_logs',
+    'community_posts', 'community_tags', 'community_post_tags', 'community_post_reports',
   ];
 
   it('all required tables exist', async () => {

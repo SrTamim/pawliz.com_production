@@ -15,6 +15,7 @@ export default function CommentsSection({
   loadingMore = false,
   onCommentAdded,
   onLoadMore,
+  api = lostFoundAPI,
 }: any) {
   const { t } = useTranslation("lostfound");
   const { user } = useAuth();
@@ -56,7 +57,7 @@ export default function CommentsSection({
 
     setSubmitting(true);
     try {
-      await lostFoundAPI.addComment(postId, postType, newComment.trim());
+      await api.addComment(postId, postType, newComment.trim());
       toast(t("comments.postBtn"), "success");
       setNewComment("");
       onCommentAdded();
@@ -71,7 +72,7 @@ export default function CommentsSection({
     if (!reportReason) { toast(t("comments.reportReason"), "error"); return; }
     setReportSubmitting(true);
     try {
-      await lostFoundAPI.reportComment(commentId, reportReason);
+      await api.reportComment(commentId, reportReason);
       toast(t("comments.report"), "success");
       setReportingId(null);
       setReportReason("");
@@ -89,7 +90,7 @@ export default function CommentsSection({
 
     setDeleting(commentId);
     try {
-      await lostFoundAPI.deleteComment(commentId);
+      await api.deleteComment(commentId);
       toast(t("comments.deleteBtn"), "success");
       onCommentAdded();
     } catch (err: any) {

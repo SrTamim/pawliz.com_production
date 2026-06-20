@@ -90,7 +90,7 @@ async function updateVetProfile(req: Request, res: Response) {
       name, latitude, longitude, address, email,
       website, description, services,
       clinic_reg_number,
-      checkup_start, checkup_end, weekly_holidays, account_owner_name,
+      checkup_start, checkup_end, weekly_holidays, weekly_schedule, account_owner_name,
       social_facebook, social_instagram, social_linkedin, social_whatsapp,
       location_name,
     } = req.body;
@@ -118,6 +118,7 @@ async function updateVetProfile(req: Request, res: Response) {
     if (longitude !== undefined) { updates.push(`longitude=$${p++}`); values.push(longitude ? parseFloat(longitude) : null); }
     if (services !== undefined) { updates.push(`services=$${p++}`); values.push(Array.isArray(services) ? services : []); }
     if (weekly_holidays !== undefined) { updates.push(`weekly_holidays=$${p++}`); values.push(Array.isArray(weekly_holidays) ? weekly_holidays : []); }
+    if (weekly_schedule !== undefined) { updates.push(`weekly_schedule=$${p++}`); values.push(weekly_schedule ? JSON.stringify(weekly_schedule) : null); }
 
     if (updates.length === 0) return res.status(400).json({ error: 'No fields to update' });
     updates.push('updated_at=CURRENT_TIMESTAMP');

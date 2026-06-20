@@ -13,7 +13,7 @@ router.post("/", authenticate, requirePermission("vets.create"), async (req: Req
   const {
     name, location_name, latitude, longitude, address, contact, email, website,
     description, services, vet_type,
-    checkup_start, checkup_end, weekly_holidays, account_owner_name,
+    checkup_start, checkup_end, weekly_holidays, weekly_schedule, account_owner_name,
   } = req.body;
   if (!name || !location_name || !address) {
     return res.status(400).json({ error: "name, location_name, address required" });
@@ -22,9 +22,9 @@ router.post("/", authenticate, requirePermission("vets.create"), async (req: Req
     const result = await pool.query(
       `INSERT INTO vets (name, location_name, latitude, longitude, address,
         contact, email, website, description, services, vet_type,
-        checkup_start, checkup_end, weekly_holidays,
+        checkup_start, checkup_end, weekly_holidays, weekly_schedule,
         account_owner_name, approval_status, is_active)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,'approved',true)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,'approved',true)
        RETURNING *`,
       [
         name, location_name,
@@ -37,6 +37,7 @@ router.post("/", authenticate, requirePermission("vets.create"), async (req: Req
         vet_type || 'clinic',
         checkup_start || null, checkup_end || null,
         Array.isArray(weekly_holidays) ? weekly_holidays : [],
+        weekly_schedule ? JSON.stringify(weekly_schedule) : null,
         account_owner_name || null,
       ]
     );
@@ -257,7 +258,7 @@ router.put("/:id", authenticate, requirePermission("vets.edit"), async (req: Req
     name, location_name, latitude, longitude, address, contact, email, website,
     image, cover_image, description, services, is_active, approval_status,
     vet_type, checkup_start, checkup_end,
-    weekly_holidays, account_owner_name,
+    weekly_holidays, weekly_schedule, account_owner_name,
   } = req.body;
   // Deactivating a clinic is destructive — gate it behind vets.delete even though
   // the rest of this PUT only needs vets.edit. Admin passes via superuser
@@ -287,6 +288,7 @@ router.put("/:id", authenticate, requirePermission("vets.edit"), async (req: Req
     if (checkup_start !== undefined) { updates.push(`checkup_start=$${p++}`); values.push(checkup_start || null); }
     if (checkup_end !== undefined) { updates.push(`checkup_end=$${p++}`); values.push(checkup_end || null); }
     if (weekly_holidays !== undefined) { updates.push(`weekly_holidays=$${p++}`); values.push(Array.isArray(weekly_holidays) ? weekly_holidays : null); }
+    if (weekly_schedule !== undefined) { updates.push(`weekly_schedule=$${p++}`); values.push(weekly_schedule ? JSON.stringify(weekly_schedule) : null); }
     if (account_owner_name !== undefined) { updates.push(`account_owner_name=$${p++}`); values.push(account_owner_name || null); }
     if (updates.length === 0) return res.status(400).json({ error: "No fields to update" });
     updates.push(`updated_at=CURRENT_TIMESTAMP`);

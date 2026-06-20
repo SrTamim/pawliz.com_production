@@ -25,7 +25,43 @@
   "tabs": {
     "basic": "মূল তথ্য",
     "medical": "চিকিৎসা",
+    "food": "খাদ্য",
     "behavior": "আচরণ"
+  },
+  "food": {
+    "foodTypes": "খাবারের ধরন (কমা দিয়ে আলাদা)",
+    "mealsPerDay": "দৈনিক খাবারের সংখ্যা",
+    "dietaryRestrictions": "খাদ্য নিষেধাজ্ঞা",
+    "appetiteNotes": "ক্ষুধা / খাওয়ার আচরণ"
+  },
+  "health": {
+    "vaccinations": "টিকা",
+    "weightLog": "ওজনের রেকর্ড",
+    "add": "যোগ করুন",
+    "edit": "সম্পাদনা",
+    "remove": "সরান",
+    "noVaccinations": "এখনো কোনো টিকার রেকর্ড নেই।",
+    "noWeightLogs": "এখনো কোনো ওজনের রেকর্ড নেই। ট্র্যাকিং শুরু করতে ওজন আপডেট করুন।",
+    "vaccineName": "টিকার নাম",
+    "dateGiven": "প্রদানের তারিখ",
+    "nextDue": "পরবর্তী তারিখ",
+    "nextDueHint": "একবারের টিকার জন্য খালি রাখুন",
+    "vetName": "পশুচিকিৎসকের নাম",
+    "notes": "নোট",
+    "date": "তারিখ",
+    "given": "প্রদান",
+    "due": "পরবর্তী",
+    "badgeOverdue": "{{days}} দিন বিলম্বিত",
+    "badgeDueSoon": "{{days}} দিনে",
+    "badgeOk": "ঠিক আছে",
+    "badgeDone": "সম্পন্ন",
+    "alertOverdue": "{{name}} {{days}} দিন বিলম্বিত",
+    "alertDueSoon": "{{name}} {{days}} দিনের মধ্যে দরকার",
+    "saveFirstVaccinations": "প্রথমে পোষা প্রাণী সংরক্ষণ করুন, তারপর টিকার রেকর্ড যোগ করুন।",
+    "vaccinationAdded": "টিকার রেকর্ড যোগ হয়েছে",
+    "vaccinationUpdated": "টিকার রেকর্ড আপডেট হয়েছে",
+    "vaccinationRemoved": "টিকার রেকর্ড সরানো হয়েছে",
+    "saveFailed": "সংরক্ষণ ব্যর্থ হয়েছে"
   },
   "basic": {
     "type": "ধরন",

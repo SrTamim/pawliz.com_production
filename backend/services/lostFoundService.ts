@@ -50,6 +50,9 @@ export async function getLostFeed(
     `SELECT lpr.*, p.id as pet_id, p.name, p.type, p.breed, p.color, p.images, p.gender, p.age, p.weight, p.potty_trained,
            u.id as owner_id, u.name as owner_name, u.profile_picture,
            COALESCE(cc.comment_count, 0) as comment_count,
+           COALESCE(rc.love_count, 0) as love_count,
+           COALESCE(rc.sad_count, 0) as sad_count,
+           COALESCE(rc.angry_count, 0) as angry_count,
            CASE WHEN lpr.is_found THEN 'reunited' ELSE 'lost' END as status
     ${baseFrom}
     LEFT JOIN (
@@ -57,6 +60,14 @@ export async function getLostFeed(
       FROM post_comments WHERE post_type = 'lost' AND is_active = true
       GROUP BY post_id
     ) cc ON cc.post_id = lpr.id
+    LEFT JOIN (
+      SELECT post_id,
+        COUNT(*) FILTER (WHERE reaction_type = 'love')  AS love_count,
+        COUNT(*) FILTER (WHERE reaction_type = 'sad')   AS sad_count,
+        COUNT(*) FILTER (WHERE reaction_type = 'angry') AS angry_count
+      FROM post_reactions WHERE post_type = 'lost'
+      GROUP BY post_id
+    ) rc ON rc.post_id = lpr.id
     ${where}
     ORDER BY lpr.reported_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params,
@@ -70,10 +81,21 @@ export async function getLostFeed(
 export async function getLostById(id: number | string): Promise<Row | null> {
   const result = await pool.query(
     `SELECT lpr.*, p.id as pet_id, p.name, p.type, p.breed, p.color, p.images, p.gender, p.age, p.weight, p.potty_trained,
-            u.id as owner_id, u.name as owner_name, u.profile_picture
+            u.id as owner_id, u.name as owner_name, u.profile_picture,
+            COALESCE(rc.love_count, 0) as love_count,
+            COALESCE(rc.sad_count, 0) as sad_count,
+            COALESCE(rc.angry_count, 0) as angry_count
      FROM lost_pet_reports lpr
      JOIN pets p ON p.id = lpr.pet_id
      JOIN users u ON u.id = p.user_id
+     LEFT JOIN (
+       SELECT post_id,
+         COUNT(*) FILTER (WHERE reaction_type = 'love')  AS love_count,
+         COUNT(*) FILTER (WHERE reaction_type = 'sad')   AS sad_count,
+         COUNT(*) FILTER (WHERE reaction_type = 'angry') AS angry_count
+       FROM post_reactions WHERE post_type = 'lost'
+       GROUP BY post_id
+     ) rc ON rc.post_id = lpr.id
      WHERE lpr.id = $1 AND lpr.is_active = true AND p.is_active = true`,
     [id],
   );
@@ -106,13 +128,24 @@ export async function getFoundFeed(
   params.push(limit, offset);
   const result = await pool.query(
     `SELECT fpr.*, u.id as owner_id, u.name as owner_name, u.profile_picture,
-           COALESCE(cc.comment_count, 0) as comment_count
+           COALESCE(cc.comment_count, 0) as comment_count,
+           COALESCE(rc.love_count, 0) as love_count,
+           COALESCE(rc.sad_count, 0) as sad_count,
+           COALESCE(rc.angry_count, 0) as angry_count
     ${baseFrom}
     LEFT JOIN (
       SELECT post_id, COUNT(*) AS comment_count
       FROM post_comments WHERE post_type = 'found' AND is_active = true
       GROUP BY post_id
     ) cc ON cc.post_id = fpr.id
+    LEFT JOIN (
+      SELECT post_id,
+        COUNT(*) FILTER (WHERE reaction_type = 'love')  AS love_count,
+        COUNT(*) FILTER (WHERE reaction_type = 'sad')   AS sad_count,
+        COUNT(*) FILTER (WHERE reaction_type = 'angry') AS angry_count
+      FROM post_reactions WHERE post_type = 'found'
+      GROUP BY post_id
+    ) rc ON rc.post_id = fpr.id
     ${where}
     ORDER BY fpr.created_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params,
@@ -122,9 +155,20 @@ export async function getFoundFeed(
 
 export async function getFoundById(id: number | string): Promise<Row | null> {
   const result = await pool.query(
-    `SELECT fpr.*, u.id as owner_id, u.name as owner_name, u.profile_picture
+    `SELECT fpr.*, u.id as owner_id, u.name as owner_name, u.profile_picture,
+            COALESCE(rc.love_count, 0) as love_count,
+            COALESCE(rc.sad_count, 0) as sad_count,
+            COALESCE(rc.angry_count, 0) as angry_count
      FROM found_pet_reports fpr
      JOIN users u ON u.id = fpr.user_id
+     LEFT JOIN (
+       SELECT post_id,
+         COUNT(*) FILTER (WHERE reaction_type = 'love')  AS love_count,
+         COUNT(*) FILTER (WHERE reaction_type = 'sad')   AS sad_count,
+         COUNT(*) FILTER (WHERE reaction_type = 'angry') AS angry_count
+       FROM post_reactions WHERE post_type = 'found'
+       GROUP BY post_id
+     ) rc ON rc.post_id = fpr.id
      WHERE fpr.id = $1 AND fpr.is_active = true`,
     [id],
   );

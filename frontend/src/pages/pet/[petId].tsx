@@ -160,7 +160,7 @@ export default function PublicPetProfile({ initialPet = null }: any) {
                 border: "1px solid var(--border)",
                 borderRadius: 20,
                 padding: isDesktop ? 40 : 32,
-                maxWidth: isDesktop ? 880 : 420,
+                maxWidth: isDesktop ? 1280 : 420,
                 width: "100%",
                 boxShadow: "var(--shadow-lg)",
               }}
@@ -439,6 +439,13 @@ export default function PublicPetProfile({ initialPet = null }: any) {
                     >
                       <span style={{ fontWeight: 600 }}>Vaccination: </span>
                       {pet.vaccination_status}
+                      {pet.next_vaccination_due && (
+                        <span>
+                          {" "}
+                          (next due{" "}
+                          {new Date(pet.next_vaccination_due).toLocaleDateString()})
+                        </span>
+                      )}
                     </div>
                   )}
                   {pet.medical_conditions && (
@@ -545,6 +552,52 @@ export default function PublicPetProfile({ initialPet = null }: any) {
                   </div>
                 );
               })()}
+
+              {/* Food & diet */}
+              {(pet.food_types ||
+                pet.meals_per_day ||
+                pet.dietary_restrictions ||
+                pet.appetite_notes) && (
+                <div
+                  style={{
+                    marginTop: 16,
+                    background: "var(--bg-elevated)",
+                    borderRadius: 12,
+                    padding: 16,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontWeight: 700,
+                      fontSize: 13,
+                      color: "var(--text-primary)",
+                      marginBottom: 10,
+                    }}
+                  >
+                    🍽️ Food & Diet
+                  </div>
+                  {[
+                    { label: "Food Types", value: pet.food_types },
+                    { label: "Meals / Day", value: pet.meals_per_day },
+                    { label: "Dietary Restrictions", value: pet.dietary_restrictions },
+                    { label: "Appetite Notes", value: pet.appetite_notes },
+                  ].map(({ label, value }: any) =>
+                    value ? (
+                      <div
+                        key={label}
+                        style={{
+                          fontSize: 13,
+                          color: "var(--text-secondary)",
+                          marginBottom: 6,
+                        }}
+                      >
+                        <span style={{ fontWeight: 600 }}>{label}: </span>
+                        {value}
+                      </div>
+                    ) : null,
+                  )}
+                </div>
+              )}
 
               {/* Owner contact */}
               <div

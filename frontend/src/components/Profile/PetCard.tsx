@@ -8,6 +8,30 @@ import AdoptionModal from "./AdoptionModal";
 
 // TABS are now derived from translation in the component
 
+// ── Vaccination due-status helper (client-side, vs today) ──────────────────
+// Returns { kind, days } where kind is "overdue" | "soon" | "ok" | "none".
+// No next-due date → one-time vaccine, treated as Done (green). A due date drives
+// overdue / due-soon / ok states.
+function vaccineDueStatus(nextDue: any): { kind: "overdue" | "soon" | "ok" | "done"; days: number } {
+  if (!nextDue) return { kind: "done", days: 0 };
+  const due = new Date(nextDue);
+  if (isNaN(due.getTime())) return { kind: "done", days: 0 };
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  due.setHours(0, 0, 0, 0);
+  const days = Math.round((due.getTime() - today.getTime()) / 86400000);
+  if (days < 0) return { kind: "overdue", days: -days };
+  if (days <= 30) return { kind: "soon", days };
+  return { kind: "ok", days };
+}
+
+const DUE_BADGE: Record<string, { bg: string; color: string; dot: string }> = {
+  overdue: { bg: "rgba(255,79,106,0.12)", color: "var(--danger)", dot: "🔴" },
+  soon: { bg: "rgba(245,158,11,0.12)", color: "#f59e0b", dot: "🟡" },
+  ok: { bg: "rgba(0,230,118,0.10)", color: "var(--accent)", dot: "🟢" },
+  done: { bg: "rgba(0,230,118,0.10)", color: "var(--accent)", dot: "✅" },
+};
+
 const EMPTY_PET = {
   name: "",
   type: "dog",
@@ -16,9 +40,6 @@ const EMPTY_PET = {
   age: "",
   color: "",
   weight: "",
-  vaccination_status: "",
-  last_vaccination_date: "",
-  next_vaccination_date: "",
   medical_conditions: "",
   allergies: "",
   current_medicines: "",
@@ -30,7 +51,10 @@ const EMPTY_PET = {
   good_with_pets: null,
   special_notes: "",
   images: [],
-  vaccination_records: [],
+  food_types: "",
+  meals_per_day: "",
+  dietary_restrictions: "",
+  appetite_notes: "",
 };
 
 export function AddPetCard({ onCreated }: any) {
@@ -142,6 +166,8 @@ export function AddPetCard({ onCreated }: any) {
         imagesInputRef={{ current: null }}
         handleImagesUpload={() => {}}
         handleDeleteImageInForm={() => {}}
+        vaccinations={[]}
+        weightLogs={[]}
       />
       <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
         <button onClick={() => setOpen(false)} style={cancelBtnStyle}>
@@ -179,6 +205,31 @@ export default function PetCard({ pet: initialPet, onDeleted, onUpdated }: any) 
 
   const autoSaveTimer = useRef<any>(null);
 
+  // Health sub-records (fetched separately from the main pet, like images).
+  const [vaccinations, setVaccinations] = useState<any[]>([]);
+  const [weightLogs, setWeightLogs] = useState<any[]>([]);
+  const [healthLoaded, setHealthLoaded] = useState(false);
+
+  const loadHealth = useCallback(async () => {
+    if (!pet.id) return;
+    try {
+      const [vRes, wRes] = await Promise.all([
+        petsAPI.listVaccinations(pet.id),
+        petsAPI.listWeightLogs(pet.id),
+      ]);
+      setVaccinations(vRes.records || []);
+      setWeightLogs(wRes.logs || []);
+      setHealthLoaded(true);
+    } catch {
+      // non-fatal; sections render empty
+      setHealthLoaded(true);
+    }
+  }, [pet.id]);
+
+  useEffect(() => {
+    loadHealth();
+  }, [loadHealth]);
+
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -208,13 +259,6 @@ export default function PetCard({ pet: initialPet, onDeleted, onUpdated }: any) 
       age: pet.age || "",
       color: pet.color || "",
       weight: pet.weight || "",
-      vaccination_status: pet.vaccination_status || "",
-      last_vaccination_date: pet.last_vaccination_date
-        ? pet.last_vaccination_date.split("T")[0]
-        : "",
-      next_vaccination_date: pet.next_vaccination_date
-        ? pet.next_vaccination_date.split("T")[0]
-        : "",
       medical_conditions: pet.medical_conditions || "",
       allergies: pet.allergies || "",
       current_medicines: pet.current_medicines || "",
@@ -230,11 +274,10 @@ export default function PetCard({ pet: initialPet, onDeleted, onUpdated }: any) 
           ? pet.images
           : JSON.parse(pet.images || "[]")
         : [],
-      vaccination_records: pet.vaccination_records
-        ? Array.isArray(pet.vaccination_records)
-          ? pet.vaccination_records
-          : JSON.parse(pet.vaccination_records || "[]")
-        : [],
+      food_types: pet.food_types || "",
+      meals_per_day: pet.meals_per_day || "",
+      dietary_restrictions: pet.dietary_restrictions || "",
+      appetite_notes: pet.appetite_notes || "",
     });
     setEditing(true);
   };
@@ -251,6 +294,8 @@ export default function PetCard({ pet: initialPet, onDeleted, onUpdated }: any) 
       setEditing(false);
       toast(`${res.pet.name} updated!`, "success");
       if (onUpdated) onUpdated(res.pet);
+      // Weight may have auto-created a log entry on the backend — refresh history.
+      loadHealth();
     } catch (err: any) {
       toast(err.message || "Failed to save", "error");
     } finally {
@@ -353,7 +398,63 @@ export default function PetCard({ pet: initialPet, onDeleted, onUpdated }: any) 
     }
   };
 
-  const TABS = [t("pets:tabs.basic"), t("pets:tabs.medical"), t("pets:tabs.behavior")];
+  // ── Vaccination record handlers ──────────────────────────────────────────
+  const handleAddVaccination = async (data: any) => {
+    try {
+      const res = await petsAPI.addVaccination(pet.id, data);
+      setVaccinations((v: any[]) => [...v, res.record]);
+      toast(t("pets:health.vaccinationAdded"), "success");
+      return true;
+    } catch (err: any) {
+      toast(err.message || t("pets:health.saveFailed"), "error");
+      return false;
+    }
+  };
+
+  const handleUpdateVaccination = async (recordId: any, data: any) => {
+    try {
+      const res = await petsAPI.updateVaccination(pet.id, recordId, data);
+      setVaccinations((v: any[]) => v.map((r: any) => (r.id === recordId ? res.record : r)));
+      toast(t("pets:health.vaccinationUpdated"), "success");
+      return true;
+    } catch (err: any) {
+      toast(err.message || t("pets:health.saveFailed"), "error");
+      return false;
+    }
+  };
+
+  const handleDeleteVaccination = async (recordId: any) => {
+    try {
+      await petsAPI.deleteVaccination(pet.id, recordId);
+      setVaccinations((v: any[]) => v.filter((r: any) => r.id !== recordId));
+      toast(t("pets:health.vaccinationRemoved"), "success");
+    } catch (err: any) {
+      toast(err.message || t("pets:health.saveFailed"), "error");
+    }
+  };
+
+  // Weight logs are read-only history, auto-created server-side on weight change.
+
+  // Top-card alert: only overdue vaccines, or those due within 3 days.
+  const vaccineAlert = (() => {
+    let best: { rec: any; status: ReturnType<typeof vaccineDueStatus> } | null = null;
+    for (const rec of vaccinations) {
+      const s = vaccineDueStatus(rec.next_due_date);
+      const actionable = s.kind === "overdue" || (s.kind === "soon" && s.days <= 3);
+      if (!actionable) continue;
+      if (!best || s.days < best.status.days || (best.status.kind !== "overdue" && s.kind === "overdue")) {
+        best = { rec, status: s };
+      }
+    }
+    return best;
+  })();
+
+  const TABS = [
+    t("pets:tabs.basic"),
+    t("pets:tabs.medical"),
+    t("pets:tabs.food"),
+    t("pets:tabs.behavior"),
+  ];
 
   const typeEmoji =
     pet.type === "cat" ? "🐱" : pet.type === "dog" ? "🐕" : "🐾";
@@ -728,6 +829,38 @@ export default function PetCard({ pet: initialPet, onDeleted, onUpdated }: any) 
           )}
         </div>
 
+        {/* Vaccination due alert */}
+        {vaccineAlert && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              background: DUE_BADGE[vaccineAlert.status.kind].bg,
+              border: `1px solid ${DUE_BADGE[vaccineAlert.status.kind].color}`,
+              borderRadius: 10,
+              padding: "10px 14px",
+              marginBottom: 16,
+              fontSize: 13,
+              color: DUE_BADGE[vaccineAlert.status.kind].color,
+              fontWeight: 600,
+            }}
+          >
+            <span>⚠️</span>
+            <span>
+              {vaccineAlert.status.kind === "overdue"
+                ? t("pets:health.alertOverdue", {
+                    name: vaccineAlert.rec.vaccine_name,
+                    days: vaccineAlert.status.days,
+                  })
+                : t("pets:health.alertDueSoon", {
+                    name: vaccineAlert.rec.vaccine_name,
+                    days: vaccineAlert.status.days,
+                  })}
+            </span>
+          </div>
+        )}
+
         {/* Tabs */}
         <div
           style={{
@@ -774,9 +907,15 @@ export default function PetCard({ pet: initialPet, onDeleted, onUpdated }: any) 
             imagesInputRef={imagesInputRef}
             handleImagesUpload={handleImagesUpload}
             handleDeleteImageInForm={handleDeleteImageInForm}
+            vaccinations={vaccinations}
+            weightLogs={weightLogs}
+            onAddVaccination={handleAddVaccination}
+            onEditVaccination={handleUpdateVaccination}
+            onDeleteVaccination={handleDeleteVaccination}
+            editing
           />
         ) : (
-          <PetView pet={pet} tab={tab} />
+          <PetView pet={pet} tab={tab} vaccinations={vaccinations} weightLogs={weightLogs} />
         )}
 
         {/* Pet images section - MOVED TO BASIC TAB IN EDIT MODE */}
@@ -900,8 +1039,411 @@ export default function PetCard({ pet: initialPet, onDeleted, onUpdated }: any) 
   );
 }
 
+// ── Vaccination record add/edit form fields (shared) ──────────────────────
+function VaccineFields({ draft, setDraft, onSave, onCancel, saving, saveLabel }: any) {
+  const { t } = useTranslation("pets");
+  return (
+    <div
+      style={{
+        marginTop: 10,
+        border: "1px dashed var(--border)",
+        borderRadius: 10,
+        padding: 12,
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+        gap: 10,
+      }}
+    >
+      <div style={{ gridColumn: "1/-1" }}>
+        <label style={labelStyle}>{t("health.vaccineName")}</label>
+        <input
+          className="input-field"
+          value={draft.vaccine_name}
+          onChange={(e: any) => setDraft((d: any) => ({ ...d, vaccine_name: e.target.value }))}
+          placeholder="Rabies"
+        />
+      </div>
+      <div>
+        <label style={labelStyle}>{t("health.dateGiven")}</label>
+        <input
+          type="date"
+          className="input-field"
+          max={new Date().toISOString().split("T")[0]}
+          value={draft.date_given}
+          onChange={(e: any) => setDraft((d: any) => ({ ...d, date_given: e.target.value }))}
+        />
+      </div>
+      <div>
+        <label style={labelStyle}>{t("health.nextDue")}</label>
+        <input
+          type="date"
+          className="input-field"
+          value={draft.next_due_date}
+          onChange={(e: any) => setDraft((d: any) => ({ ...d, next_due_date: e.target.value }))}
+        />
+        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
+          {t("health.nextDueHint")}
+        </div>
+      </div>
+      <div>
+        <label style={labelStyle}>{t("health.vetName")}</label>
+        <input
+          className="input-field"
+          value={draft.vet_name}
+          onChange={(e: any) => setDraft((d: any) => ({ ...d, vet_name: e.target.value }))}
+          placeholder="Dr. Karim"
+        />
+      </div>
+      <div style={{ gridColumn: "1/-1" }}>
+        <label style={labelStyle}>{t("health.notes")}</label>
+        <input
+          className="input-field"
+          value={draft.notes}
+          onChange={(e: any) => setDraft((d: any) => ({ ...d, notes: e.target.value }))}
+        />
+      </div>
+      <div style={{ gridColumn: "1/-1", display: "flex", gap: 8 }}>
+        <button onClick={onCancel} style={cancelBtnStyle}>
+          {t("common:buttons.cancel")}
+        </button>
+        <button onClick={onSave} disabled={saving || !draft.vaccine_name.trim()} style={saveBtnStyle(saving)}>
+          {saving ? t("common:buttons.saving") : saveLabel}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+const EMPTY_VACCINE = { vaccine_name: "", date_given: "", next_due_date: "", vet_name: "", notes: "" };
+
+// ── Vaccination records list (shared by view + edit) ──────────────────────
+function VaccinationList({ records, editable, onAdd, onEdit, onDelete }: any) {
+  const { t } = useTranslation("pets");
+  const [adding, setAdding] = useState(false);
+  const [editingId, setEditingId] = useState<any>(null);
+  const [draft, setDraft] = useState<any>(EMPTY_VACCINE);
+  const [saving, setSaving] = useState(false);
+
+  const toYmd = (d: any) => (d ? String(d).split("T")[0] : "");
+
+  const startAdd = () => {
+    setEditingId(null);
+    setDraft(EMPTY_VACCINE);
+    setAdding(true);
+  };
+
+  const startEdit = (rec: any) => {
+    setAdding(false);
+    setEditingId(rec.id);
+    setDraft({
+      vaccine_name: rec.vaccine_name || "",
+      date_given: toYmd(rec.date_given),
+      next_due_date: toYmd(rec.next_due_date),
+      vet_name: rec.vet_name || "",
+      notes: rec.notes || "",
+    });
+  };
+
+  const submitAdd = async () => {
+    if (!draft.vaccine_name.trim()) return;
+    setSaving(true);
+    const ok = await onAdd(draft);
+    setSaving(false);
+    if (ok) {
+      setDraft(EMPTY_VACCINE);
+      setAdding(false);
+    }
+  };
+
+  const submitEdit = async () => {
+    if (!draft.vaccine_name.trim()) return;
+    setSaving(true);
+    const ok = await onEdit(editingId, draft);
+    setSaving(false);
+    if (ok) setEditingId(null);
+  };
+
+  return (
+    <div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 10,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            color: "var(--text-muted)",
+            textTransform: "uppercase",
+            letterSpacing: "0.4px",
+          }}
+        >
+          {t("health.vaccinations")}
+        </div>
+        {editable && !adding && editingId === null && (
+          <button onClick={startAdd} style={addBtnStyle}>
+            + {t("health.add")}
+          </button>
+        )}
+      </div>
+
+      {records.length === 0 && !adding && (
+        <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 8 }}>
+          {t("health.noVaccinations")}
+        </div>
+      )}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {records.map((rec: any) => {
+          if (editable && editingId === rec.id) {
+            return (
+              <VaccineFields
+                key={rec.id}
+                draft={draft}
+                setDraft={setDraft}
+                onSave={submitEdit}
+                onCancel={() => setEditingId(null)}
+                saving={saving}
+                saveLabel={t("common:buttons.saveChanges")}
+              />
+            );
+          }
+          const s = vaccineDueStatus(rec.next_due_date);
+          const badge = DUE_BADGE[s.kind];
+          const label =
+            s.kind === "overdue"
+              ? t("health.badgeOverdue", { days: s.days })
+              : s.kind === "soon"
+                ? t("health.badgeDueSoon", { days: s.days })
+                : s.kind === "ok"
+                  ? t("health.badgeOk")
+                  : t("health.badgeDone");
+          return (
+            <div
+              key={rec.id}
+              style={{
+                background: "var(--bg-elevated)",
+                border: "1px solid var(--border)",
+                borderRadius: 10,
+                padding: "10px 12px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                <span style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)" }}>
+                  {rec.vaccine_name}
+                </span>
+                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: badge.color,
+                      background: badge.bg,
+                      borderRadius: 20,
+                      padding: "3px 10px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {badge.dot} {label}
+                  </span>
+                  {editable && (
+                    <>
+                      <button
+                        onClick={() => startEdit(rec)}
+                        style={{ ...iconBtnStyle, width: 28, height: 28, fontSize: 12 }}
+                        title={t("health.edit")}
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        onClick={() => onDelete(rec.id)}
+                        style={{ ...iconBtnStyle, width: 28, height: 28, fontSize: 12, color: "var(--danger)" }}
+                        title={t("health.remove")}
+                      >
+                        🗑️
+                      </button>
+                    </>
+                  )}
+                </span>
+              </div>
+              <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4 }}>
+                {rec.date_given && (
+                  <span>
+                    {t("health.given")} {new Date(rec.date_given).toLocaleDateString()}
+                  </span>
+                )}
+                {rec.next_due_date && (
+                  <span>
+                    {rec.date_given ? " · " : ""}
+                    {t("health.due")} {new Date(rec.next_due_date).toLocaleDateString()}
+                  </span>
+                )}
+              </div>
+              {rec.vet_name && (
+                <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
+                  {rec.vet_name}
+                </div>
+              )}
+              {rec.notes && (
+                <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
+                  {rec.notes}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {editable && adding && (
+        <VaccineFields
+          draft={draft}
+          setDraft={setDraft}
+          onSave={submitAdd}
+          onCancel={() => setAdding(false)}
+          saving={saving}
+          saveLabel={t("health.add")}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── Weight chart (read-only, compact wide line chart) ─────────────────────
+// History is auto-recorded whenever the pet's weight field changes on save.
+function WeightSection({ logs }: any) {
+  const { t } = useTranslation("pets");
+
+  // On narrow screens the aspect-locked svg renders very short — use a taller
+  // viewBox on mobile so the plot stays visible.
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  const points = logs
+    .map((l: any) => ({ w: parseFloat(l.weight), d: l.logged_date }))
+    .filter((p: any) => !isNaN(p.w));
+
+  // Chart geometry: wide viewBox, scaled uniformly (no aspect distortion so text
+  // stays legible). Top band reserved for weight value labels, bottom for dates.
+  const W = 600;
+  const H = 75;
+  const PAD_X = 24;
+  const PAD_TOP = isMobile ? 18 : 14; // room for weight value labels above points
+  const PAD_BOT = isMobile ? 18 : 16; // room for date ticks below
+  const min = Math.min(...points.map((p: any) => p.w));
+  const max = Math.max(...points.map((p: any) => p.w));
+  const span = max - min || 1;
+  const n = points.length;
+  const x = (i: number) => (n <= 1 ? W / 2 : PAD_X + (i / (n - 1)) * (W - PAD_X * 2));
+  const y = (w: number) => PAD_TOP + (1 - (w - min) / span) * (H - PAD_TOP - PAD_BOT);
+  const line = points.map((p: any, i: number) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(p.w).toFixed(1)}`).join(" ");
+
+  // Thin date ticks so at most ~7 show; always include the last point.
+  const step = Math.max(1, Math.ceil(n / 7));
+  const fmtDate = (d: any) =>
+    new Date(d).toLocaleDateString(undefined, { month: "numeric", day: "numeric" });
+
+  const latest = points[n - 1];
+  const prev = points[n - 2];
+  const delta = latest && prev ? latest.w - prev.w : null;
+  const deltaStr = delta === null || delta === 0 ? null : `${delta > 0 ? "▲ +" : "▼ "}${delta.toFixed(1)} kg`;
+  const deltaColor = delta && delta > 0 ? "#f59e0b" : "var(--accent)";
+
+  return (
+    <div style={{ marginTop: 18 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 8,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            color: "var(--text-muted)",
+            textTransform: "uppercase",
+            letterSpacing: "0.4px",
+          }}
+        >
+          {t("health.weightLog")}
+        </div>
+        {deltaStr && (
+          <div style={{ fontSize: 12, fontWeight: 700, color: deltaColor }}>{deltaStr}</div>
+        )}
+      </div>
+
+      {n === 0 && (
+        <div style={{ fontSize: 13, color: "var(--text-muted)" }}>{t("health.noWeightLogs")}</div>
+      )}
+
+      {n === 1 && (
+        <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+          {latest.w} kg · {new Date(latest.d).toLocaleDateString()}
+        </div>
+      )}
+
+      {n >= 2 && (
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          style={{ width: "100%", height: "auto", display: "block" }}
+        >
+          {/* filled area under the line */}
+          <polyline
+            points={`${x(0)},${H - PAD_BOT} ${points.map((p: any, i: number) => `${x(i)},${y(p.w)}`).join(" ")} ${x(n - 1)},${H - PAD_BOT}`}
+            fill="var(--accent)"
+            opacity={0.08}
+          />
+          <path d={line} fill="none" stroke="var(--accent)" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+          {points.map((p: any, i: number) => {
+            const showTick = i % step === 0 || i === n - 1;
+            return (
+              <g key={i}>
+                <circle cx={x(i)} cy={y(p.w)} r={2} fill="var(--accent)" />
+                {/* weight value above the point */}
+                <text
+                  x={x(i)}
+                  y={y(p.w) - 5}
+                  textAnchor="middle"
+                  fontSize={isMobile ? 11 : 7}
+                  fontWeight={700}
+                  fill="var(--text-primary)"
+                >
+                  {p.w}
+                </text>
+                {/* date tick below the chart (thinned) */}
+                {showTick && (
+                  <text
+                    x={x(i)}
+                    y={H - 4}
+                    textAnchor="middle"
+                    fontSize={isMobile ? 10 : 6.5}
+                    fill="var(--text-muted)"
+                  >
+                    {fmtDate(p.d)}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+        </svg>
+      )}
+    </div>
+  );
+}
+
 // ── PetView (read-only display) ───────────────────────────────────────────
-function PetView({ pet, tab }: any) {
+function PetView({ pet, tab, vaccinations = [], weightLogs = [] }: any) {
   const { t } = useTranslation("pets");
   if (tab === 0) {
     const fields = [
@@ -966,29 +1508,33 @@ function PetView({ pet, tab }: any) {
   }
 
   if (tab === 1) {
-    const bool2str = (v: any) => (v === true ? t("form.yes") : v === false ? t("form.no") : null);
     const fields = [
-      { label: t("medical.vaccinationStatus"), value: pet.vaccination_status },
-      {
-        label: t("medical.lastVaccination"),
-        value: pet.last_vaccination_date
-          ? new Date(pet.last_vaccination_date).toLocaleDateString()
-          : null,
-      },
-      {
-        label: t("medical.nextVaccination"),
-        value: pet.next_vaccination_date
-          ? new Date(pet.next_vaccination_date).toLocaleDateString()
-          : null,
-      },
-      { label: t("medical.medicalConditions"), value: pet.medical_conditions },
-      { label: t("medical.allergies"), value: pet.allergies },
-      { label: t("medical.currentMedicines"), value: pet.current_medicines },
+      { label: t("medical.medicalConditions"), value: pet.medical_conditions, full: true },
+      { label: t("medical.allergies"), value: pet.allergies, full: true },
+      { label: t("medical.currentMedicines"), value: pet.current_medicines, full: true },
+    ];
+    return (
+      <div>
+        <VaccinationList records={vaccinations} editable={false} />
+        <div style={{ marginTop: 18 }}>
+          <InfoGrid fields={fields} />
+        </div>
+        <WeightSection logs={weightLogs} />
+      </div>
+    );
+  }
+
+  if (tab === 2) {
+    const fields = [
+      { label: t("food.foodTypes"), value: pet.food_types, full: true },
+      { label: t("food.mealsPerDay"), value: pet.meals_per_day || null },
+      { label: t("food.dietaryRestrictions"), value: pet.dietary_restrictions, full: true },
+      { label: t("food.appetiteNotes"), value: pet.appetite_notes, full: true },
     ];
     return <InfoGrid fields={fields} />;
   }
 
-  if (tab === 2) {
+  if (tab === 3) {
     const bool2str = (v: any) =>
       v === true ? t("form.yesEmoji") : v === false ? t("form.noEmoji") : null;
     const fields = [
@@ -1062,6 +1608,11 @@ function PetForm({
   handleImagesUpload,
   handleDeleteImageInForm,
   isNew,
+  vaccinations = [],
+  weightLogs = [],
+  onAddVaccination,
+  onEditVaccination,
+  onDeleteVaccination,
 }: any) {
   const { t } = useTranslation("pets");
   const BoolSelect = ({ field, label }: any) => (
@@ -1284,38 +1835,20 @@ function PetForm({
           gap: 14,
         }}
       >
-        <div>
-          <label style={labelStyle}>{t("form.vaccinationStatus")}</label>
-          <select
-            className="input-field"
-            value={form.vaccination_status || ""}
-            onChange={(e: any) => setField("vaccination_status", e.target.value)}
-          >
-            <option value="">{t("form.notSpecified")}</option>
-            <option value="up-to-date">{t("form.upToDate")}</option>
-            <option value="partial">{t("form.partial")}</option>
-            <option value="overdue">{t("form.overdue")}</option>
-            <option value="none">{t("form.none")}</option>
-          </select>
-        </div>
-        <div>
-          <label style={labelStyle}>{t("form.lastVaccinationDate")}</label>
-          <input
-            type="date"
-            className="input-field"
-            value={form.last_vaccination_date}
-            max={new Date().toISOString().split("T")[0]}
-            onChange={(e: any) => setField("last_vaccination_date", e.target.value)}
-          />
-        </div>
-        <div>
-          <label style={labelStyle}>{t("form.nextVaccinationDate")}</label>
-          <input
-            type="date"
-            className="input-field"
-            value={form.next_vaccination_date}
-            onChange={(e: any) => setField("next_vaccination_date", e.target.value)}
-          />
+        <div style={{ gridColumn: "1/-1" }}>
+          {isNew ? (
+            <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
+              {t("health.saveFirstVaccinations")}
+            </div>
+          ) : (
+            <VaccinationList
+              records={vaccinations}
+              editable
+              onAdd={onAddVaccination}
+              onEdit={onEditVaccination}
+              onDelete={onDeleteVaccination}
+            />
+          )}
         </div>
         <div style={{ gridColumn: "1/-1" }}>
           <label style={labelStyle}>{t("form.medicalConditions")}</label>
@@ -1350,10 +1883,71 @@ function PetForm({
             style={{ resize: "vertical" }}
           />
         </div>
+        {!isNew && (
+          <div style={{ gridColumn: "1/-1" }}>
+            <WeightSection logs={weightLogs} />
+          </div>
+        )}
       </div>
     );
 
   if (tab === 2)
+    return (
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+          gap: 14,
+        }}
+      >
+        <div style={{ gridColumn: "1/-1" }}>
+          <label style={labelStyle}>{t("food.foodTypes")}</label>
+          <textarea
+            className="input-field"
+            rows={2}
+            value={form.food_types || ""}
+            onChange={(e: any) => setField("food_types", e.target.value)}
+            placeholder="Dry kibble, boiled chicken, rice"
+            style={{ resize: "vertical" }}
+          />
+        </div>
+        <div>
+          <label style={labelStyle}>{t("food.mealsPerDay")}</label>
+          <input
+            type="text"
+            maxLength={50}
+            className="input-field"
+            value={form.meals_per_day || ""}
+            onChange={(e: any) => setField("meals_per_day", e.target.value)}
+            placeholder="2-3 times"
+          />
+        </div>
+        <div style={{ gridColumn: "1/-1" }}>
+          <label style={labelStyle}>{t("food.dietaryRestrictions")}</label>
+          <textarea
+            className="input-field"
+            rows={2}
+            value={form.dietary_restrictions || ""}
+            onChange={(e: any) => setField("dietary_restrictions", e.target.value)}
+            placeholder="Grain-free, no chicken..."
+            style={{ resize: "vertical" }}
+          />
+        </div>
+        <div style={{ gridColumn: "1/-1" }}>
+          <label style={labelStyle}>{t("food.appetiteNotes")}</label>
+          <textarea
+            className="input-field"
+            rows={2}
+            value={form.appetite_notes || ""}
+            onChange={(e: any) => setField("appetite_notes", e.target.value)}
+            placeholder="Eats well, picky in mornings..."
+            style={{ resize: "vertical" }}
+          />
+        </div>
+      </div>
+    );
+
+  if (tab === 3)
     return (
       <div
         style={{
@@ -1443,6 +2037,17 @@ const saveBtnStyle = (saving: any) => ({
   fontSize: 14,
   opacity: saving ? 0.7 : 1,
 });
+
+const addBtnStyle = {
+  padding: "5px 12px",
+  borderRadius: 8,
+  border: "1px solid var(--accent)",
+  background: "rgba(0,230,118,0.08)",
+  color: "var(--accent)",
+  cursor: "pointer",
+  fontWeight: 600,
+  fontSize: 12,
+};
 
 const cancelBtnStyle = {
   flex: 1,

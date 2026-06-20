@@ -1,6 +1,7 @@
 import { useState } from "react";
 import RescueAdoptionPostDetailsModal from "./RescueAdoptionPostDetailsModal";
 import ShareButton from "../ShareButton";
+import ReactionBar from "../ReactionBar";
 import { useTranslation } from "react-i18next";
 import { getImageUrl } from "../../lib/api";
 import { parseImages, formatShortDate } from "../../lib/postUtils";
@@ -87,16 +88,25 @@ export default function RescuePostCard({ post, onPostDeleted }: any) {
             </p>
           )}
 
-          <div className="flex items-center justify-between text-[10px] sm:text-xs text-[var(--text-secondary)] border-t border-[var(--border)] pt-1.5 sm:pt-3 gap-1">
+          <div className="flex items-center text-[10px] sm:text-xs text-[var(--text-secondary)] border-t border-[var(--border)] pt-1.5 sm:pt-3 gap-2">
+            <ReactionBar
+              base="rescue-adoption"
+              postType="rescue"
+              postId={post.id}
+              initialCounts={{
+                love: Number(post.love_count) || 0,
+                sad: Number(post.sad_count) || 0,
+                angry: Number(post.angry_count) || 0,
+              }}
+              initialUserReaction={post.user_reaction ?? null}
+            />
             <span className="shrink-0">💬 {post.comment_count || 0}</span>
-            <span className="font-semibold text-[var(--text-primary)] truncate text-right">
-              👤 {post.owner_name || t("common:words.anonymous")}
-            </span>
           </div>
 
           <div className="flex gap-1 sm:gap-2 mt-3">
             <ShareButton
               text={`🚨 ${post.pet_type ? post.pet_type.charAt(0).toUpperCase() + post.pet_type.slice(1) : "Animal"} needs rescue in ${post.rescue_location_name || "Bangladesh"}! Please help share. #Pawliz #RescuePet`}
+              url={typeof window !== "undefined" ? `${window.location.origin}/help-board?post=${post.id}&type=rescue` : undefined}
               className="shrink-0"
             />
             <button

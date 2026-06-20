@@ -9,6 +9,7 @@ import enPets from "../../public/locales/en/pets.json";
 import enLostFound from "../../public/locales/en/lostfound.json";
 import enVet from "../../public/locales/en/vet.json";
 import enProfile from "../../public/locales/en/profile.json";
+import enCommunity from "../../public/locales/en/community.json";
 
 // ─── Bengali (bundled — instant switch, no HTTP request) ─────────────────────
 import bnCommon from "../../public/locales/bn/common.json";
@@ -18,6 +19,7 @@ import bnPets from "../../public/locales/bn/pets.json";
 import bnLostFound from "../../public/locales/bn/lostfound.json";
 import bnVet from "../../public/locales/bn/vet.json";
 import bnProfile from "../../public/locales/bn/profile.json";
+import bnCommunity from "../../public/locales/bn/community.json";
 
 i18n.use(initReactI18next).init({
   resources: {
@@ -29,6 +31,7 @@ i18n.use(initReactI18next).init({
       lostfound: enLostFound,
       vet: enVet,
       profile: enProfile,
+      community: enCommunity,
     },
     bn: {
       common: bnCommon,
@@ -38,6 +41,7 @@ i18n.use(initReactI18next).init({
       lostfound: bnLostFound,
       vet: bnVet,
       profile: bnProfile,
+      community: bnCommunity,
     },
   },
   lng: "en",

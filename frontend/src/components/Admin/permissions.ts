@@ -67,6 +67,10 @@ export const PAGES = [
     ui: [{ key: "comments.delete", label: "Delete / dismiss (Actions column)" }],
   },
   {
+    key: "community-posts", icon: "📰", label: "Reported Posts",
+    ui: [{ key: "community-posts.delete", label: "Delete / dismiss (Actions column)" }],
+  },
+  {
     key: "settings", icon: "🎨", label: "Settings",
     ui: [{ key: "settings.edit", label: "Edit site settings" }],
   },

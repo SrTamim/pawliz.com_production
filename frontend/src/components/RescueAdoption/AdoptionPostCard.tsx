@@ -1,6 +1,7 @@
 import { useState } from "react";
 import RescueAdoptionPostDetailsModal from "./RescueAdoptionPostDetailsModal";
 import ShareButton from "../ShareButton";
+import ReactionBar from "../ReactionBar";
 import { useTranslation } from "react-i18next";
 import { getImageUrl } from "../../lib/api";
 import { parseImages, formatShortDate } from "../../lib/postUtils";
@@ -76,16 +77,25 @@ export default function AdoptionPostCard({ post, onPostDeleted }: any) {
             <span>📅 {formatDate(post.posted_at)}</span>
           </div>
 
-          <div className="flex items-center justify-between text-[10px] sm:text-xs text-[var(--text-secondary)] border-t border-[var(--border)] pt-1.5 sm:pt-3 gap-1">
+          <div className="flex items-center text-[10px] sm:text-xs text-[var(--text-secondary)] border-t border-[var(--border)] pt-1.5 sm:pt-3 gap-2">
+            <ReactionBar
+              base="rescue-adoption"
+              postType="adoption"
+              postId={post.id}
+              initialCounts={{
+                love: Number(post.love_count) || 0,
+                sad: Number(post.sad_count) || 0,
+                angry: Number(post.angry_count) || 0,
+              }}
+              initialUserReaction={post.user_reaction ?? null}
+            />
             <span className="shrink-0">💬 {post.comment_count || 0}</span>
-            <span className="font-semibold text-[var(--text-primary)] truncate text-right">
-              👤 {post.owner_name || t("common:words.anonymous")}
-            </span>
           </div>
 
           <div className="flex gap-1 sm:gap-2 mt-3">
             <ShareButton
               text={`🏠 ${post.name || "A pet"} needs a loving home! ${post.type ? post.type.charAt(0).toUpperCase() + post.type.slice(1) : "Pet"} available for adoption. #Pawliz #AdoptDontShop`}
+              url={typeof window !== "undefined" ? `${window.location.origin}/help-board?post=${post.id}&type=adoption` : undefined}
               className="shrink-0"
             />
             <button

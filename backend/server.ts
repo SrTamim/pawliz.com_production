@@ -11,6 +11,7 @@ import cron from 'node-cron';
 import pool from './config/database';
 import logger from './utils/logger';
 import * as smsService from './services/smsService';
+import * as communityService from './services/communityService';
 import * as socketModule from './socket';
 import { REQUEST_TIMEOUT_MS, RATE_LIMIT_API_MAX } from './utils/constants';
 
@@ -178,7 +179,7 @@ app.use("/uploads", (req, res) => {
 
 const otpLimiter = rateLimit({
   windowMs: 5 * 60 * 1000,
-  max: 5, // Reduced from 10: phone-absent reqs fall to IP key, halve to prevent double-slot bypass
+  max: 3, // Reduced to 3: each call sends an SMS + overwrites the OTP store; cap SMS cost and store churn. Phone-absent reqs fall to IP key.
   standardHeaders: true,
   legacyHeaders: false,
   // Always key on valid phone when present; fall back to IP for missing/invalid phone
@@ -209,6 +210,7 @@ app.use("/api/v1/admin", require("./routes/admin"));
 app.use("/api/v1/donations", require("./routes/donations"));
 app.use("/api/v1/pets", require("./routes/pets"));
 app.use("/api/v1/lost-found", require("./routes/lost-found"));
+app.use("/api/v1/community", require("./routes/community"));
 app.use("/api/v1/rescue-adoption", require("./routes/rescue-adoption"));
 app.use("/api/v1/notifications", require("./routes/notifications"));
 app.use("/api/v1/profile", require("./routes/profile"));
@@ -237,7 +239,13 @@ app.post("/api/v1/csp-report", express.json({ type: "application/csp-report" }),
 app.get("/api/health", async (req, res) => {
   try {
     await pool.query("SELECT 1");
-    res.json({ status: "ok", db: "connected", timestamp: new Date().toISOString() });
+    res.json({
+      status: "ok",
+      db: "connected",
+      timestamp: new Date().toISOString(),
+      // Pool saturation signal: alert on waiting > 0 before connections starve.
+      pool: { total: pool.totalCount, idle: pool.idleCount, waiting: pool.waitingCount },
+    });
   } catch {
     res.status(500).json({ status: "error", db: "disconnected" });
   }
@@ -300,6 +308,16 @@ cron.schedule("0 4 * * *", () => {
 // 16:00 UTC = 22:00 (10 PM) Asia/Dhaka — Render runs UTC
 cron.schedule("0 16 * * *", () => {
   smsService.checkAndAlertLowBalance().catch((err) => logger.error("SMS balance check failed:", err));
+});
+
+// Community maintenance: 45-day media purge + denormalized-counter drift heal.
+// NOTE (infra phase): when multi-instance, move these to a single-runner cron so
+// they don't double-run.
+cron.schedule("15 4 * * *", () => {
+  communityService.purgeOldMedia().catch((err) => logger.error("Community media purge failed:", err));
+});
+cron.schedule("45 4 * * *", () => {
+  communityService.reconcileCounts().catch((err) => logger.error("Community count reconcile failed:", err));
 });
 
 httpServer.listen(PORT, () => {

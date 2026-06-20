@@ -5,7 +5,8 @@ import { useAuth } from "../context/AuthContext";
 import { useNavbar } from "../context/NavbarContext";
 import { useToast } from "../context/ToastContext";
 import { useTranslation } from "react-i18next";
-import { lostFoundAPI, rescueAdoptionAPI } from "../lib/api";
+import { lostFoundAPI, rescueAdoptionAPI, getImageUrl } from "../lib/api";
+import { parseImages } from "../lib/postUtils";
 import LostPetPostCard from "../components/LostFound/LostPetPostCard";
 import FoundPetPostCard from "../components/LostFound/FoundPetPostCard";
 import RescuePostCard from "../components/RescueAdoption/RescuePostCard";
@@ -26,7 +27,7 @@ const TABS = [
   { id: "adoption", label: "Adopt",  icon: "🏠", color: "#4f9eff" },
 ];
 
-export default function HelpBoard() {
+export default function HelpBoard({ ogPost = null }: any) {
   const { user } = useAuth();
   const { theme, openAuth } = useNavbar();
   const { toast } = useToast();
@@ -195,21 +196,52 @@ export default function HelpBoard() {
 
   const EMPTY_ICON = { lost: "🔍", found: "🎉", rescue: "🚨", adoption: "🏠" };
 
+  // Per-post OG meta (from SSR) so a shared link previews the specific pet on
+  // social apps. Falls back to the generic help-board tags when absent.
+  const cap = (s: any) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : "");
+  const og = (() => {
+    if (!ogPost) return null;
+    const type = ogPost.type;
+    const petType = cap(ogPost.pet_type || ogPost.type) || "Pet";
+    const img = parseImages(ogPost.images)[0];
+    const image = img ? getImageUrl(img) : null;
+    let title = "";
+    let description = "";
+    if (type === "lost") {
+      const name = ogPost.name || "this pet";
+      title = `🚨 Help find ${name} — Pawliz`;
+      description = `${petType} lost in ${ogPost.lost_location_name || "Bangladesh"}. Please share to help reunite them.`;
+    } else if (type === "found") {
+      title = `📢 Found a ${petType} — Pawliz`;
+      description = `A ${petType} was found in ${ogPost.found_location_name || "Bangladesh"}. Help find the owner.`;
+    } else if (type === "rescue") {
+      title = `🚨 ${petType} needs rescue — Pawliz`;
+      description = `A ${petType} needs rescue in ${ogPost.rescue_location_name || "Bangladesh"}. Please help share.`;
+    } else {
+      const name = ogPost.name || "A pet";
+      title = `🏠 ${name} needs a home — Pawliz`;
+      description = `${petType} available for adoption on Pawliz. #AdoptDontShop`;
+    }
+    return { title, description, image };
+  })();
+
   return (
     <>
       <Head>
-        <title>Help Board - Pawliz</title>
+        <title>{og ? og.title : "Help Board - Pawliz"}</title>
         <meta
           name="description"
-          content="Pawliz Help Board — lost & found pets, rescue and adoption posts across Bangladesh."
+          content={og ? og.description : "Pawliz Help Board — lost & found pets, rescue and adoption posts across Bangladesh."}
           key="description"
         />
-        <meta property="og:title" content="Help Board — Pawliz" key="og:title" />
+        <meta property="og:title" content={og ? og.title : "Help Board — Pawliz"} key="og:title" />
         <meta
           property="og:description"
-          content="Pawliz Help Board — lost & found pets, rescue and adoption posts across Bangladesh."
+          content={og ? og.description : "Pawliz Help Board — lost & found pets, rescue and adoption posts across Bangladesh."}
           key="og:description"
         />
+        {og?.image && <meta property="og:image" content={og.image} key="og:image" />}
+        {og?.image && <meta name="twitter:image" content={og.image} key="twitter:image" />}
       </Head>
 
       <div className={theme}>
@@ -438,4 +470,33 @@ export default function HelpBoard() {
       `}</style>
     </>
   );
+}
+
+// SSR: when a shared link carries ?post=ID&type=TYPE, fetch the post server-side
+// so crawlers (FB/WhatsApp/Twitter) see per-pet OG tags. The client deep-link
+// effect still opens the modal — ogPost only feeds <Head>.
+const OG_ENDPOINTS: Record<string, string> = {
+  lost: "/v1/lost-found/lost",
+  found: "/v1/lost-found/found",
+  rescue: "/v1/rescue-adoption/rescue",
+  adoption: "/v1/rescue-adoption/adoption",
+};
+
+export async function getServerSideProps({ query }: any) {
+  const postId = query?.post as string | undefined;
+  const postType = query?.type as string | undefined;
+  if (!postId || !postType || !OG_ENDPOINTS[postType]) {
+    return { props: { ogPost: null } };
+  }
+
+  const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+  try {
+    const r = await fetch(`${base}${OG_ENDPOINTS[postType]}/${encodeURIComponent(postId)}`);
+    if (!r.ok) return { props: { ogPost: null } };
+    const data = await r.json();
+    if (!data?.post) return { props: { ogPost: null } };
+    return { props: { ogPost: { type: postType, ...data.post } } };
+  } catch {
+    return { props: { ogPost: null } };
+  }
 }

@@ -65,6 +65,7 @@ CREATE TABLE IF NOT EXISTS vets (
   checkup_start       TIME,
   checkup_end         TIME,
   weekly_holidays     TEXT[],
+  weekly_schedule     JSONB,
   account_owner_name  VARCHAR(200),
   rejection_reason    TEXT,
   social_facebook     VARCHAR(300),
@@ -136,6 +137,7 @@ CREATE TABLE IF NOT EXISTS clinic_vets (
   checkup_start    TIME,
   checkup_end      TIME,
   weekly_holidays  TEXT[],
+  weekly_schedule  JSONB,
   is_active        BOOLEAN DEFAULT true,
   created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -181,12 +183,13 @@ CREATE TABLE IF NOT EXISTS pets (
   age                  VARCHAR(30),
   color                VARCHAR(100),
   weight               DECIMAL(5,2),
-  vaccination_status   VARCHAR(50),
-  last_vaccination_date DATE,
-  next_vaccination_date DATE,
   medical_conditions   TEXT,
   allergies            TEXT,
   current_medicines    TEXT,
+  food_types           TEXT,
+  meals_per_day        VARCHAR(50),
+  dietary_restrictions TEXT,
+  appetite_notes       TEXT,
   temperament          VARCHAR(20) CHECK (temperament IN ('friendly', 'aggressive', 'shy', 'bites')),
   potty_trained        BOOLEAN,
   knows_commands       BOOLEAN,
@@ -202,6 +205,30 @@ CREATE TABLE IF NOT EXISTS pets (
   created_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- ─── PET VACCINATION RECORDS ─────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS pet_vaccination_records (
+  id            SERIAL PRIMARY KEY,
+  pet_id        INTEGER REFERENCES pets(id) ON DELETE CASCADE,
+  vaccine_name  VARCHAR(100) NOT NULL,
+  date_given    DATE,
+  next_due_date DATE,
+  vet_name      VARCHAR(100),
+  notes         TEXT,
+  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_pet_vaccination_records_pet_id ON pet_vaccination_records (pet_id);
+
+-- ─── PET WEIGHT LOGS ─────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS pet_weight_logs (
+  id          SERIAL PRIMARY KEY,
+  pet_id      INTEGER REFERENCES pets(id) ON DELETE CASCADE,
+  weight      DECIMAL(5,2) NOT NULL,
+  logged_date DATE NOT NULL,
+  notes       TEXT,
+  created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_pet_weight_logs_pet_id ON pet_weight_logs (pet_id);
 
 -- ─── LOST PET REPORTS ────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS lost_pet_reports (

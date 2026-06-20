@@ -18,6 +18,15 @@ export interface User {
   meta?: Record<string, unknown> | null;
 }
 
+export interface DaySchedule {
+  open: string;
+  close: string;
+}
+
+// Per-day opening hours keyed by lowercase day name (saturday..friday).
+// A day mapped to null (or absent) means closed.
+export type WeeklySchedule = Record<string, DaySchedule | null>;
+
 export interface Vet {
   id: number;
   name: string;
@@ -36,6 +45,7 @@ export interface Vet {
   checkup_start?: string | null;
   checkup_end?: string | null;
   weekly_holidays?: string[] | null;
+  weekly_schedule?: WeeklySchedule | null;
   avg_rating: string | null;
   review_count: number | null;
   status: string | null;
@@ -58,7 +68,12 @@ export interface Pet {
   weight: string | null;
   images: string[] | null;
   is_lost?: boolean;
-  vaccination_status?: string | null;
+  vaccination_status?: string | null; // derived from pet_vaccination_records
+  next_vaccination_due?: string | null; // derived: soonest future next_due_date
+  food_types?: string | null;
+  meals_per_day?: string | null;
+  dietary_restrictions?: string | null;
+  appetite_notes?: string | null;
   [key: string]: unknown;
 }
 
@@ -71,8 +86,53 @@ export interface LostFoundPost {
   profile_picture?: string | null;
   images: string[] | string | null;
   comment_count?: number | string;
+  love_count?: number | string;
+  sad_count?: number | string;
+  angry_count?: number | string;
+  user_reaction?: "love" | "sad" | "angry" | null;
   status?: string;
   [key: string]: unknown;
+}
+
+export interface CommunityTag {
+  id: number;
+  slug: string;
+  label: string;
+}
+
+export interface CommunityPostPet {
+  id: number;
+  pet_id: string;
+  name: string;
+  images: string[] | string | null;
+}
+
+export interface CommunityPost {
+  id: number;
+  user_id: number;
+  body: string;
+  images: string[];
+  media_purged: boolean;
+  pet_id: number | null;
+  pet: CommunityPostPet | null;
+  comment_count: number;
+  love_count: number;
+  sad_count: number;
+  angry_count: number;
+  is_hidden?: boolean;
+  created_at: string;
+  updated_at: string;
+  author_name: string;
+  author_picture?: string | null;
+  tags: CommunityTag[];
+  user_reaction?: ReactionType | null;
+}
+
+export type ReactionType = "love" | "sad" | "angry";
+
+export interface ReactionState {
+  counts: { love: number; sad: number; angry: number };
+  user_reaction: ReactionType | null;
 }
 
 export interface Comment {

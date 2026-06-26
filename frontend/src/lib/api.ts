@@ -72,10 +72,12 @@ async function request(
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  // Both the initial attempt and the post-refresh retry share this signal, so
+  // the single timeout above bounds the whole call (incl. the retry).
   const finalSignal = signal || controller.signal;
 
-  try {
-    const res = await fetch(`${API_BASE}${path}`, {
+  const doFetch = () =>
+    fetch(`${API_BASE}${path}`, {
       method,
       headers,
       credentials: "include",
@@ -83,38 +85,37 @@ async function request(
       signal: finalSignal,
     });
 
-  if (res.status === 401 && path !== "/auth/refresh" && path !== "/auth/login" && path !== "/auth/me") {
-    const refreshed = await tryRefresh();
-    if (refreshed) {
-      const retryRes = await fetch(`${API_BASE}${path}`, {
-        method,
-        headers,
-        credentials: "include",
-        body: isFormData ? body : body ? JSON.stringify(body) : null,
-        signal: finalSignal,
-      });
-      let retryData: any;
-      try { retryData = await retryRes.json(); } catch { retryData = {}; }
-      if (!retryRes.ok) {
-        const msg = retryData.errors?.[0]?.msg || retryData.error || "Request failed";
-        throw new Error(msg);
-      }
-      return retryData;
+  // Parse JSON (tolerating empty bodies) and throw the server's error message
+  // on non-2xx. Shared by the initial response and the retry.
+  const parseAndCheck = async (res: Response) => {
+    let data: any;
+    try {
+      data = await res.json();
+    } catch {
+      data = {};
     }
-  }
+    if (!res.ok) {
+      throw new Error(data.errors?.[0]?.msg || data.error || "Request failed");
+    }
+    return data;
+  };
 
-  let data: any;
   try {
-    data = await res.json();
-  } catch {
-    data = {};
-  }
+    const res = await doFetch();
 
-  if (!res.ok) {
-    const msg = data.errors?.[0]?.msg || data.error || "Request failed";
-    throw new Error(msg);
-  }
-  return data;
+    if (
+      res.status === 401 &&
+      path !== "/auth/refresh" &&
+      path !== "/auth/login" &&
+      path !== "/auth/me"
+    ) {
+      const refreshed = await tryRefresh();
+      if (refreshed) {
+        return await parseAndCheck(await doFetch());
+      }
+    }
+
+    return await parseAndCheck(res);
   } catch (err: any) {
     if ((err as Error).name === "AbortError") {
       throw new Error(`Request timeout (${REQUEST_TIMEOUT_MS / 1000}s)`);
@@ -176,6 +177,10 @@ export const reviewsAPI = {
 // ─── ADMIN ─────────────────────────────────────────────────────────────────
 export const adminAPI = {
   stats: () => request("/admin/stats"),
+  statsTimeseries: (params: Params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    return request(`/admin/stats/timeseries${q ? "?" + q : ""}`);
+  },
   getUsers: (params: Params = {}) => {
     const q = new URLSearchParams(params).toString();
     return request(`/admin/users${q ? "?" + q : ""}`);

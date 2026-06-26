@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Stars, Button, EmptyState, Loading } from "./UI";
+import { Button, EmptyState, Loading } from "./UI";
 import { useTranslation } from "react-i18next";
 
 export default function Sidebar({
@@ -48,7 +48,9 @@ export default function Sidebar({
         width: "var(--sidebar-width)",
         minWidth: "var(--sidebar-width)",
         height: "100%",
-        background: "var(--bg-secondary)",
+        background: "var(--glass-2)",
+        backdropFilter: "blur(18px) saturate(1.3)",
+        WebkitBackdropFilter: "blur(18px) saturate(1.3)",
         borderRight: "1px solid var(--border)",
         display: "flex",
         flexDirection: "column",
@@ -64,41 +66,27 @@ export default function Sidebar({
         }}
       >
         <div
+          className="eyebrow"
           style={{
-            fontFamily: "Roboto, sans-serif",
-            fontSize: 20,
-            fontWeight: 700,
-            letterSpacing: "1.5px",
-            textTransform: "uppercase",
-            color: "var(--accent)",
             marginBottom: 12,
+            display: "block",
           }}
         >
           {t("findVets")}
         </div>
 
         {/* Search */}
-        <div style={{ position: "relative", marginBottom: 10 }}>
-          <span
-            style={{
-              position: "absolute",
-              left: 11,
-              top: "50%",
-              transform: "translateY(-50%)",
-              fontSize: 20,
-              color: "var(--text-muted)",
-            }}
-          >
-            🔍
-          </span>
+        <div className="search" style={{ marginBottom: 10 }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M21 21l-4-4" />
+          </svg>
           <input
             id="sidebar-vet-search"
             name="search"
-            className="input-field"
             value={searchVal}
             onChange={(e: any) => handleSearch(e.target.value)}
             placeholder={t("search")}
-            style={{ paddingLeft: 34 }}
             autoComplete="off"
           />
         </div>
@@ -115,11 +103,12 @@ export default function Sidebar({
           </Button>
         ) : (
           <Button
-            variant="dark"
+            variant="donate"
             size="sm"
             style={{ width: "100%" }}
             onClick={onNearbyVets}
           >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s-7-6.5-7-11a7 7 0 0114 0c0 4.5-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg>
             {t("nearby")}
           </Button>
         )}
@@ -144,31 +133,18 @@ export default function Sidebar({
         >
           {t("minRating")}
         </div>
-        <div style={{ display: "flex", gap: 5 }}>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {[0, 3, 4, 5].map((r: any) => (
             <button
               key={r}
+              type="button"
+              className={`chip${activeRating === r ? " on" : ""}`}
               onClick={() => handleRating(r)}
               style={{
-                padding: "3px 10px",
-                borderRadius: 999,
-                fontSize: 12,
-                fontWeight: 600,
+                minHeight: 30,
+                padding: "0 12px",
+                fontSize: 12.5,
                 cursor: "pointer",
-                border: "1px solid",
-                transition: "all 0.2s",
-                background:
-                  activeRating === r && r > 0
-                    ? "rgba(240,165,0,0.15)"
-                    : "transparent",
-                borderColor:
-                  activeRating === r && r > 0
-                    ? "rgba(240,165,0,0.4)"
-                    : "var(--border)",
-                color:
-                  activeRating === r && r > 0
-                    ? "var(--gold)"
-                    : "var(--text-secondary)",
               }}
             >
               {r === 0 ? t("allRatings") : `★ ${r}+`}
@@ -245,79 +221,33 @@ export default function Sidebar({
 }
 
 function VetListCard({ vet, selected, onClick }: any) {
+  const rating = parseFloat(vet.avg_rating || 0);
   return (
     <div
       onClick={onClick}
-      style={{
-        padding: "16px 16px",
-        background: selected ? "var(--accent-dim)" : "var(--bg-card)",
-        border: `1px solid ${selected ? "var(--border-accent)" : "var(--border)"}`,
-        borderRadius: "var(--radius)",
-        marginBottom: 10,
-        cursor: "pointer",
-        transition: "all 0.2s",
-        borderLeft: `3px solid ${selected ? "var(--accent)" : "transparent"}`,
-        transform: selected ? "translateX(3px)" : "none",
-      }}
-      onMouseEnter={(e: any) => {
-        if (!selected) {
-          e.currentTarget.style.borderColor = "var(--border-accent)";
-          e.currentTarget.style.transform = "translateX(3px)";
-        }
-      }}
-      onMouseLeave={(e: any) => {
-        if (!selected) {
-          e.currentTarget.style.borderColor = "var(--border)";
-          e.currentTarget.style.transform = "none";
-        }
-      }}
+      className={`vet-row${selected ? " selected" : ""}`}
+      style={{ marginBottom: 12 }}
     >
-      <div
-        style={{
-          fontFamily: "Roboto, sans-serif",
-          fontWeight: 700,
-          fontSize: 25,
-          color: "var(--text-primary)",
-          marginBottom: 5,
-          lineHeight: 1.3,
-        }}
-      >
-        {vet.name}
-      </div>
-      <div
-        style={{
-          fontSize: 13,
-          color: "var(--accent)",
-          fontWeight: 500,
-          marginBottom: 6,
-          display: "flex",
-          alignItems: "center",
-          gap: 4,
-        }}
-      >
-        📍 {vet.location_name}
-        {vet.distance !== undefined && (
-          <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>
-            {" "}
-            · {vet.distance.toFixed(1)} km
+      <div className="meta">
+        <div className="vr-top">
+          <h4>{vet.name}</h4>
+          <span className="rate">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z" /></svg>
+            {rating > 0 ? rating.toFixed(1) : "—"}
+            {rating > 0 && vet.review_count !== undefined && (
+              <span className="rc">({vet.review_count})</span>
+            )}
           </span>
-        )}
+        </div>
+        <p>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s-7-6.5-7-11a7 7 0 0114 0c0 4.5-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" /></svg>
+          {vet.location_name}
+          {vet.distance !== undefined && (
+            <span> · {vet.distance.toFixed(1)} km</span>
+          )}
+        </p>
+        {vet.address && <p className="addr">{vet.address}</p>}
       </div>
-      <div
-        style={{
-          fontSize: 15,
-          color: "var(--text-muted)",
-          lineHeight: 1.5,
-          marginBottom: 10,
-          overflow: "hidden",
-          display: "-webkit-box",
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: "vertical",
-        }}
-      >
-        {vet.address}
-      </div>
-      <Stars rating={vet.avg_rating} count={vet.review_count} size={14} />
     </div>
   );
 }

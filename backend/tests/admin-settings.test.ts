@@ -48,8 +48,10 @@ describe('Admin settings routes', () => {
 
     it('returns stats object with all counts', async () => {
       mockAdmin();
-      // 10 parallel queries for stats
-      for (let i = 0; i < 10; i++) {
+      // Endpoint fires many parallel COUNT queries (standalone aggregates +
+      // total/cur/prev windows per trend entity). Stub generously so every
+      // pool.query resolves to a count row.
+      for (let i = 0; i < 40; i++) {
         pool.query.mockResolvedValueOnce({ rows: [{ count: String(i) }] });
       }
       const res = await request(app)
@@ -60,6 +62,12 @@ describe('Admin settings routes', () => {
       expect(typeof res.body.vets).toBe('number');
       expect(typeof res.body.pets).toBe('number');
       expect(typeof res.body.lostPets).toBe('number');
+      // new aggregate shapes
+      expect(res.body.queues).toBeDefined();
+      expect(typeof res.body.queues.pendingVets).toBe('number');
+      expect(res.body.deltas).toBeDefined();
+      expect(res.body.reunion).toBeDefined();
+      expect(typeof res.body.reunion.rate).toBe('number');
     });
   });
 

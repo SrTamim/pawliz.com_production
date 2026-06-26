@@ -19,11 +19,11 @@ export default function FoundPetPostCard({ post, onPostDeleted }: any) {
     <>
       <div
         onClick={() => setDetailsOpen(true)}
-        className="bg-[var(--bg-card)] border border-[var(--border)] rounded-lg overflow-hidden hover:shadow-lg transition-all cursor-pointer hover:-translate-y-1 relative"
+        className="glass card-hover rounded-[20px] overflow-hidden cursor-pointer relative"
       >
         {/* Image Section */}
         {imageUrl ? (
-          <div className="relative w-full h-32 sm:h-48 bg-[var(--bg-secondary)] overflow-hidden">
+          <div className="relative w-full h-32 sm:h-48 overflow-hidden" style={{ background: "var(--grad-cool)" }}>
             <img
               src={imageUrl}
               alt="Found pet"
@@ -34,7 +34,7 @@ export default function FoundPetPostCard({ post, onPostDeleted }: any) {
             />
           </div>
         ) : (
-          <div className="w-full h-32 sm:h-48 bg-[var(--bg-secondary)] flex items-center justify-center text-4xl">
+          <div className="w-full h-32 sm:h-48 flex items-center justify-center text-4xl" style={{ background: "var(--grad-cool)" }}>
             🟢
           </div>
         )}
@@ -51,16 +51,13 @@ export default function FoundPetPostCard({ post, onPostDeleted }: any) {
 
         {/* Content Section */}
         <div className="p-2 sm:p-4">
-          {/* Pet Type & Color */}
-          <h3 className="text-xs sm:text-lg font-bold text-[var(--text-primary)] mb-0.5 sm:mb-1 truncate">
-            {post.pet_type
-              ? post.pet_type.charAt(0).toUpperCase() + post.pet_type.slice(1)
-              : t("common:words.unknown")}{" "}
-            {t("lostfound:card.petFound")}
-          </h3>
-          <p className="text-[10px] sm:text-sm text-[var(--text-secondary)] mb-1 sm:mb-3 truncate">
-            {post.color ? `${t("lostfound:card.colorLabel")}: ${post.color}` : t("common:words.colorNotSpecified")} •{" "}
-            {post.breed || t("common:words.breedUnknown")}
+          {/* Pet Type · Color · Breed — single line */}
+          <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)] mb-1 sm:mb-2 truncate">
+            {post.pet_type ? post.pet_type.charAt(0).toUpperCase() + post.pet_type.slice(1) : t("common:words.unknown")}{" "}
+            {t("lostfound:card.petFound")}{" "}
+            <span className="font-normal text-[var(--text-secondary)]">
+              · {post.color || t("common:words.colorNotSpecified")} · {post.breed || t("common:words.breedUnknown")}
+            </span>
           </p>
 
           {/* Location & Date */}
@@ -79,7 +76,7 @@ export default function FoundPetPostCard({ post, onPostDeleted }: any) {
           )}
 
           {/* Reactions & Comments */}
-          <div className="flex items-center text-[10px] sm:text-xs text-[var(--text-secondary)] border-t border-[var(--border)] pt-1.5 sm:pt-3 gap-2">
+          <div className="flex items-center text-[10px] sm:text-xs text-[var(--text-secondary)] border-t border-[var(--border)] pt-1.5 sm:pt-3 gap-1 sm:gap-2 -ml-1 sm:ml-0">
             <ReactionBar
               base="lost-found"
               postType="found"
@@ -106,7 +103,7 @@ export default function FoundPetPostCard({ post, onPostDeleted }: any) {
                 e.stopPropagation();
                 setDetailsOpen(true);
               }}
-              className="flex-1 px-2 sm:px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-xs sm:text-sm font-semibold hover:opacity-90 transition-all"
+              className="btn btn-primary flex-1 py-1 rounded-lg text-xs font-semibold [min-height:0]"
             >
               <span className="sm:hidden">{t("lostfound:card.details", "Details")}</span>
               <span className="hidden sm:inline">{t("lostfound:card.viewDetails")}</span>

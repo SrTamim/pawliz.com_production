@@ -260,37 +260,13 @@ export default function AuthModal({ open, onClose, defaultTab = "login" }: any) 
           : t("register.createTitle")
       }
     >
-      {/* Tabs */}
-      <div
-        style={{
-          display: "flex",
-          gap: 4,
-          background: "var(--bg-elevated)",
-          borderRadius: 10,
-          padding: 4,
-          marginBottom: 20,
-        }}
-      >
+      {/* Tabs — Aurora segmented switch */}
+      <div className="auth-switch">
         {["login", "register"].map((tabKey: any) => (
           <button
             key={tabKey}
+            aria-pressed={tab === tabKey}
             onClick={() => switchTab(tabKey)}
-            style={{
-              flex: 1,
-              padding: "8px",
-              textAlign: "center",
-              fontSize: 14,
-              fontWeight: tab === tabKey ? 600 : 400,
-              borderRadius: 7,
-              cursor: "pointer",
-              background: tab === tabKey ? "var(--bg-card)" : "transparent",
-              color:
-                tab === tabKey ? "var(--text-primary)" : "var(--text-secondary)",
-              border: "none",
-              fontFamily: "DM Sans, sans-serif",
-              boxShadow: tab === tabKey ? "0 2px 8px rgba(0,0,0,0.2)" : "none",
-              transition: "all 0.2s",
-            }}
           >
             {t(`${tabKey}.tabLabel`)}
           </button>

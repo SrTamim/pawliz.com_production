@@ -17,6 +17,9 @@ import "@fontsource/hind-siliguri/400.css"; // Bangla (data-lang="bn")
 import "@fontsource/hind-siliguri/500.css";
 import "@fontsource/hind-siliguri/600.css";
 import "@fontsource/hind-siliguri/700.css";
+import "@fontsource/roboto-mono/400.css"; // mono label rail (.eyebrow, stats)
+import "@fontsource/roboto-mono/500.css";
+import "@fontsource/roboto-mono/600.css";
 import "../styles/globals.css";
 import "leaflet/dist/leaflet.css";
 import { I18nextProvider } from "react-i18next";
@@ -35,9 +38,14 @@ import OfflineIndicator from "../components/OfflineIndicator";
 import CustomChatLauncher from "../components/CustomChatLauncher";
 import InstallPrompt from "../components/InstallPrompt";
 import ErrorBoundary from "../components/ErrorBoundary";
+import Aurora from "../components/Aurora";
 import { Analytics } from "@vercel/analytics/react";
 import Script from "next/script";
 import { useEffect } from "react";
+
+// Tawk.to embed src (https://embed.tawk.to/<propertyId>/<widgetId>) — env-driven,
+// not hardcoded. Unset → live chat is skipped (see render below).
+const TAWK_SRC = process.env.NEXT_PUBLIC_TAWK_SRC;
 
 function AppContent({ Component, pageProps }: any) {
   const {
@@ -98,25 +106,30 @@ export default function App({ Component, pageProps }: any) {
         <ToastProvider>
           <LanguageProvider>
             <NavbarProvider>
+              <Aurora />
               <OfflineIndicator />
               <AppContent Component={Component} pageProps={pageProps} />
               <Analytics />
-              {/* Configure Tawk before the embed loads. The default bubble is
-                  hidden (onLoad -> hideWidget + CSS) and replaced by the compact
-                  CustomChatLauncher below, which is smaller on mobile. */}
-              <Script
-                id="tawk-config"
-                strategy="beforeInteractive"
-                dangerouslySetInnerHTML={{
-                  __html: `window.Tawk_API=window.Tawk_API||{};window.Tawk_API.customStyle={visibility:{desktop:{position:'br',xOffset:20,yOffset:90},mobile:{position:'br',xOffset:10,yOffset:90}}};`,
-                }}
-              />
-              <Script
-                id="tawk-to"
-                strategy="afterInteractive"
-                src="https://embed.tawk.to/6a1eff9f23ea7d1c2c9542a4/1jq4hd2ga"
-              />
-              <CustomChatLauncher />
+              {/* Tawk.to live chat. Embed id (propertyId/widgetId) comes from
+                  NEXT_PUBLIC_TAWK_SRC so it isn't hardcoded in source. When the
+                  env is unset (e.g. local dev / forks) the widget is skipped
+                  entirely instead of loading a broken embed. */}
+              {TAWK_SRC && (
+                <>
+                  {/* Configure Tawk before the embed loads. The default bubble is
+                      hidden (onLoad -> hideWidget + CSS) and replaced by the
+                      compact CustomChatLauncher below, which is smaller on mobile. */}
+                  <Script
+                    id="tawk-config"
+                    strategy="beforeInteractive"
+                    dangerouslySetInnerHTML={{
+                      __html: `window.Tawk_API=window.Tawk_API||{};window.Tawk_API.customStyle={visibility:{desktop:{position:'br',xOffset:20,yOffset:90},mobile:{position:'br',xOffset:10,yOffset:90}}};`,
+                    }}
+                  />
+                  <Script id="tawk-to" strategy="afterInteractive" src={TAWK_SRC} />
+                  <CustomChatLauncher />
+                </>
+              )}
               <InstallPrompt />
             </NavbarProvider>
           </LanguageProvider>

@@ -40,30 +40,43 @@ export function Button({ children, variant = 'accent', size = 'md', loading, dis
   const fontSizes = { sm: 12, md: 14, lg: 15 };
   const minHeights = { sm: 32, md: 44, lg: 48 };
   const variants = {
-    accent: { background: 'var(--accent)', color: '#0a0d12', fontWeight: 700 },
-    ghost: { background: 'transparent', color: 'var(--text-secondary)', border: '1px solid var(--border)' },
-    danger: { background: 'var(--danger)', color: 'white', fontWeight: 600 },
-    outline: { background: 'transparent', border: '1px solid var(--border-accent)', color: 'var(--accent)' },
-    donate: { background: 'linear-gradient(135deg, #f0a500, #e07800)', color: '#0a0d12', fontWeight: 700 },
+    accent: { background: 'var(--grad-cool)', color: 'var(--on-accent)', fontWeight: 700, boxShadow: '0 8px 22px -8px rgba(0,229,160,0.55)' },
+    ghost: { background: 'var(--glass)', color: 'var(--text-primary)', border: '1px solid var(--border-2)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' },
+    danger: { background: 'var(--danger)', color: 'white', fontWeight: 700 },
+    outline: { background: 'transparent', border: '1.5px solid var(--mint-ring)', color: 'var(--accent)', fontWeight: 700 },
+    donate: { background: 'var(--grad-warm)', color: '#2a1700', fontWeight: 700, boxShadow: '0 8px 20px -8px rgba(255,140,0,0.55)' },
     dark: { background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border)' },
   };
   return (
     <button
       disabled={disabled || loading}
       style={{
-        display: 'inline-flex', alignItems: 'center', gap: 6,
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
         padding: (sizes as any)[size],
-        borderRadius: 8,
+        borderRadius: 10,
         fontSize: (fontSizes as any)[size],
         fontFamily: 'DM Sans, sans-serif',
+        fontWeight: 700,
         cursor: disabled || loading ? 'not-allowed' : 'pointer',
         border: 'none',
-        transition: 'all 0.2s',
+        transition: 'transform 0.2s var(--ease), filter 0.2s var(--ease), background 0.2s, border-color 0.2s',
         opacity: disabled ? 0.6 : 1,
         whiteSpace: 'nowrap',
         minHeight: (minHeights as any)[size],
         ...(variants as any)[variant],
         ...style,
+      }}
+      onMouseEnter={(e: any) => {
+        if (!(disabled || loading)) {
+          e.currentTarget.style.transform = 'translateY(-1px)';
+          e.currentTarget.style.filter = 'brightness(1.05)';
+        }
+        props.onMouseEnter?.(e);
+      }}
+      onMouseLeave={(e: any) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.filter = 'none';
+        props.onMouseLeave?.(e);
       }}
       {...props}
     >
@@ -184,35 +197,40 @@ export function Modal({ open, onClose, title, children, maxWidth = 440 }: any) {
         backdropFilter: 'blur(8px)',
         zIndex: 2000,
         display: 'flex',
-        alignItems: isMobile ? 'flex-start' : 'center',
+        alignItems: 'flex-start',
         justifyContent: 'center',
-        padding: isMobile ? 'calc(var(--header-height) + 16px) 12px 16px' : 20,
-        overflowY: isMobile ? 'auto' : 'visible',
+        padding: isMobile ? 'calc(var(--header-height) + 16px) 12px 16px' : 'calc(var(--header-height) + 20px) 20px 20px',
+        overflowY: 'auto',
         WebkitOverflowScrolling: 'touch',
         animation: 'fadeIn 0.2s ease',
       }}
     >
       <div style={{
-        background: 'var(--bg-card)',
+        background: 'var(--glass-2)',
+        WebkitBackdropFilter: 'blur(18px)',
+        backdropFilter: 'blur(18px)',
         border: '1px solid var(--border)',
         borderRadius: 'var(--radius-lg)',
         width: '100%',
         maxWidth,
-        maxHeight: isMobile ? 'none' : '90vh',
-        overflowY: isMobile ? 'visible' : 'auto',
-        animation: 'slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+        maxHeight: 'none',
+        overflowY: 'visible',
+        animation: 'slideUp 0.32s cubic-bezier(0.22,1,0.36,1)',
         boxShadow: 'var(--shadow-lg)',
       }}>
         <div style={{ padding: isMobile ? '16px 16px 0' : '24px 24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div style={{ fontFamily: 'Roboto, sans-serif', fontWeight: 800, fontSize: 20, color: 'var(--text-primary)' }}>{title}</div>
           <button
             onClick={onClose}
+            aria-label="Close"
             style={{
-              width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 38, height: 38, display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: 'var(--bg-elevated)', border: '1px solid var(--border)',
-              borderRadius: 8, cursor: 'pointer', fontSize: 16, color: 'var(--text-secondary)',
-              transition: 'all 0.2s', flexShrink: 0,
+              borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: 16, color: 'var(--text-secondary)',
+              transition: 'color 0.2s, border-color 0.2s', flexShrink: 0,
             }}
+            onMouseEnter={(e: any) => { e.currentTarget.style.color = 'var(--accent)'; e.currentTarget.style.borderColor = 'var(--mint-ring)'; }}
+            onMouseLeave={(e: any) => { e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
           >✕</button>
         </div>
         <div style={{ padding: isMobile ? '0 16px 16px' : '0 24px 24px' }}>{children}</div>

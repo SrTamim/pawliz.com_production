@@ -333,11 +333,12 @@ export default function Home({ initialVets = [] }: any) {
                   left: 12,
                   top: "50%",
                   transform: "translateY(-50%)",
-                  fontSize: 14,
+                  display: "flex",
                   color: "var(--text-muted)",
+                  pointerEvents: "none",
                 }}
               >
-                🔍
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" /></svg>
               </span>
               <input
                 id="mobile-vet-search"

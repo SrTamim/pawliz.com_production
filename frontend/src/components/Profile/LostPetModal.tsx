@@ -160,28 +160,28 @@ export default function LostPetModal({ pet, open, onClose, onMarkedLost }: any) 
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(0,0,0,0.7)",
+        background: "rgba(5,8,15,0.75)",
+        backdropFilter: "blur(6px)",
+        WebkitBackdropFilter: "blur(6px)",
         zIndex: 2000,
         display: "flex",
-        alignItems: "flex-start",
+        alignItems: "center",
         justifyContent: "center",
+        padding: "16px 12px",
+        paddingTop: "max(16px, env(safe-area-inset-top))",
+        paddingBottom: "max(16px, env(safe-area-inset-bottom))",
         overflowY: "auto",
-        paddingTop: 80,
-        paddingBottom: 96,
-        paddingLeft: 16,
-        paddingRight: 16,
       }}
     >
       <div
         onClick={(e: any) => e.stopPropagation()}
+        className="glass-modal"
         style={{
-          background: "var(--bg-card)",
-          border: "1px solid var(--border)",
-          borderRadius: "var(--radius)",
-          padding: 28,
+          padding: 24,
           width: "100%",
           maxWidth: 480,
-          boxShadow: "var(--shadow-lg)",
+          maxHeight: "calc(100dvh - 32px)",
+          overflowY: "auto",
         }}
       >
         <div
@@ -275,6 +275,7 @@ export default function LostPetModal({ pet, open, onClose, onMarkedLost }: any) 
                 borderRadius: 8,
                 border: "1px solid var(--border)",
                 marginBottom: 10,
+                touchAction: "none",
               }}
             />
             <button

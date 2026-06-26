@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const BADGE_CONFIG = {
+export const BADGE_CONFIG = {
   bronze: {
     label: "Bronze",
     emoji: "🥉",

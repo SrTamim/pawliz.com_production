@@ -4,6 +4,7 @@ import { vetDashboardAPI } from "../../lib/api";
 import { useToast } from "../../context/ToastContext";
 import PasswordStrengthChecker from "../Auth/PasswordStrengthChecker";
 import WeeklyScheduleEditor, { buildScheduleFromLegacy } from "./WeeklyScheduleEditor";
+import { ContactIcon } from "../Vet/contactIcons";
 
 const DAYS = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const DOC_TYPES_CLINIC = [
@@ -527,8 +528,9 @@ export default function VetProfileDetails({ vet, qualifications, documents, clin
       <Section title={t("profileForm.clinicContactsSection")}>
         {clinicContacts?.map((c: any) => (
           <div key={c.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: "var(--bg-elevated)", borderRadius: 8, marginBottom: 8 }}>
-            <div>
-              <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", color: "var(--accent)", marginRight: 8 }}>{c.contact_type}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <ContactIcon type={c.contact_type} size={16} />
+              <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", color: "var(--accent)" }}>{c.contact_type}</span>
               <span style={{ fontSize: 14, color: "var(--text-primary)" }}>{c.contact_value}</span>
             </div>
             <button style={btnDanger} onClick={() => removeContact(c.id)}>{t("profileForm.remove")}</button>

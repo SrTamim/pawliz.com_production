@@ -100,7 +100,7 @@ export default function ShareButton({ text, url: urlProp, className = "" }: any)
           e.stopPropagation();
           setOpen((prev: any) => !prev);
         }}
-        className={`flex items-center justify-center gap-1.5 px-2 py-2 border border-[var(--border)] rounded-lg text-xs sm:text-sm font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] transition-all whitespace-nowrap ${className}`}
+        className={`flex items-center justify-center gap-1 px-2 py-1.5 border border-[var(--border)] rounded-lg text-xs font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] transition-all whitespace-nowrap ${className}`}
         title="Share post"
       >
         <svg

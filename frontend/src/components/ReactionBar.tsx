@@ -120,7 +120,7 @@ export default function ReactionBar({
   const lg = size === "lg";
 
   return (
-    <div className={`flex items-center ${lg ? "gap-2.5" : "gap-1 sm:gap-1.5"} ${className}`}>
+    <div className={`flex items-center ${lg ? "gap-2.5" : "gap-0 sm:gap-0.5"} min-w-0 ${className}`}>
       {REACTIONS.map((r) => {
         const active = userReaction === r.type;
         return (
@@ -135,7 +135,7 @@ export default function ReactionBar({
             className={
               lg
                 ? "flex items-center gap-2 rounded-full border font-semibold transition-all hover:-translate-y-0.5 active:scale-95 disabled:opacity-60 px-3.5 py-2"
-                : "flex items-center gap-1 rounded-full transition-transform hover:scale-110 active:scale-95 disabled:opacity-60 px-1 py-0.5"
+                : "flex items-center gap-0.5 rounded-full transition-transform hover:scale-110 active:scale-95 disabled:opacity-60 px-1 py-1"
             }
             style={{
               color: active ? r.color : "var(--text-secondary)",

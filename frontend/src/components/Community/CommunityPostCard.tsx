@@ -96,32 +96,31 @@ export default function CommunityPostCard({ post, onOpen, onEdit, onDeleted, onR
   const shareUrl = typeof window !== "undefined" ? `${window.location.origin}/community?post=${post.id}` : undefined;
 
   return (
-    <div
+    <article
       onClick={() => onOpen(post)}
-      className="bg-[var(--bg-card)] border border-[var(--border)] rounded-lg flex flex-col h-[360px] hover:shadow-lg transition-all cursor-pointer hover:-translate-y-1"
+      className="glass post card-hover h-[360px] cursor-pointer"
     >
       {/* Header */}
-      <div className="p-3 sm:p-4 pb-2 flex items-start gap-3">
+      <div className="post-head" style={{ marginBottom: 10 }}>
         {post.author_picture ? (
-          <img src={getImageUrl(post.author_picture) ?? undefined} alt={post.author_name} className="w-9 h-9 rounded-full object-cover bg-[var(--accent)] flex-shrink-0" />
+          <span className="avatar sm">
+            <img src={getImageUrl(post.author_picture) ?? undefined} alt={post.author_name} />
+          </span>
         ) : (
-          <div className="w-9 h-9 rounded-full bg-[var(--accent)] flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-            {post.author_name?.charAt(0).toUpperCase() || "U"}
-          </div>
+          <span className="avatar sm">{post.author_name?.charAt(0).toUpperCase() || "U"}</span>
         )}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-[var(--text-primary)] truncate">{post.author_name}</span>
-            <span className="text-xs text-[var(--text-secondary)] flex-shrink-0">{timeAgo(post.created_at)}</span>
-            {edited && <span className="text-xs text-[var(--text-secondary)] italic flex-shrink-0">· {t("feed.edited")}</span>}
-          </div>
-          <div className="flex gap-1 mt-1 overflow-hidden flex-nowrap">
-            {post.tags?.slice(0, 3).map((tg) => (
-              <span key={tg.id} className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[var(--bg-secondary)] text-[var(--text-secondary)] whitespace-nowrap flex-shrink-0">
-                {tg.label}
-              </span>
-            ))}
-          </div>
+        <div className="who grow">
+          <h4 className="truncate">
+            {post.author_name}
+            <span style={{ fontWeight: 400 }}>· {timeAgo(post.created_at)}{edited ? ` · ${t("feed.edited")}` : ""}</span>
+          </h4>
+          {post.tags && post.tags.length > 0 && (
+            <div className="flex gap-1.5 mt-1 overflow-hidden flex-nowrap">
+              {post.tags.slice(0, 3).map((tg) => (
+                <span key={tg.id} className="tag tag-mint whitespace-nowrap flex-shrink-0">{tg.label}</span>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Kebab + anchored menus */}
@@ -165,9 +164,9 @@ export default function CommunityPostCard({ post, onOpen, onEdit, onDeleted, onR
         )}
       </div>
 
-      {/* Image band — fixed height so every card matches */}
+      {/* Image band — gradient placeholder fills until the photo loads */}
       {hasImages && (
-        <div className={`px-3 sm:px-4 pb-2 grid gap-1.5 ${images.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+        <div className={`post-img ${images.length === 1 ? "" : "grid grid-cols-2 gap-1.5"}`} style={{ height: 150, marginTop: 12 }}>
           {images.slice(0, 2).map((img, i) => (
             <img
               key={i}
@@ -175,24 +174,24 @@ export default function CommunityPostCard({ post, onOpen, onEdit, onDeleted, onR
               alt=""
               loading="lazy"
               decoding="async"
-              className="w-full h-36 rounded-lg object-cover bg-[var(--bg-secondary)]"
+              className="w-full h-full object-cover"
             />
           ))}
         </div>
       )}
 
       {/* Body — clamped; fills remaining space so the footer pins to the bottom */}
-      <div className="px-3 sm:px-4 flex-1 min-h-0 overflow-hidden">
+      <div className="flex-1 min-h-0 overflow-hidden" style={{ marginTop: 12 }}>
         <p
           ref={bodyRef}
-          className={`text-[var(--text-primary)] whitespace-pre-wrap break-words ${hasImages ? "text-sm line-clamp-3" : "text-base leading-relaxed line-clamp-[8]"}`}
+          className={`post-body whitespace-pre-wrap break-words ${hasImages ? "line-clamp-3" : "line-clamp-[8]"}`}
         >
           {post.body}
         </p>
         {clamped && (
           <button
             onClick={(e) => { e.stopPropagation(); onOpen(post); }}
-            className="text-xs font-semibold text-[var(--accent)] mt-0.5 hover:underline"
+            className="text-xs font-bold text-[var(--accent)] mt-1 hover:underline"
           >
             {t("card.seeMore")}
           </button>
@@ -201,20 +200,20 @@ export default function CommunityPostCard({ post, onOpen, onEdit, onDeleted, onR
 
       {/* Pet chip — null-safe */}
       {post.pet && (
-        <div className="px-3 sm:px-4 pt-2" onClick={(e) => e.stopPropagation()}>
-          <Link href={`/pet/${post.pet.pet_id}`} className="inline-flex items-center gap-2 px-2 py-1 rounded-full bg-[var(--bg-secondary)] hover:opacity-90 max-w-full">
+        <div style={{ marginTop: 10 }} onClick={(e) => e.stopPropagation()}>
+          <Link href={`/pet/${post.pet.pet_id}`} className="inline-flex items-center gap-2 max-w-full" style={{ padding: "5px 10px", borderRadius: "var(--pill)", background: "var(--glass-hi)", border: "1px solid var(--border)" }}>
             {post.pet.images && (Array.isArray(post.pet.images) ? post.pet.images[0] : post.pet.images) ? (
-              <img src={getImageUrl(Array.isArray(post.pet.images) ? post.pet.images[0] : post.pet.images) ?? undefined} alt={post.pet.name} className="w-5 h-5 rounded-full object-cover flex-shrink-0" />
+              <span className="avatar" style={{ width: 22, height: 22 }}><img src={getImageUrl(Array.isArray(post.pet.images) ? post.pet.images[0] : post.pet.images) ?? undefined} alt={post.pet.name} /></span>
             ) : (
               <span className="text-xs flex-shrink-0">🐾</span>
             )}
-            <span className="text-xs font-medium text-[var(--text-secondary)] truncate">{post.pet.name}</span>
+            <span className="text-xs font-semibold text-[var(--text-secondary)] truncate">{post.pet.name}</span>
           </Link>
         </div>
       )}
 
-      {/* Footer */}
-      <div className="px-3 sm:px-4 py-2.5 mt-auto border-t border-[var(--border)] flex items-center gap-2">
+      {/* Footer — reaction bar + comments + share (single row, no overlap) */}
+      <div className="post-actions mt-auto">
         <ReactionBar
           base="community"
           postType="community"
@@ -222,11 +221,14 @@ export default function CommunityPostCard({ post, onOpen, onEdit, onDeleted, onR
           initialCounts={{ love: Number(post.love_count) || 0, sad: Number(post.sad_count) || 0, angry: Number(post.angry_count) || 0 }}
           initialUserReaction={post.user_reaction ?? null}
         />
-        <span className="text-xs text-[var(--text-secondary)] shrink-0">💬 {post.comment_count || 0}</span>
-        <div className="ml-auto" onClick={(e) => e.stopPropagation()}>
+        <span className="react react-comment" style={{ pointerEvents: "none" }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.5 8.5 0 01-12 7.5L3 21l2-6a8.5 8.5 0 1116-3.5z" /></svg>
+          {post.comment_count || 0}
+        </span>
+        <div className="ml-auto flex-shrink-0" onClick={(e) => e.stopPropagation()}>
           <ShareButton text={post.body.slice(0, 80)} url={shareUrl} />
         </div>
       </div>
-    </div>
+    </article>
   );
 }

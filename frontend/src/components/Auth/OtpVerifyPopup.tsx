@@ -53,7 +53,7 @@ export default function OtpVerifyPopup({
       {error && <Alert type="error" style={{ marginBottom: 12 }}>{error}</Alert>}
 
       <div style={{ marginBottom: 12 }}>
-        <label className="label">OTP Code</label>
+        <label className="label" style={{ textAlign: "center" }}>OTP Code</label>
         <input
           type="text"
           inputMode="numeric"
@@ -62,21 +62,28 @@ export default function OtpVerifyPopup({
           value={otp}
           onChange={handleOtpChange}
           disabled={expired}
-          placeholder="Enter 6-digit OTP"
+          placeholder="••••••"
+          className="keep-latin"
           style={{
             width: "100%",
-            padding: "10px 14px",
-            borderRadius: 8,
-            border: "1.5px solid var(--border)",
-            background: "var(--bg-input, var(--bg-elevated))",
+            height: 60,
+            padding: "0 14px",
+            borderRadius: "var(--radius)",
+            border: "1px solid var(--border-2)",
+            background: "var(--field)",
             color: "var(--text-primary)",
-            fontSize: 18,
-            letterSpacing: 6,
-            fontFamily: "DM Sans, monospace",
+            fontSize: 26,
+            textAlign: "center",
+            letterSpacing: 14,
+            fontFamily: "var(--font-head)",
+            fontWeight: 800,
             outline: "none",
             opacity: expired ? 0.5 : 1,
             boxSizing: "border-box",
+            transition: "border-color 0.2s, box-shadow 0.2s",
           }}
+          onFocus={(e: any) => { e.target.style.borderColor = "var(--accent)"; e.target.style.boxShadow = "0 0 0 4px var(--mint-soft)"; }}
+          onBlur={(e: any) => { e.target.style.borderColor = "var(--border-2)"; e.target.style.boxShadow = "none"; }}
           autoComplete="one-time-code"
         />
       </div>
@@ -98,19 +105,8 @@ export default function OtpVerifyPopup({
         <button
           type="button"
           onClick={handleResend}
-          style={{
-            width: "100%",
-            padding: "10px 0",
-            marginBottom: 10,
-            borderRadius: 8,
-            cursor: "pointer",
-            background: "transparent",
-            border: "1.5px solid var(--accent)",
-            color: "var(--accent)",
-            fontWeight: 600,
-            fontSize: 14,
-            fontFamily: "DM Sans, sans-serif",
-          }}
+          className="btn btn-outline btn-block"
+          style={{ marginBottom: 10 }}
         >
           Resend OTP
         </button>
@@ -120,20 +116,8 @@ export default function OtpVerifyPopup({
         type="button"
         disabled={otp.length !== 6 || expired || loading}
         onClick={() => onSubmit(otp)}
-        style={{
-          width: "100%",
-          padding: "11px 0",
-          marginBottom: 10,
-          borderRadius: 8,
-          cursor: otp.length !== 6 || expired || loading ? "not-allowed" : "pointer",
-          background: otp.length === 6 && !expired && !loading ? "var(--accent)" : "var(--bg-elevated)",
-          border: "none",
-          color: otp.length === 6 && !expired && !loading ? "#000" : "var(--text-secondary)",
-          fontWeight: 700,
-          fontSize: 15,
-          fontFamily: "DM Sans, sans-serif",
-          transition: "all 0.2s",
-        }}
+        className="btn btn-primary btn-block"
+        style={{ marginBottom: 10, opacity: otp.length !== 6 || expired || loading ? 0.6 : 1, cursor: otp.length !== 6 || expired || loading ? "not-allowed" : "pointer" }}
       >
         {loading ? "Verifying..." : "Verify OTP"}
       </button>
@@ -146,10 +130,12 @@ export default function OtpVerifyPopup({
           border: "none",
           color: "var(--accent)",
           fontSize: 13,
+          fontWeight: 700,
           cursor: "pointer",
           fontFamily: "DM Sans, sans-serif",
           padding: "4px 0",
           display: "block",
+          margin: "0 auto",
         }}
       >
         {backLabel}

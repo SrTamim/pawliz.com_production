@@ -57,10 +57,10 @@ const EMPTY_PET = {
   appetite_notes: "",
 };
 
-export function AddPetCard({ onCreated }: any) {
+export function AddPetCard({ onCreated, hideTrigger = false, onClose }: any) {
   const { toast } = useToast();
   const { t } = useTranslation("pets");
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(hideTrigger);
   const [form, setForm] = useState(EMPTY_PET);
   const [tab, setTab] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -84,6 +84,7 @@ export function AddPetCard({ onCreated }: any) {
       setOpen(false);
       setForm(EMPTY_PET);
       setTab(0);
+      onClose?.();
     } catch (err: any) {
       toast(err.message || "Failed to add pet", "error");
     } finally {
@@ -92,6 +93,7 @@ export function AddPetCard({ onCreated }: any) {
   };
 
   if (!open) {
+    if (hideTrigger) return null;
     return (
       <button
         onClick={() => setOpen(true)}
@@ -152,7 +154,7 @@ export function AddPetCard({ onCreated }: any) {
         >
           {t("newPetProfile")}
         </div>
-        <button onClick={() => setOpen(false)} style={iconBtnStyle}>
+        <button onClick={() => { setOpen(false); onClose?.(); }} style={iconBtnStyle}>
           ✕
         </button>
       </div>
@@ -463,68 +465,6 @@ export default function PetCard({ pet: initialPet, onDeleted, onUpdated }: any) 
   return (
     <>
       <div style={{ ...cardStyle, position: "relative" }}>
-        {/* Lost badge */}
-        {pet.is_lost && (
-          <div
-            style={{
-              position: "absolute",
-              top: 12,
-              right: isMobile ? "auto" : 12,
-              left: isMobile ? 12 : "auto",
-              background: "var(--danger)",
-              color: "#fff",
-              borderRadius: 20,
-              padding: "4px 12px",
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.5px",
-              animation: "pulse 1.5s ease-in-out infinite",
-            }}
-          >
-            🔴 {t("pets:status.lost").toUpperCase()}
-          </div>
-        )}
-        {/* Safe/Found badge */}
-        {!pet.is_lost && pet.status === 'safe' && (
-          <div
-            style={{
-              position: "absolute",
-              top: 12,
-              right: isMobile ? "auto" : 12,
-              left: isMobile ? 12 : "auto",
-              background: "var(--accent)",
-              color: "#0a0d12",
-              borderRadius: 20,
-              padding: "4px 12px",
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.5px",
-            }}
-          >
-            ✅ {t("pets:status.safe").toUpperCase()}
-          </div>
-        )}
-        {/* For Adoption badge */}
-        {pet.is_for_adoption && !pet.is_lost && (
-          <div
-            style={{
-              position: "absolute",
-              top: pet.status === 'safe' ? 40 : 12,
-              right: isMobile ? "auto" : 12,
-              left: isMobile ? 12 : "auto",
-              background: "rgba(124,58,237,0.9)",
-              color: "#fff",
-              borderRadius: 20,
-              padding: "4px 12px",
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.5px",
-            }}
-          >
-            🏠 {t("pets:status.forAdoption").toUpperCase()}
-          </div>
-        )}
-
         {/* Header */}
         <div
           style={{
@@ -552,18 +492,37 @@ export default function PetCard({ pet: initialPet, onDeleted, onUpdated }: any) 
           <div style={{ flex: 1, minWidth: 0 }}>
             <div
               style={{
-                fontWeight: 800,
-                fontSize: 18,
-                color: "var(--text-primary)",
+                display: "flex",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 8,
+                rowGap: 4,
               }}
             >
-              {pet.name}
-            </div>
-            <div
-              style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}
-            >
-              {pet.breed || pet.type} {ageDisplay ? `· ${ageDisplay}` : ""}{" "}
-              {pet.gender ? `· ${pet.gender}` : ""}
+              <span
+                style={{
+                  fontWeight: 800,
+                  fontSize: 18,
+                  color: "var(--text-primary)",
+                }}
+              >
+                {pet.name}
+              </span>
+              {!isMobile && pet.is_lost && (
+                <span style={{ ...statusBadge, background: "var(--danger)", color: "#fff", animation: "pulse 1.5s ease-in-out infinite" }}>
+                  🔴 {t("pets:status.lost").toUpperCase()}
+                </span>
+              )}
+              {!isMobile && !pet.is_lost && pet.status === "safe" && (
+                <span style={{ ...statusBadge, background: "var(--accent)", color: "#0a0d12" }}>
+                  ✅ {t("pets:status.safe").toUpperCase()}
+                </span>
+              )}
+              {!isMobile && pet.is_for_adoption && !pet.is_lost && (
+                <span style={{ ...statusBadge, background: "rgba(124,58,237,0.9)", color: "#fff" }}>
+                  🏠 {t("pets:status.forAdoption").toUpperCase()}
+                </span>
+              )}
             </div>
             <div
               style={{
@@ -576,6 +535,25 @@ export default function PetCard({ pet: initialPet, onDeleted, onUpdated }: any) 
             >
               ID: {pet.pet_id}
             </div>
+            {isMobile && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+                {pet.is_lost && (
+                  <span style={{ ...statusBadge, background: "var(--danger)", color: "#fff", animation: "pulse 1.5s ease-in-out infinite" }}>
+                    🔴 {t("pets:status.lost").toUpperCase()}
+                  </span>
+                )}
+                {!pet.is_lost && pet.status === "safe" && (
+                  <span style={{ ...statusBadge, background: "var(--accent)", color: "#0a0d12" }}>
+                    ✅ {t("pets:status.safe").toUpperCase()}
+                  </span>
+                )}
+                {pet.is_for_adoption && !pet.is_lost && (
+                  <span style={{ ...statusBadge, background: "rgba(124,58,237,0.9)", color: "#fff", fontSize: 9, padding: "2px 6px", letterSpacing: "0.3px" }}>
+                    🏠 {t("pets:status.forAdoption").toUpperCase()}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
           <div
             style={
@@ -805,25 +783,25 @@ export default function PetCard({ pet: initialPet, onDeleted, onUpdated }: any) 
           style={{
             display: "flex",
             gap: 8,
-            flexWrap: "wrap",
+            flexWrap: "nowrap",
             marginBottom: 18,
           }}
         >
           {pet.is_lost ? (
-            <button onClick={handleMarkFound} style={foundBtnStyle}>
+            <button onClick={handleMarkFound} style={{ ...foundBtnStyle, flex: 1, minWidth: 0, fontSize: isMobile ? 11 : 13, padding: isMobile ? "8px 6px" : "8px 16px", whiteSpace: "nowrap" }}>
               ✅ {t("pets:actions.markFound")}
             </button>
           ) : (
-            <button onClick={() => setLostOpen(true)} style={lostBtnStyle}>
+            <button onClick={() => setLostOpen(true)} style={{ ...lostBtnStyle, flex: 1, minWidth: 0, fontSize: isMobile ? 11 : 13, padding: isMobile ? "8px 6px" : "8px 16px", whiteSpace: "nowrap" }}>
               🔴 {t("pets:actions.markLost")}
             </button>
           )}
           {pet.is_for_adoption ? (
-            <button onClick={handleMarkAdopted} style={adoptedBtnStyle}>
+            <button onClick={handleMarkAdopted} style={{ ...adoptedBtnStyle, flex: 1, minWidth: 0, fontSize: isMobile ? 11 : 13, padding: isMobile ? "8px 6px" : "8px 16px", whiteSpace: "nowrap" }}>
               ✅ {t("pets:actions.markAdopted")}
             </button>
           ) : (
-            <button onClick={() => setAdoptionOpen(true)} style={adoptionBtnStyle}>
+            <button onClick={() => setAdoptionOpen(true)} style={{ ...adoptionBtnStyle, flex: 1, minWidth: 0, fontSize: isMobile ? 11 : 13, padding: isMobile ? "8px 6px" : "8px 16px", whiteSpace: "nowrap" }}>
               🏠 {t("pets:actions.markForAdoption")}
             </button>
           )}
@@ -869,6 +847,7 @@ export default function PetCard({ pet: initialPet, onDeleted, onUpdated }: any) 
             marginBottom: 18,
             borderBottom: "1px solid var(--border)",
             paddingBottom: 0,
+            justifyContent: isMobile ? "center" : "flex-start",
           }}
         >
           {TABS.map((tabLabel: any, i: any) => (
@@ -1563,7 +1542,7 @@ function InfoGrid({ fields }: any) {
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+        gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
         gap: 12,
       }}
     >
@@ -1996,10 +1975,26 @@ function PetForm({
 
 // ── Styles ────────────────────────────────────────────────────────────────
 const cardStyle = {
-  background: "var(--bg-card)",
+  background: "var(--glass)",
   border: "1px solid var(--border)",
-  borderRadius: "var(--radius)",
+  borderRadius: "var(--radius-lg)",
   padding: "24px",
+  WebkitBackdropFilter: "blur(18px)",
+  backdropFilter: "blur(18px)",
+  boxShadow: "var(--shadow-sm)",
+};
+
+const statusBadge: any = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 4,
+  borderRadius: 20,
+  padding: "3px 10px",
+  fontSize: 11,
+  fontWeight: 700,
+  letterSpacing: "0.5px",
+  whiteSpace: "nowrap",
+  flexShrink: 0,
 };
 
 const iconBtnStyle = {

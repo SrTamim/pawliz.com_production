@@ -110,21 +110,19 @@ export default function Navbar({
 
   return (
     <header
+      className="site-header"
       style={{
         position: "fixed",
         top: 0,
         left: 0,
         right: 0,
         height: "var(--header-height)",
-        background: "var(--bg-secondary)",
-        backdropFilter: "blur(30px)",
-        borderBottom: "1px solid var(--border)",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         padding: isMobile ? "0 12px" : "0 32px",
         zIndex: 10000,
-        transition: "all 0.3s ease",
+        transition: "background 0.3s ease",
       }}
     >
       {/* Logo */}
@@ -183,6 +181,22 @@ export default function Navbar({
           justifyContent: "flex-end",
         }}
       >
+        {!isMobile && (
+          <Button
+            variant="donate"
+            onClick={onOpenDonate}
+            style={{
+              borderRadius: "10px",
+              padding: "7px 14px",
+              fontWeight: 700,
+              fontSize: 14,
+              transition: "all 0.25s ease",
+            }}
+          >
+            {t("nav.donate")}
+          </Button>
+        )}
+
         {/* Theme toggle */}
         <button
           onClick={onToggleTheme}
@@ -196,19 +210,18 @@ export default function Navbar({
             border: "1px solid var(--border)",
             borderRadius: 10,
             cursor: "pointer",
-            fontSize: 18,
-            transition: "all 0.25s ease",
-            backdropFilter: "blur(10px)",
+            color: "var(--text-secondary)",
+            transition: "color 0.25s ease, border-color 0.25s ease, transform 0.15s ease",
           }}
+          aria-label="Toggle theme"
           onMouseEnter={(e: any) => {
-            e.currentTarget.style.background = "var(--bg-hover)";
-            e.currentTarget.style.transform = "scale(1.08)";
-            e.currentTarget.style.boxShadow = "0 4px 12px var(--shadow-lg)";
+            e.currentTarget.style.color = "var(--accent)";
+            e.currentTarget.style.borderColor = "var(--mint-ring)";
           }}
           onMouseLeave={(e: any) => {
-            e.currentTarget.style.background = "var(--bg-elevated)";
+            e.currentTarget.style.color = "var(--text-secondary)";
+            e.currentTarget.style.borderColor = "var(--border)";
             e.currentTarget.style.transform = "scale(1)";
-            e.currentTarget.style.boxShadow = "none";
           }}
           onMouseDown={(e: any) => {
             e.currentTarget.style.transform = "scale(0.95)";
@@ -217,28 +230,15 @@ export default function Navbar({
             e.currentTarget.style.transform = "scale(1)";
           }}
         >
-          {theme === "dark" ? "🌙" : "☀️"}
+          {theme === "dark" ? (
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z" /></svg>
+          ) : (
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
+          )}
         </button>
 
         {/* Language toggle */}
         <LangToggle />
-
-        {!isMobile && (
-          <Button
-            variant="donate"
-            onClick={onOpenDonate}
-            style={{
-              borderRadius: "10px",
-              padding: "10px 20px",
-              fontWeight: 600,
-              fontSize: 14,
-              transition: "all 0.25s ease",
-              boxShadow: "0 4px 12px rgba(255, 79, 106, 0.2)",
-            }}
-          >
-            {t("nav.donate")}
-          </Button>
-        )}
 
         {user && <NotificationBell />}
 
@@ -275,19 +275,19 @@ export default function Navbar({
                 style={{
                   width: 40,
                   height: 40,
-                  borderRadius: "50%",
+                  borderRadius: "42% 58% 56% 44% / 50% 44% 56% 50%",
                   backgroundImage: user?.profile_picture
                     ? `url('${getImageUrl(user.profile_picture)}')`
-                    : "linear-gradient(135deg, var(--accent), #00b87a)",
+                    : "var(--grad-cool)",
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   fontSize: 16,
-                  fontWeight: 700,
-                  color: "var(--text-primary)",
-                  border: "2px solid var(--border-accent)",
+                  fontWeight: 800,
+                  fontFamily: "var(--font-head)",
+                  color: "var(--on-accent)",
                   transition: "all 0.25s ease",
                   flexShrink: 0,
                   boxShadow: "var(--shadow-glow)",
@@ -519,7 +519,7 @@ export default function Navbar({
                 style={{
                   borderRadius: "10px",
                   padding: "10px 18px",
-                  fontWeight: 600,
+                  fontWeight: 700,
                   fontSize: 14,
                   transition: "all 0.25s ease",
                 }}
@@ -533,10 +533,9 @@ export default function Navbar({
               style={{
                 borderRadius: "10px",
                 padding: "10px 20px",
-                fontWeight: 600,
+                fontWeight: 700,
                 fontSize: 14,
                 transition: "all 0.25s ease",
-                boxShadow: "0 4px 12px rgba(0, 184, 122, 0.25)",
               }}
             >
               {isMobile ? t("nav.login") : t("nav.register")}

@@ -7,6 +7,7 @@ const config: Config = {
       fontFamily: {
         syne: ['Roboto', 'sans-serif'],
         dm: ['DM Sans', 'sans-serif'],
+        mono: ['Roboto Mono', 'ui-monospace', 'monospace'],
       },
       colors: {
         accent: '#00e5a0',
@@ -20,7 +21,7 @@ const config: Config = {
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease',
-        'slide-up': 'slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1)',
+        'slide-up': 'slideUp 0.4s cubic-bezier(0.22,1,0.36,1)',
         'spin-slow': 'spin 1.5s linear infinite',
       },
       keyframes: {

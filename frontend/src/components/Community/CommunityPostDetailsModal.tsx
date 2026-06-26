@@ -46,11 +46,11 @@ export default function CommunityPostDetailsModal({ open, onClose, post }: Props
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center overflow-y-auto pb-[96px]"
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-start justify-center overflow-y-auto pb-[96px]"
       style={{ paddingTop: "calc(var(--header-height) + 16px)" }}
     >
-      <div onClick={(e) => e.stopPropagation()} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-lg w-full max-w-2xl shadow-xl mx-3 md:mx-0 my-4" role="dialog" aria-modal="true">
-        <div className="sticky top-0 bg-[var(--bg-card)] border-b border-[var(--border)] p-4 flex items-center justify-between z-10">
+      <div onClick={(e) => e.stopPropagation()} className="glass-modal w-full max-w-2xl mx-3 md:mx-0 my-4" role="dialog" aria-modal="true">
+        <div className="sticky top-0 bg-[var(--glass-2)] backdrop-blur-lg border-b border-[var(--border-2)] p-4 flex items-center justify-between z-10 rounded-t-[var(--radius-lg)]">
           <h2 className="text-xl font-bold font-syne text-[var(--text-primary)]">{t("details.title")}</h2>
           <button onClick={onClose} aria-label={t("compose.cancel")} className="text-2xl text-[var(--text-secondary)] hover:text-[var(--text-primary)]">✕</button>
         </div>

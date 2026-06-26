@@ -281,9 +281,12 @@ export default function MapView({
     });
   }, [userLocation]);
 
-  // Event delegation — "View Full Profile" button click inside any popup
+  // Event delegation — "View Full Profile" button click inside any popup.
+  // Use closest() so a click on a child node of the button (text/arrow) still
+  // resolves the data attribute instead of no-op'ing on e.target directly.
   function handleMapClick(e: any) {
-    const vetId = e.target.dataset.popupVetId;
+    const el = e.target?.closest?.("[data-popup-vet-id]");
+    const vetId = el?.dataset?.popupVetId;
     if (!vetId) return;
     const vet = vetsRef.current.find((v: any) => String(v.id) === vetId);
     if (vet && onVetClickRef.current) onVetClickRef.current(vet, true);

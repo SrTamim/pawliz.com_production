@@ -43,8 +43,8 @@ export default function HelpBoard({ ogPost = null }: any) {
   const [deepLinkPost, setDeepLinkPost] = useState<any>(null);
   const [deepLinkType, setDeepLinkType] = useState<any>(null);
   const [filters, setFilters] = useState({ pet_type: "", location: "" });
-  const [showFilters, setShowFilters] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const [counts, setCounts] = useState<any>({ lost: 0, found: 0, rescue: 0, adoption: 0 });
 
   // Read ?tab= on mount
   useEffect(() => {
@@ -116,11 +116,32 @@ export default function HelpBoard({ ogPost = null }: any) {
     loadPosts();
   }, [loadPosts, tabInitialized]);
 
+  // Tab counts — fetched once (unfiltered) so all four pills show totals.
+  const loadCounts = useCallback(async () => {
+    try {
+      const [lost, found, rescue, adoption] = await Promise.all([
+        lostFoundAPI.getLostPets({}),
+        lostFoundAPI.getFoundPets({}),
+        rescueAdoptionAPI.getRescuePosts({}),
+        rescueAdoptionAPI.getAdoptionPosts({}),
+      ]);
+      setCounts({
+        lost: lost.posts?.length || 0,
+        found: found.posts?.length || 0,
+        rescue: rescue.posts?.length || 0,
+        adoption: adoption.posts?.length || 0,
+      });
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    loadCounts();
+  }, [loadCounts]);
+
   const handleTabChange = (tabId: any) => {
     setActiveTab(tabId);
     setSearchText("");
     setFilters({ pet_type: "", location: "" });
-    setShowFilters(false);
   };
 
   const handleReportLostPet = () => {
@@ -136,6 +157,7 @@ export default function HelpBoard({ ogPost = null }: any) {
   const handleFoundPetCreated = () => {
     setFoundPetModalOpen(false);
     loadPosts();
+    loadCounts();
     toast("Found pet report created! 🐾", "success");
   };
 
@@ -147,6 +169,7 @@ export default function HelpBoard({ ogPost = null }: any) {
   const handleRescueCreated = () => {
     setRescueModalOpen(false);
     loadPosts();
+    loadCounts();
     toast("Rescue request submitted! 🐾", "success");
   };
 
@@ -245,184 +268,112 @@ export default function HelpBoard({ ogPost = null }: any) {
       </Head>
 
       <div className={theme}>
-        <div className="bg-[var(--bg-primary)] text-[var(--text-primary)] min-h-screen pt-16 md:pt-20 pb-32 md:pb-24">
-          <div className="w-full">
-            <div className="w-full px-4 sm:px-6 lg:px-8 pt-5 pb-8">
-              {/* Header */}
-              <div className="mb-4">
-                <h1 className="text-4xl font-bold mb-1">{t(`tabTitle.${activeTab}`)}</h1>
-                <p className="text-[var(--text-secondary)]">
-                  {t(`tabSubtitle.${activeTab}`)}
-                </p>
-              </div>
+        <main className="shell">
+          {/* Page heading — gives the board a visible title on every viewport */}
+          <header className="page-head">
+            <h1>{t(`tabTitle.${activeTab}`)}</h1>
+            <p>{t(`tabSubtitle.${activeTab}`)}</p>
+          </header>
 
-              {/* Tab Bar — horizontal scrollable pills */}
-              <div className="overflow-x-auto mb-6">
-                <div className="flex gap-2 min-w-max pb-1">
-                  {TABS.map((tab: any) => {
-                    const isActive = activeTab === tab.id;
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => handleTabChange(tab.id)}
-                        style={{
-                          backgroundColor: isActive ? tab.color : "var(--bg-card)",
-                          color: isActive ? "#fff" : "var(--text-secondary)",
-                          border: `2px solid ${isActive ? tab.color : "var(--border)"}`,
-                          borderRadius: 9999,
-                          padding: "8px 20px",
-                          fontWeight: 600,
-                          fontSize: 14,
-                          cursor: "pointer",
-                          transition: "all 0.2s",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 6,
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        <span style={{ fontSize: 18, lineHeight: 1 }}>{tab.icon}</span>
-                        <span className="tab-label">{t(`tabs.${tab.id}`)}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+          {/* Tabs — segmented, wraps to 2x2 on mobile (no horizontal scroll), with live counts */}
+          <div className="tabs tabs-wrap" role="tablist" style={{ marginBottom: 16, maxWidth: "100%" }}>
+            {TABS.map((tab: any) => (
+              <button
+                key={tab.id}
+                role="tab"
+                aria-selected={activeTab === tab.id}
+                onClick={() => handleTabChange(tab.id)}
+              >
+                <span style={{ lineHeight: 1 }}>{tab.icon}</span>
+                <span className="tab-label">{t(`tabs.${tab.id}`)}</span>
+                <span className="ct">{counts[tab.id]}</span>
+              </button>
+            ))}
+          </div>
 
-              {/* Search & Filters Bar */}
-              <div className="flex flex-col md:flex-row gap-4 mb-8">
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    placeholder={t(`searchPlaceholder.${activeTab}`)}
-                    value={searchText}
-                    onChange={(e: any) => setSearchText(e.target.value)}
-                    className="input-field w-full"
-                    style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
-                  />
-                </div>
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="px-4 py-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-all"
-                >
-                  🔍 {t("filters.label")} {showFilters ? "▲" : "▼"}
-                </button>
-                <button
-                  onClick={(REPORT_ACTION as any)[activeTab]}
-                  style={{ backgroundColor: activeTabConfig?.color }}
-                  className="px-6 py-2 text-white rounded-lg font-semibold hover:opacity-90 transition-all whitespace-nowrap"
-                >
-                  {t(`reportAction.${activeTab}`)}
-                </button>
-              </div>
-
-              {/* Filters Panel */}
-              {showFilters && (
-                <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-lg p-6 mb-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold mb-2 text-[var(--text-primary)]">
-                        {t("filters.petType")}
-                      </label>
-                      <select
-                        value={filters.pet_type}
-                        onChange={(e: any) => setFilters((f: any) => ({ ...f, pet_type: e.target.value }))}
-                        className="input-field w-full"
-                        style={{ background: "var(--bg-primary)", border: "1px solid var(--border)" }}
-                      >
-                        <option value="">{t("filters.allTypes")}</option>
-                        {PET_TYPES.map((type: any) => (
-                          <option key={type} value={type}>
-                            {type.charAt(0).toUpperCase() + type.slice(1)}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold mb-2 text-[var(--text-primary)]">
-                        {t("filters.location")}
-                      </label>
-                      <select
-                        value={filters.location}
-                        onChange={(e: any) => setFilters((f: any) => ({ ...f, location: e.target.value }))}
-                        className="input-field w-full"
-                        style={{ background: "var(--bg-primary)", border: "1px solid var(--border)" }}
-                      >
-                        <option value="">{t("filters.allLocations")}</option>
-                        {LOCATIONS.map((loc: any) => (
-                          <option key={loc} value={loc}>{loc}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setFilters({ pet_type: "", location: "" })}
-                    className="mt-4 px-4 py-2 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg text-sm font-semibold hover:bg-[var(--bg-primary)] transition-all"
-                  >
-                    {t("filters.clear")}
-                  </button>
-                </div>
-              )}
-
-              {/* Count */}
-              <div className="mb-4 text-sm text-[var(--text-secondary)]">
-                {t("showing")} {filteredPosts.length} {t(`countLabel.${activeTab}`, { count: filteredPosts.length })}
-              </div>
-
-              {/* Posts Grid */}
-              {loading ? (
-                <div className="flex justify-center items-center py-20">
-                  <div className="text-center">
-                    <div className="animate-spin mb-4" style={{ fontSize: 32 }}>🐾</div>
-                    <p className="text-[var(--text-secondary)]">{t("common:status.loading")}</p>
-                  </div>
-                </div>
-              ) : filteredPosts.length === 0 ? (
-                <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-lg p-12 text-center">
-                  <div style={{ fontSize: 48, marginBottom: 16 }}>{(EMPTY_ICON as any)[activeTab]}</div>
-                  <h3 className="text-xl font-bold mb-2">{t(`emptyTitle.${activeTab}`)}</h3>
-                  <p className="text-[var(--text-secondary)] mb-6">{t(`emptyDesc.${activeTab}`)}</p>
-                  {activeTab === "found" && (
-                    <button
-                      onClick={handleOpenFoundPetForm}
-                      className="px-6 py-2 bg-[var(--accent)] text-white rounded-lg font-semibold hover:opacity-90 transition-all"
-                    >
-                      {t("emptyBtn.found")}
-                    </button>
-                  )}
-                  {activeTab === "rescue" && (
-                    <button
-                      onClick={handleReportRescue}
-                      className="px-6 py-2 bg-[var(--accent)] text-white rounded-lg font-semibold hover:opacity-90 transition-all"
-                    >
-                      {t("emptyBtn.rescue")}
-                    </button>
-                  )}
-                  {activeTab === "adoption" && (
-                    <button
-                      onClick={handleMarkForAdoption}
-                      className="px-6 py-2 bg-[var(--accent)] text-white rounded-lg font-semibold hover:opacity-90 transition-all"
-                    >
-                      {t("emptyBtn.adoption")}
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="help-grid grid grid-cols-2 gap-4">
-                  {filteredPosts.map((post: any) => {
-                    if (activeTab === "lost")
-                      return <LostPetPostCard key={post.id} post={post} onPostDeleted={loadPosts} />;
-                    if (activeTab === "found")
-                      return <FoundPetPostCard key={post.id} post={post} onPostDeleted={loadPosts} />;
-                    if (activeTab === "rescue")
-                      return <RescuePostCard key={post.id} post={post} onPostDeleted={loadPosts} />;
-                    return <AdoptionPostCard key={post.id} post={post} onPostDeleted={loadPosts} />;
-                  })}
-                </div>
-              )}
+          {/* Search + inline pet/location filters + report CTA — all on one row, wraps on mobile */}
+          <div className="row wrapx between help-controls" style={{ gap: 10, marginBottom: 18 }}>
+            <div className="search grow" style={{ minWidth: 200 }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4-4" /></svg>
+              <input
+                type="text"
+                placeholder={t(`searchPlaceholder.${activeTab}`)}
+                value={searchText}
+                onChange={(e: any) => setSearchText(e.target.value)}
+              />
+            </div>
+            <div className="row wrapx help-filters" style={{ gap: 8 }}>
+              <select
+                className="select"
+                value={filters.pet_type}
+                onChange={(e: any) => setFilters((f: any) => ({ ...f, pet_type: e.target.value }))}
+                aria-label={t("filters.petType")}
+              >
+                <option value="">{t("filters.allTypes")}</option>
+                {PET_TYPES.map((type: any) => (
+                  <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
+                ))}
+              </select>
+              <select
+                className="select"
+                value={filters.location}
+                onChange={(e: any) => setFilters((f: any) => ({ ...f, location: e.target.value }))}
+                aria-label={t("filters.location")}
+              >
+                <option value="">{t("filters.allLocations")}</option>
+                {LOCATIONS.map((loc: any) => (
+                  <option key={loc} value={loc}>{loc}</option>
+                ))}
+              </select>
+              <button className="btn btn-warm grow" onClick={(REPORT_ACTION as any)[activeTab]}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+                {t(`reportAction.${activeTab}`)}
+              </button>
             </div>
           </div>
-        </div>
+
+          {/* Count */}
+          <div className="dim text-sm" style={{ marginBottom: 16 }}>
+            {t("showing")} {filteredPosts.length} {t(`countLabel.${activeTab}`, { count: filteredPosts.length })}
+          </div>
+
+          {/* Posts Grid */}
+          {loading ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="text-center">
+                <div className="animate-spin mb-4" style={{ fontSize: 32 }}>🐾</div>
+                <p className="dim">{t("common:status.loading")}</p>
+              </div>
+            </div>
+          ) : filteredPosts.length === 0 ? (
+            <div className="glass text-center" style={{ padding: 48 }}>
+              <div style={{ fontSize: 48, marginBottom: 16 }}>{(EMPTY_ICON as any)[activeTab]}</div>
+              <h3 className="text-xl font-bold mb-2">{t(`emptyTitle.${activeTab}`)}</h3>
+              <p className="dim mb-6">{t(`emptyDesc.${activeTab}`)}</p>
+              {activeTab === "found" && (
+                <button onClick={handleOpenFoundPetForm} className="btn btn-primary">{t("emptyBtn.found")}</button>
+              )}
+              {activeTab === "rescue" && (
+                <button onClick={handleReportRescue} className="btn btn-warm">{t("emptyBtn.rescue")}</button>
+              )}
+              {activeTab === "adoption" && (
+                <button onClick={handleMarkForAdoption} className="btn btn-primary">{t("emptyBtn.adoption")}</button>
+              )}
+            </div>
+          ) : (
+            <div className="help-grid">
+              {filteredPosts.map((post: any) => {
+                if (activeTab === "lost")
+                  return <LostPetPostCard key={post.id} post={post} onPostDeleted={loadPosts} />;
+                if (activeTab === "found")
+                  return <FoundPetPostCard key={post.id} post={post} onPostDeleted={loadPosts} />;
+                if (activeTab === "rescue")
+                  return <RescuePostCard key={post.id} post={post} onPostDeleted={loadPosts} />;
+                return <AdoptionPostCard key={post.id} post={post} onPostDeleted={loadPosts} />;
+              })}
+            </div>
+          )}
+        </main>
 
 
 
@@ -460,11 +411,6 @@ export default function HelpBoard({ ogPost = null }: any) {
         @media (max-width: 359px) {
           .tab-label {
             display: none;
-          }
-        }
-        @media (min-width: 640px) {
-          .help-grid {
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
           }
         }
       `}</style>

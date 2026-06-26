@@ -22,6 +22,7 @@ backend/frontend/
 frontend/next.config.local.js
 DEPLOY_PLAN.md
 Scrapper/
+design-preview/
 backend/check-env.js
 backend/check-db.js
 

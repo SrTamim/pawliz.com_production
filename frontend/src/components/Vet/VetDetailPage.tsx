@@ -5,6 +5,7 @@ import { vetsAPI, reviewsAPI, getImageUrl } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import ShareButton from '../ShareButton';
+import { ContactIcon } from './contactIcons';
 
 const DAYS = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
@@ -55,6 +56,7 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired, fu
   const [submitting, setSubmitting] = useState(false);
   const [reviewPage, setReviewPage] = useState(1);
   const [reviewFilter, setReviewFilter] = useState(0);
+  const [logoFailed, setLogoFailed] = useState(false);
   const REVIEWS_PER_PAGE = 5;
 
   const { user } = useAuth();
@@ -67,6 +69,7 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired, fu
     vetsAPI.getById(vetId)
       .then(res => {
         setVet(res.vet);
+        setLogoFailed(false);
         setReviews(res.reviews || []);
         setQualifications(res.qualifications || []);
         setClinicContacts(res.clinic_contacts || []);
@@ -171,7 +174,7 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired, fu
             {/* Profile header — below hero */}
             <div style={{ padding: '16px 24px 12px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
-                {avatarUrl && (
+                {avatarUrl && !logoFailed ? (
                   <img
                     src={avatarUrl}
                     alt={vet.name}
@@ -182,8 +185,18 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired, fu
                       boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
                       background: 'var(--bg-card)',
                     }}
-                    onError={e => (e.target as any).style.display = 'none'}
+                    onError={() => setLogoFailed(true)}
                   />
+                ) : (
+                  <div style={{
+                    width: 80, height: 80, borderRadius: 14, flexShrink: 0,
+                    border: '3px solid var(--border)',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+                    background: 'var(--accent-dim)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontFamily: 'Roboto, sans-serif', fontWeight: 800, fontSize: 34,
+                    color: 'var(--accent)', textTransform: 'uppercase',
+                  }}>{(vet.name || '?').trim().charAt(0)}</div>
                 )}
                 <div style={{ flex: 1, minWidth: 0, paddingTop: 4 }}>
                   <div style={{ fontFamily: 'Roboto, sans-serif', fontWeight: 800, fontSize: 22, color: 'var(--text-primary)', marginBottom: 3, lineHeight: 1.2 }}>{vet.name}</div>
@@ -230,12 +243,11 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired, fu
                 {clinicContacts.length > 0 && (
                   <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                     {clinicContacts.map((c: any) => {
-                      const icon = c.contact_type === 'phone' ? '📞' : c.contact_type === 'email' ? '✉️' : c.contact_type === 'whatsapp' ? '💬' : '🔗';
                       const isLink = c.contact_type === 'whatsapp' || c.contact_type === 'email' || c.contact_type === 'other';
                       const href = c.contact_type === 'whatsapp' ? `https://wa.me/${c.contact_value.replace(/\D/g,'')}` : c.contact_type === 'email' ? `mailto:${c.contact_value}` : c.contact_value;
                       return (
                         <div key={c.id} style={{ padding: '6px 14px', background: 'var(--bg-elevated)', borderRadius: 8, fontSize: 13, display: 'flex', gap: 6, alignItems: 'center' }}>
-                          <span style={{ color: c.contact_type === 'whatsapp' ? '#25D366' : 'var(--accent)' }}>{icon}</span>
+                          <span style={{ display: 'flex', alignItems: 'center' }}><ContactIcon type={c.contact_type} size={16} /></span>
                           {isLink
                             ? <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-primary)', textDecoration: 'none' }}>{c.contact_value}</a>
                             : <span style={{ color: 'var(--text-primary)' }}>{c.contact_value}</span>

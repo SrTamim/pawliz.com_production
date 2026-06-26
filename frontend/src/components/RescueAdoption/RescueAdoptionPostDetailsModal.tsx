@@ -127,11 +127,12 @@ export default function RescueAdoptionPostDetailsModal({
     >
       <div
         onClick={(e: any) => e.stopPropagation()}
-        className="bg-[var(--bg-card)] border border-[var(--border)] rounded-lg w-full max-w-3xl shadow-xl mx-3 md:mx-0 my-4"
+        className="glass w-full max-w-3xl rounded-[20px] mx-3 md:mx-0 my-4 overflow-hidden"
+        style={{ boxShadow: "var(--shadow-lg)" }}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-[var(--bg-card)] border-b border-[var(--border)] p-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-[var(--text-primary)]">
+        <div className="sticky top-0 z-10 bg-[var(--glass)] backdrop-blur-xl border-b border-[var(--border)] px-4 py-3 sm:p-4 flex items-center justify-between">
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--text-primary)]">
             {isRescue ? t("rescueDetails.rescueTitle") : t("rescueDetails.adoptionTitle")}
           </h2>
           <div className="flex items-center gap-2">
@@ -162,7 +163,7 @@ export default function RescueAdoptionPostDetailsModal({
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {/* Images Gallery */}
           {images.length > 0 && (
             <div className="mb-6">
@@ -206,26 +207,26 @@ export default function RescueAdoptionPostDetailsModal({
           )}
 
           {/* Pet Information */}
-          <div className="grid grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-2 gap-3 sm:gap-6 mb-5 sm:mb-6">
             {isRescue ? (
               <>
                 <div>
                   <p className="text-xs text-[var(--text-secondary)] font-semibold mb-1">{t("rescueDetails.petType")}</p>
-                  <p className="text-lg font-bold text-[var(--text-primary)]">
+                  <p className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
                     {post.pet_type ? post.pet_type.charAt(0).toUpperCase() + post.pet_type.slice(1) : t("rescueDetails.unknown")}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-[var(--text-secondary)] font-semibold mb-1">{t("rescueDetails.color")}</p>
-                  <p className="text-lg font-bold text-[var(--text-primary)]">{post.color || t("rescueDetails.notSpecified")}</p>
+                  <p className="text-base sm:text-lg font-bold text-[var(--text-primary)]">{post.color || t("rescueDetails.notSpecified")}</p>
                 </div>
                 <div>
                   <p className="text-xs text-[var(--text-secondary)] font-semibold mb-1">{t("rescueDetails.breed")}</p>
-                  <p className="text-lg font-bold text-[var(--text-primary)]">{post.breed || t("rescueDetails.unknown")}</p>
+                  <p className="text-base sm:text-lg font-bold text-[var(--text-primary)]">{post.breed || t("rescueDetails.unknown")}</p>
                 </div>
                 <div>
                   <p className="text-xs text-[var(--text-secondary)] font-semibold mb-1">{t("rescueDetails.gender")}</p>
-                  <p className="text-lg font-bold text-[var(--text-primary)]">
+                  <p className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
                     {post.gender ? post.gender.charAt(0).toUpperCase() + post.gender.slice(1) : t("rescueDetails.notSpecified")}
                   </p>
                 </div>
@@ -234,43 +235,43 @@ export default function RescueAdoptionPostDetailsModal({
               <>
                 <div>
                   <p className="text-xs text-[var(--text-secondary)] font-semibold mb-1">{t("rescueDetails.petName")}</p>
-                  <p className="text-lg font-bold text-[var(--text-primary)]">{post.name || t("rescueDetails.unknown")}</p>
+                  <p className="text-base sm:text-lg font-bold text-[var(--text-primary)]">{post.name || t("rescueDetails.unknown")}</p>
                 </div>
                 <div>
                   <p className="text-xs text-[var(--text-secondary)] font-semibold mb-1">{t("rescueDetails.type")}</p>
-                  <p className="text-lg font-bold text-[var(--text-primary)]">
+                  <p className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
                     {post.type ? post.type.charAt(0).toUpperCase() + post.type.slice(1) : t("rescueDetails.unknown")}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-[var(--text-secondary)] font-semibold mb-1">{t("rescueDetails.breed")}</p>
-                  <p className="text-lg font-bold text-[var(--text-primary)]">{post.breed || t("rescueDetails.unknown")}</p>
+                  <p className="text-base sm:text-lg font-bold text-[var(--text-primary)]">{post.breed || t("rescueDetails.unknown")}</p>
                 </div>
                 <div>
                   <p className="text-xs text-[var(--text-secondary)] font-semibold mb-1">{t("rescueDetails.gender")}</p>
-                  <p className="text-lg font-bold text-[var(--text-primary)]">
+                  <p className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
                     {post.gender ? post.gender.charAt(0).toUpperCase() + post.gender.slice(1) : t("rescueDetails.notSpecified")}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-[var(--text-secondary)] font-semibold mb-1">{t("rescueDetails.age")}</p>
-                  <p className="text-lg font-bold text-[var(--text-primary)]">
+                  <p className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
                     {post.age ? t("rescueDetails.ageDisplay", { count: post.age }) : t("rescueDetails.notSpecified")}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-[var(--text-secondary)] font-semibold mb-1">{t("rescueDetails.color")}</p>
-                  <p className="text-lg font-bold text-[var(--text-primary)]">{post.color || t("rescueDetails.notSpecified")}</p>
+                  <p className="text-base sm:text-lg font-bold text-[var(--text-primary)]">{post.color || t("rescueDetails.notSpecified")}</p>
                 </div>
                 <div>
                   <p className="text-xs text-[var(--text-secondary)] font-semibold mb-1">{t("rescueDetails.weight")}</p>
-                  <p className="text-lg font-bold text-[var(--text-primary)]">
+                  <p className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
                     {post.weight ? `${post.weight} kg` : t("rescueDetails.notSpecified")}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-[var(--text-secondary)] font-semibold mb-1">{t("rescueDetails.pottyTrained")}</p>
-                  <p className="text-lg font-bold text-[var(--text-primary)]">
+                  <p className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
                     {post.potty_trained === true ? "✅ Yes" : post.potty_trained === false ? "❌ No" : t("rescueDetails.notSpecified")}
                   </p>
                 </div>
@@ -279,8 +280,8 @@ export default function RescueAdoptionPostDetailsModal({
           </div>
 
           {/* Location & Date */}
-          <div className="bg-[var(--bg-secondary)] rounded-lg p-4 mb-6">
-            <div className="grid grid-cols-2 gap-4">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl p-4 mb-5 sm:mb-6">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <p className="text-xs text-[var(--text-secondary)] font-semibold mb-1">
                   {isRescue ? t("rescueDetails.rescueLocation") : t("rescueDetails.ownerLocation")}
@@ -327,7 +328,7 @@ export default function RescueAdoptionPostDetailsModal({
           )}
 
           {/* Owner / Reporter Contact */}
-          <div className="bg-[var(--bg-secondary)] rounded-lg p-4 mb-6">
+          <div className="bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl p-4 mb-5 sm:mb-6">
             <p className="text-xs text-[var(--text-secondary)] font-semibold mb-3">
               {isRescue ? t("rescueDetails.reportedBy") : t("rescueDetails.contactOwner")}
             </p>
@@ -336,22 +337,22 @@ export default function RescueAdoptionPostDetailsModal({
                 <img
                   src={post.profile_picture.startsWith("http") ? post.profile_picture : `${process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:5000"}${post.profile_picture}`}
                   alt={post.owner_name}
-                  className="w-10 h-10 rounded-full object-cover bg-[var(--accent)]"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover bg-[var(--accent)] shrink-0"
                   onError={(e: any) => { (e.target as any).style.display = "none"; }}
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-[var(--accent)] flex items-center justify-center text-white font-bold">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[var(--accent)] flex items-center justify-center text-white font-bold shrink-0">
                   {post.owner_name ? post.owner_name.charAt(0).toUpperCase() : "U"}
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-[var(--text-primary)]">{post.owner_name}</p>
+                <p className="font-semibold text-[var(--text-primary)] truncate">{post.owner_name}</p>
               </div>
               <button
                 onClick={() => setContactOpen(true)}
-                className="px-4 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-all flex items-center gap-1 shrink-0"
+                className="btn btn-primary shrink-0 px-3 rounded-lg text-xs font-semibold gap-1 min-h-[34px]"
               >
-                📞 Contact Now
+                📞 {t("details.contactShort", "Contact")}
               </button>
             </div>
           </div>

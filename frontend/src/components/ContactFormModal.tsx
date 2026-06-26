@@ -47,11 +47,19 @@ export default function ContactFormModal({ open, onClose, postId, postType, owne
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 bg-black/50 z-[70] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[70] flex items-center justify-center"
+      style={{
+        background: "rgba(5,8,15,0.75)",
+        backdropFilter: "blur(6px)",
+        WebkitBackdropFilter: "blur(6px)",
+        padding: "16px 12px",
+        paddingTop: "max(16px, env(safe-area-inset-top))",
+        paddingBottom: "max(16px, env(safe-area-inset-bottom))",
+      }}
     >
       <div
         onClick={(e: any) => e.stopPropagation()}
-        className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-6 w-full max-w-md shadow-xl"
+        className="glass-modal p-6 w-full max-w-md max-h-[90dvh] overflow-y-auto"
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-[var(--text-primary)]">

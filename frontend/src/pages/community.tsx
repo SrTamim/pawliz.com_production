@@ -76,84 +76,85 @@ export default function CommunityPage({ ogPost = null }: any) {
         {ogPost?.images?.[0] && <meta property="og:image" content={getImageUrl(ogPost.images[0]) ?? ""} key="og:image" />}
       </Head>
 
-      <div className="min-h-screen bg-[var(--bg-primary)] px-3 sm:px-6 py-6" style={{ paddingTop: "calc(var(--header-height) + 16px)" }}>
-        <div className="w-full">
-          <h1 className="text-3xl font-bold font-syne text-[var(--text-primary)] mb-1">{t("title")}</h1>
-          <p className="text-[var(--text-secondary)] mb-5">{t("subtitle")}</p>
-
-          {/* Composer pill — always shown; click prompts login when logged out */}
-          <button
-            onClick={openCompose}
-            className="w-full flex items-center gap-3 bg-[var(--bg-card)] border border-[var(--border)] rounded-full px-4 py-3 mb-4 hover:shadow transition-all text-left"
-          >
-            {user?.profile_picture ? (
-              <img src={getImageUrl(user.profile_picture) ?? undefined} alt="" className="w-9 h-9 rounded-full object-cover" />
-            ) : (
-              <div className="w-9 h-9 rounded-full bg-[var(--accent)] flex items-center justify-center text-white text-sm font-bold">{user?.name?.charAt(0).toUpperCase() || "?"}</div>
-            )}
-            <span className="text-[var(--text-secondary)]">{t("composePrompt")}</span>
-          </button>
-
-          {/* Tag filter pills */}
-          <div className="sticky z-10 -mx-3 px-3 py-2 bg-[var(--bg-primary)]" style={{ top: "var(--header-height)" }}>
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              <button
-                onClick={() => setActiveTags([])}
-                className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap border transition-all ${activeTags.length === 0 ? "bg-[var(--accent)] border-[var(--accent)] text-white" : "border-[var(--border)] text-[var(--text-secondary)]"}`}
-              >
-                {t("filter.all")}
-              </button>
-              {tags.map((tg) => {
-                const active = activeTags.includes(tg.slug);
-                return (
-                  <button
-                    key={tg.id}
-                    onClick={() => toggleTag(tg.slug)}
-                    className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap border transition-all ${active ? "bg-[var(--accent)] border-[var(--accent)] text-white" : "border-[var(--border)] text-[var(--text-secondary)]"}`}
-                  >
-                    {tg.label}
-                  </button>
-                );
-              })}
-            </div>
-            <p className="text-xs text-[var(--text-secondary)] mt-1">
-              {activeTags.length > 0 ? t("feed.window45") : t("feed.window20")}
-            </p>
-          </div>
-
-          {/* Feed — equal-height grid: single column on mobile, multi-column on wide screens */}
-          {isLoadingInitial ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-lg h-[360px] animate-pulse" />
-              ))}
-            </div>
-          ) : error ? (
-            <p className="text-center text-[var(--text-secondary)] py-12">{t("feed.loadError")}</p>
-          ) : posts.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="text-6xl mb-4">🐾</div>
-              <p className="text-[var(--text-secondary)]">{activeTags.length > 0 ? t("feed.emptyFiltered") : t("feed.empty")}</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-4 items-stretch">
-              {posts.map((post) => (
-                <CommunityPostCard
-                  key={post.id}
-                  post={post}
-                  onOpen={setDetailsPost}
-                  onEdit={(p) => { setEditPost(p); setComposeOpen(true); }}
-                  onDeleted={removePost}
-                  onReported={removePost}
-                />
-              ))}
-            </div>
-          )}
-
-          <div ref={sentinelRef} className="h-10" />
-          {isLoadingMore && <p className="text-center text-[var(--text-secondary)] py-4">…</p>}
+      <main className="shell">
+        <div className="page-head">
+          <span className="eyebrow">{t("title")}</span>
+          <h1>{t("subtitle")}</h1>
         </div>
-      </div>
+
+        {/* Composer pill — highlighted primary CTA; click prompts login when logged out */}
+        <button
+          onClick={openCompose}
+          className="glass compose-pill w-full flex items-center gap-3 text-left"
+          style={{ padding: "14px 16px", borderRadius: "var(--pill)", marginBottom: 18 }}
+        >
+          {user?.profile_picture ? (
+            <span className="avatar sm"><img src={getImageUrl(user.profile_picture) ?? undefined} alt="" /></span>
+          ) : (
+            <span className="avatar sm">{user?.name?.charAt(0).toUpperCase() || "?"}</span>
+          )}
+          <span className="muted">{t("composePrompt")}</span>
+        </button>
+
+        {/* Tag filter — segmented pills, full-bleed on mobile (square edges, no card bg) */}
+        <div className="tag-strip sticky z-10 py-2" style={{ top: "var(--header-height)", marginBottom: 8 }}>
+          <div className="tabs" role="tablist" style={{ maxWidth: "100%", overflowX: "auto", flexWrap: "nowrap" }}>
+            <button
+              role="tab"
+              aria-selected={activeTags.length === 0}
+              onClick={() => setActiveTags([])}
+            >
+              {t("filter.all")}
+            </button>
+            {tags.map((tg) => (
+              <button
+                key={tg.id}
+                role="tab"
+                aria-selected={activeTags.includes(tg.slug)}
+                onClick={() => toggleTag(tg.slug)}
+                style={{ whiteSpace: "nowrap" }}
+              >
+                {tg.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs muted mt-1" style={{ marginLeft: 6 }}>
+            {activeTags.length > 0 ? t("feed.window45") : t("feed.window20")}
+          </p>
+        </div>
+
+        {/* Feed — equal-height card grid */}
+        {isLoadingInitial ? (
+          <div className="card-grid" style={{ marginTop: 8 }}>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="glass h-[360px] animate-pulse" />
+            ))}
+          </div>
+        ) : error ? (
+          <p className="text-center muted py-12">{t("feed.loadError")}</p>
+        ) : posts.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="text-6xl mb-4">🐾</div>
+            <p className="muted">{activeTags.length > 0 ? t("feed.emptyFiltered") : t("feed.empty")}</p>
+          </div>
+        ) : (
+          <div className="card-grid items-stretch" style={{ marginTop: 8 }}>
+            {posts.map((post) => (
+              <CommunityPostCard
+                key={post.id}
+                post={post}
+                onOpen={setDetailsPost}
+                onEdit={(p) => { setEditPost(p); setComposeOpen(true); }}
+                onDeleted={removePost}
+                onReported={removePost}
+              />
+            ))}
+          </div>
+        )}
+
+        <div ref={sentinelRef} className="h-10" />
+        {isLoadingMore && <p className="text-center muted py-4">…</p>}
+      </main>
 
       <CommunityComposeModal
         open={composeOpen}

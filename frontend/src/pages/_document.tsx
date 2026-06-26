@@ -39,13 +39,16 @@ export default function Document() {
       <body>
         <Main />
         <NextScript />
-        {/* Cloudflare Web Analytics */}
-        <Script
-          id="cloudflare-analytics"
-          strategy="afterInteractive"
-          src="https://static.cloudflareinsights.com/beacon.min.js"
-          data-cf-beacon='{"token": "faf12ef901d34a75942772884d2981a3"}'
-        />
+        {/* Cloudflare Web Analytics — beacon token from env, not hardcoded.
+            Unset → analytics script is skipped. */}
+        {process.env.NEXT_PUBLIC_CF_BEACON_TOKEN && (
+          <Script
+            id="cloudflare-analytics"
+            strategy="afterInteractive"
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon={`{"token": "${process.env.NEXT_PUBLIC_CF_BEACON_TOKEN}"}`}
+          />
+        )}
       </body>
     </Html>
   );

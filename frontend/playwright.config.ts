@@ -18,10 +18,32 @@ export default defineConfig({
   use: {
     baseURL: BASE_URL,
     trace: "on-first-retry",
+    screenshot: "on",
   },
   projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
-    { name: "mobile-chrome", use: { ...devices["Pixel 5"] } },
+    // Public (logged-out) specs — everything in tests/ except the authed dir.
+    {
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
+      testIgnore: /tests[\\/]auth[\\/]/,
+    },
+    {
+      name: "mobile-chrome",
+      use: { ...devices["Pixel 5"] },
+      testIgnore: /tests[\\/]auth[\\/]/,
+    },
+    // One-time login → saves storageState for the authed project.
+    { name: "setup", testMatch: /auth\.setup\.ts/ },
+    // Logged-in specs live in tests/auth/ and reuse the saved session.
+    {
+      name: "chromium-auth",
+      testMatch: /tests[\\/]auth[\\/].*\.spec\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: "tests/.auth/user.json",
+      },
+      dependencies: ["setup"],
+    },
   ],
   // Don't manage the server when pointing at an external base URL.
   webServer: process.env.PLAYWRIGHT_BASE_URL

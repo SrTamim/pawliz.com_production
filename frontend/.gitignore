@@ -38,3 +38,6 @@ next-env.d.ts
 
 # impeccable hook cache
 **/.impeccable/
+
+# Playwright auth state
+tests/.auth/

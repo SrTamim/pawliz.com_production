@@ -44,7 +44,7 @@ function WeeklyScheduleView({ schedule, closedLabel = 'Closed' }: any) {
   );
 }
 
-export default function VetDetailPage({ vetId, open, onClose, onAuthRequired, fullPage = false, initialVet = null }: any) {
+export default function VetDetailPage({ vetId, open, onClose, onAuthRequired, fullPage = false, initialVet = null, onReviewChange }: any) {
   const [vet, setVet] = useState<any>(initialVet);
   const [reviews, setReviews] = useState<any[]>([]);
   const [qualifications, setQualifications] = useState<any[]>([]);

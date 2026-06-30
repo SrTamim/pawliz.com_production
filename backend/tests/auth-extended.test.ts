@@ -61,10 +61,16 @@ describe('Auth extended routes', () => {
       expect(res.status).toBe(400);
     });
 
-    it('returns 404 when phone not registered', async () => {
+    it('does not reveal an unregistered phone (anti-enumeration)', async () => {
+      // SMS enabled but the phone is not registered. The endpoint must respond
+      // identically to the "exists" case (200 { sent: true }) and must NOT send
+      // an OTP, so an attacker cannot tell whether the account exists.
+      smsService.getSmsEnabled.mockResolvedValueOnce(true);
       pool.query.mockResolvedValueOnce({ rows: [] }); // user not found
       const res = await request(app).post('/api/v1/auth/forgot-password/send-otp').send({ phone: '01712345678' });
-      expect(res.status).toBe(404);
+      expect(res.status).toBe(200);
+      expect(res.body.sent).toBe(true);
+      expect(smsService.sendOtp).not.toHaveBeenCalled();
     });
 
     it('returns { skipped: true } when SMS disabled', async () => {

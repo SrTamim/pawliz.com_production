@@ -3,6 +3,7 @@ import express from 'express';
 const router = express.Router();
 import { body, validationResult } from 'express-validator';
 import { authenticate, optionalAuth } from '../middleware/auth';
+import requireIntParam from '../middleware/requireIntParam';
 import upload from '../middleware/upload';
 import * as lostFoundService from '../services/lostFoundService';
 import * as reactionService from '../services/reactionService';
@@ -42,7 +43,7 @@ router.get("/lost", async (req: Request, res: Response) => {
   }
 });
 
-router.get("/lost/:id", async (req: Request, res: Response) => {
+router.get("/lost/:id", requireIntParam("id"), async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.id);
     if (isNaN(postId)) return res.status(400).json({ error: "Invalid post ID" });
@@ -56,7 +57,7 @@ router.get("/lost/:id", async (req: Request, res: Response) => {
   }
 });
 
-router.put("/lost/:id", authenticate, async (req: Request, res: Response) => {
+router.put("/lost/:id", authenticate, requireIntParam("id"), async (req: Request, res: Response) => {
   const reportId = parseInt(req.params.id);
   if (isNaN(reportId)) return res.status(400).json({ error: "Invalid report ID" });
 
@@ -93,7 +94,7 @@ router.put("/lost/:id", authenticate, async (req: Request, res: Response) => {
   }
 });
 
-router.delete("/lost/:id", authenticate, async (req: Request, res: Response) => {
+router.delete("/lost/:id", authenticate, requireIntParam("id"), async (req: Request, res: Response) => {
   const reportId = parseInt(req.params.id);
   if (isNaN(reportId)) return res.status(400).json({ error: "Invalid report ID" });
 
@@ -118,7 +119,7 @@ router.delete("/lost/:id", authenticate, async (req: Request, res: Response) => 
 });
 
 // PUT /api/v1/lost-found/lost/:id/found — Mark lost pet as reunited/found
-router.put("/lost/:id/found", authenticate, async (req: Request, res: Response) => {
+router.put("/lost/:id/found", authenticate, requireIntParam("id"), async (req: Request, res: Response) => {
   const reportId = parseInt(req.params.id);
   if (isNaN(reportId)) return res.status(400).json({ error: "Invalid report ID" });
 
@@ -170,7 +171,7 @@ router.get("/found", async (req: Request, res: Response) => {
   }
 });
 
-router.get("/found/:id", async (req: Request, res: Response) => {
+router.get("/found/:id", requireIntParam("id"), async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.id);
     if (isNaN(postId)) return res.status(400).json({ error: "Invalid post ID" });
@@ -217,7 +218,7 @@ router.post(
   },
 );
 
-router.put("/found/:id", authenticate, upload.array("images", 3), async (req: Request, res: Response) => {
+router.put("/found/:id", authenticate, requireIntParam("id"), upload.array("images", 3), async (req: Request, res: Response) => {
   const postId = parseInt(req.params.id);
   if (isNaN(postId)) return res.status(400).json({ error: "Invalid post ID" });
 
@@ -233,7 +234,7 @@ router.put("/found/:id", authenticate, upload.array("images", 3), async (req: Re
   }
 });
 
-router.delete("/found/:id", authenticate, async (req: Request, res: Response) => {
+router.delete("/found/:id", authenticate, requireIntParam("id"), async (req: Request, res: Response) => {
   const postId = parseInt(req.params.id);
   if (isNaN(postId)) return res.status(400).json({ error: "Invalid post ID" });
 
@@ -278,7 +279,7 @@ router.post(
   },
 );
 
-router.get("/comments/:postType/:postId", async (req: Request, res: Response) => {
+router.get("/comments/:postType/:postId", requireIntParam("postId"), async (req: Request, res: Response) => {
   try {
     const { postType, postId } = req.params;
     if (!["lost", "found"].includes(postType))
@@ -294,7 +295,7 @@ router.get("/comments/:postType/:postId", async (req: Request, res: Response) =>
   }
 });
 
-router.delete("/comments/:id", authenticate, async (req: Request, res: Response) => {
+router.delete("/comments/:id", authenticate, requireIntParam("id"), async (req: Request, res: Response) => {
   const commentId = parseInt(req.params.id);
   if (isNaN(commentId)) return res.status(400).json({ error: "Invalid comment ID" });
 
@@ -336,7 +337,7 @@ router.post(
 );
 
 // GET /api/v1/lost-found/reactions/:postType/:postId - Counts + this user's reaction
-router.get("/reactions/:postType/:postId", optionalAuth, async (req: Request, res: Response) => {
+router.get("/reactions/:postType/:postId", optionalAuth, requireIntParam("postId"), async (req: Request, res: Response) => {
   try {
     const { postType, postId } = req.params;
     if (!reactionService.isPostType(postType))

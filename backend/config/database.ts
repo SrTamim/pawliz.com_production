@@ -24,11 +24,27 @@ const baseConfig: PoolConfig = {
   statement_timeout: 30000,
 };
 
+// Production TLS. When DB_CA_CERT is provided we verify the server cert against
+// it (rejectUnauthorized=true) — the secure path, preventing DB-connection MITM.
+// Without a CA we fall back to an encrypted-but-unverified connection
+// (rejectUnauthorized=false): this matches managed providers like Supabase whose
+// pooler cert chain isn't in the system store, but it is weaker — set DB_CA_CERT
+// in production to close the gap (see .env.example).
+function prodSsl(): PoolConfig['ssl'] {
+  if (!isProd) return false;
+  const ca = process.env.DB_CA_CERT;
+  if (ca) {
+    // Allow either a literal PEM (with escaped newlines) or a real multiline value.
+    return { ca: ca.replace(/\\n/g, '\n'), rejectUnauthorized: true };
+  }
+  return { rejectUnauthorized: false };
+}
+
 const poolConfig: PoolConfig = process.env.DATABASE_URL
   ? {
       ...baseConfig,
       connectionString: process.env.DATABASE_URL,
-      ssl: isProd ? { rejectUnauthorized: false } : false,
+      ssl: prodSsl(),
     }
   : {
       ...baseConfig,
@@ -37,7 +53,7 @@ const poolConfig: PoolConfig = process.env.DATABASE_URL
       database: process.env.DB_NAME || 'pawliz',
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD,
-      ssl: isProd ? { rejectUnauthorized: false } : false,
+      ssl: prodSsl(),
     };
 
 const pool = new Pool(poolConfig);

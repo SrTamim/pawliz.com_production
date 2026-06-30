@@ -185,10 +185,10 @@ const otpLimiter = rateLimit({
   // Always key on valid phone when present; fall back to IP for missing/invalid phone
   keyGenerator: (req) => {
     const phone = req.body?.phone;
-    // NOTE(pre-existing): ipKeyGenerator(req) — v8 expects an IP string; the
-    // whole req object is returned unchanged, so anonymous OTP traffic keys on
-    // "[object Object]". Preserved as-is (see utils/rateLimitHelpers note).
-    return (phone && /^01[3-9]\d{8}$/.test(phone.trim())) ? phone.trim() : ipKeyGenerator(req as any);
+    // Key on a valid phone when present; otherwise fall back to the real client
+    // IP. ipKeyGenerator expects an IP string (req.ip, available via trust proxy)
+    // and normalizes IPv6 subnets — so each anonymous client gets its own bucket.
+    return (phone && /^01[3-9]\d{8}$/.test(phone.trim())) ? phone.trim() : ipKeyGenerator(req.ip ?? '');
   },
   message: { error: "Too many OTP requests. Please wait 5 minutes." },
 });

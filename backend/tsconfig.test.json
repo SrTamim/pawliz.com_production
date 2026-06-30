@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "strict": false,
+    "strict": true,
     "noEmit": true
   },
   "include": ["tests/**/*.ts", "types/**/*.d.ts", "**/*.ts"],

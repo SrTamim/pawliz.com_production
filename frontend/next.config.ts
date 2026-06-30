@@ -1,3 +1,14 @@
+// Fail the production build if the backend URL is missing. Without this, the app
+// silently falls back to http://localhost:5000 (see src/lib/api.ts) and every API
+// call from a deployed browser fails (CORS/hang) with no obvious cause. Dev/test
+// keep the localhost fallback. NODE_ENV is "production" during `next build` on
+// Vercel, so this catches a forgotten env var before it ships.
+if (process.env.NODE_ENV === "production" && !process.env.NEXT_PUBLIC_API_URL) {
+  throw new Error(
+    "NEXT_PUBLIC_API_URL is required for production builds. Set it in the deploy environment (e.g. Vercel project settings) before building.",
+  );
+}
+
 // Derive the backend HTTP + WS origin from NEXT_PUBLIC_API_URL for CSP connect-src.
 // Guarded so a missing/invalid env never breaks `next build`.
 function backendOrigins() {

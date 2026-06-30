@@ -53,9 +53,8 @@ blob-report/
 playwright/.cache/
 **/playwright/.cache/
 
-# Playwright test scripts (kept local, not committed)
+# Playwright local scratch specs (config + tracked specs stay committed)
 frontend/e2e/
-frontend/playwright.config.ts
 
 # Test session artifacts (root)
 /helpboard-lost.yaml

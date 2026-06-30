@@ -4,6 +4,7 @@ const router = express.Router();
 import { body, validationResult } from 'express-validator';
 import pool from '../config/database';
 import { authenticate, optionalAuth } from '../middleware/auth';
+import requireIntParam from '../middleware/requireIntParam';
 import upload from '../middleware/upload';
 import { deleteUploadedFiles } from '../utils/fileUtils';
 import * as reactionService from '../services/reactionService';
@@ -74,7 +75,7 @@ router.get("/rescue", async (req: Request, res: Response) => {
 });
 
 // GET /api/rescue-adoption/rescue/:id - Get rescue post details
-router.get("/rescue/:id", async (req: Request, res: Response) => {
+router.get("/rescue/:id", requireIntParam("id"), async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.id);
     if (isNaN(postId)) return res.status(400).json({ error: "Invalid post ID" });
@@ -240,7 +241,7 @@ router.put(
 });
 
 // DELETE /api/rescue-adoption/rescue/:id - Delete rescue post (owner or admin)
-router.delete("/rescue/:id", authenticate, async (req: Request, res: Response) => {
+router.delete("/rescue/:id", authenticate, requireIntParam("id"), async (req: Request, res: Response) => {
   const postId = parseInt(req.params.id);
   if (isNaN(postId)) return res.status(400).json({ error: "Invalid post ID" });
 
@@ -331,7 +332,7 @@ router.get("/adoption", async (req: Request, res: Response) => {
 });
 
 // GET /api/rescue-adoption/adoption/:id - Get adoption post details
-router.get("/adoption/:id", async (req: Request, res: Response) => {
+router.get("/adoption/:id", requireIntParam("id"), async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.id);
     if (isNaN(postId)) return res.status(400).json({ error: "Invalid post ID" });
@@ -398,7 +399,7 @@ router.post(
 );
 
 // DELETE /api/rescue-adoption/adoption/:id - Delete adoption post (owner or admin)
-router.delete("/adoption/:id", authenticate, async (req: Request, res: Response) => {
+router.delete("/adoption/:id", authenticate, requireIntParam("id"), async (req: Request, res: Response) => {
   const postId = parseInt(req.params.id);
   if (isNaN(postId)) return res.status(400).json({ error: "Invalid post ID" });
 
@@ -496,7 +497,7 @@ router.post(
 );
 
 // GET /api/rescue-adoption/comments/:postType/:postId - Get comments for a post
-router.get("/comments/:postType/:postId", async (req: Request, res: Response) => {
+router.get("/comments/:postType/:postId", requireIntParam("postId"), async (req: Request, res: Response) => {
   try {
     const { postType, postId } = req.params;
 
@@ -531,7 +532,7 @@ router.get("/comments/:postType/:postId", async (req: Request, res: Response) =>
 });
 
 // DELETE /api/rescue-adoption/comments/:id - Delete a comment
-router.delete("/comments/:id", authenticate, async (req: Request, res: Response) => {
+router.delete("/comments/:id", authenticate, requireIntParam("id"), async (req: Request, res: Response) => {
   const commentId = parseInt(req.params.id);
   if (isNaN(commentId)) return res.status(400).json({ error: "Invalid comment ID" });
 
@@ -578,7 +579,7 @@ router.post(
 );
 
 // GET /api/v1/rescue-adoption/reactions/:postType/:postId - Counts + this user's reaction
-router.get("/reactions/:postType/:postId", optionalAuth, async (req: Request, res: Response) => {
+router.get("/reactions/:postType/:postId", optionalAuth, requireIntParam("postId"), async (req: Request, res: Response) => {
   try {
     const { postType, postId } = req.params;
     if (!reactionService.isPostType(postType))

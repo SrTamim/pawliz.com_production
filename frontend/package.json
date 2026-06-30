@@ -2,6 +2,9 @@
   "name": "pawliz-frontend",
   "version": "1.0.0",
   "description": "Pawliz - Veterinary Platform Frontend",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "node scripts/run-next.cjs dev",
     "build": "node scripts/run-next.cjs build",
@@ -42,6 +45,6 @@
     "@types/react-dom": "^18.3.7",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.31",
-    "typescript": "^5.6.3"
+    "typescript": "^6.0.3"
   }
 }

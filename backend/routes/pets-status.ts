@@ -5,11 +5,12 @@ import { body } from 'express-validator';
 import pool from '../config/database';
 import { authenticate } from '../middleware/auth';
 import validate from '../middleware/validate';
+import requireIntParam from '../middleware/requireIntParam';
 import logger from '../utils/logger';
 import { logActivity } from '../utils/activityLogger';
 
 // POST /api/v1/pets/:id/lost
-router.post("/:id/lost", authenticate, [
+router.post("/:id/lost", authenticate, requireIntParam("id"), [
   body("lost_date").notEmpty().withMessage("Lost date is required"),
 ], validate, async (req: Request, res: Response) => {
   const petDbId = parseInt(req.params.id);
@@ -56,7 +57,7 @@ router.post("/:id/lost", authenticate, [
 });
 
 // PUT /api/v1/pets/:id/found
-router.put("/:id/found", authenticate, async (req: Request, res: Response) => {
+router.put("/:id/found", authenticate, requireIntParam("id"), async (req: Request, res: Response) => {
   const petDbId = parseInt(req.params.id);
   const client = await pool.connect();
   try {
@@ -93,7 +94,7 @@ router.put("/:id/found", authenticate, async (req: Request, res: Response) => {
 });
 
 // POST /api/v1/pets/:id/adoption
-router.post("/:id/adoption", authenticate, async (req: Request, res: Response) => {
+router.post("/:id/adoption", authenticate, requireIntParam("id"), async (req: Request, res: Response) => {
   const petDbId = parseInt(req.params.id);
   const { reason, adoption_requirements, contact_preference } = req.body;
   const client = await pool.connect();
@@ -132,7 +133,7 @@ router.post("/:id/adoption", authenticate, async (req: Request, res: Response) =
 });
 
 // PUT /api/v1/pets/:id/adopted
-router.put("/:id/adopted", authenticate, async (req: Request, res: Response) => {
+router.put("/:id/adopted", authenticate, requireIntParam("id"), async (req: Request, res: Response) => {
   const petDbId = parseInt(req.params.id);
   const client = await pool.connect();
   try {

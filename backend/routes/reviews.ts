@@ -3,6 +3,7 @@ import express from 'express';
 const router = express.Router();
 import pool from '../config/database';
 import { authenticate, requirePermission } from '../middleware/auth';
+import requireIntParam from '../middleware/requireIntParam';
 import { hasPermission } from '../utils/permissions';
 import { body, validationResult } from 'express-validator';
 import logger from '../utils/logger';
@@ -118,7 +119,7 @@ router.get("/", authenticate, requirePermission("reviews"), async (req: Request,
 });
 
 // DELETE /api/reviews/:id - Admin or own review
-router.delete("/:id", authenticate, async (req: Request, res: Response) => {
+router.delete("/:id", authenticate, requireIntParam("id"), async (req: Request, res: Response) => {
   try {
     const review = await pool.query("SELECT * FROM reviews WHERE id = $1", [
       req.params.id,

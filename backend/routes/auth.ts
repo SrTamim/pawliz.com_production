@@ -226,19 +226,20 @@ router.post('/forgot-password/send-otp', [
 ], validate, async (req: Request, res: Response) => {
   const { phone } = req.body;
   try {
+    const smsEnabled = await smsService.getSmsEnabled();
     const userResult = await pool.query(
       'SELECT id FROM users WHERE phone = $1 AND is_active = true',
       [phone]
     );
-    if (!userResult.rows.length) {
-      return res.status(404).json({ error: 'Phone number not found' });
+    // Anti-enumeration: never reveal whether the phone is registered. Respond the
+    // same whether or not the account exists — only actually send the OTP when the
+    // account is real. An attacker probing numbers learns nothing from the reply.
+    if (userResult.rows.length && smsEnabled) {
+      await smsService.sendOtp(phone);
     }
-    const smsEnabled = await smsService.getSmsEnabled();
-    if (!smsEnabled) {
-      return res.json({ skipped: true });
-    }
-    await smsService.sendOtp(phone);
-    res.json({ sent: true });
+    // `skipped` (SMS globally disabled) drives the UI straight to the reset step,
+    // matching the old behavior; otherwise the UI moves to the OTP step.
+    return res.json(smsEnabled ? { sent: true } : { skipped: true });
   } catch (err) {
     logger.error('Forgot password send OTP error:', err);
     res.status(500).json({ error: 'Failed to send OTP. Try again.' });

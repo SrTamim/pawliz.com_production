@@ -49,6 +49,7 @@
     "viewProfile": "View Full Profile",
     "loadingProfile": "Loading clinic profile...",
     "noProfile": "Could not load vet profile",
+    "retry": "Try again",
     "addressLabel": "Address",
     "phoneLabel": "Phone",
     "emailLabel": "Email"

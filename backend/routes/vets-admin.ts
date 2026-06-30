@@ -3,6 +3,7 @@ import express from 'express';
 const router = express.Router();
 import pool from '../config/database';
 import { authenticate, requirePermission } from '../middleware/auth';
+import requireIntParam from '../middleware/requireIntParam';
 import upload from '../middleware/upload';
 import { body, validationResult } from 'express-validator';
 import { deleteUploadedFile } from '../utils/fileUtils';
@@ -74,7 +75,7 @@ router.post(
  * PUT /api/v1/vets-admin/:id
  * Update vet (admin only)
  */
-router.put("/:id", authenticate, requirePermission("vets.edit"), [
+router.put("/:id", authenticate, requireIntParam("id"), requirePermission("vets.edit"), [
   body("name").optional().trim().notEmpty().withMessage("Name cannot be empty").isLength({ max: 200 }),
   body("location_name").optional().trim().notEmpty().isLength({ max: 200 }),
   body("latitude").optional().isFloat({ min: -90, max: 90 }),
@@ -119,7 +120,7 @@ router.put("/:id", authenticate, requirePermission("vets.edit"), [
  * DELETE /api/v1/vets-admin/:id
  * Soft delete vet (admin only)
  */
-router.delete("/:id", authenticate, requirePermission("vets.delete"), async (req: Request, res: Response) => {
+router.delete("/:id", authenticate, requireIntParam("id"), requirePermission("vets.delete"), async (req: Request, res: Response) => {
   try {
     const vetCheck = await pool.query("SELECT image FROM vets WHERE id = $1", [
       req.params.id,
@@ -149,6 +150,7 @@ router.delete("/:id", authenticate, requirePermission("vets.delete"), async (req
 router.post(
   "/:id/image",
   authenticate,
+  requireIntParam("id"),
   requirePermission("vets.edit"),
   upload.single("image"),
   async (req: Request, res: Response) => {

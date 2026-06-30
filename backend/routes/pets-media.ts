@@ -3,12 +3,13 @@ import express from 'express';
 const router = express.Router();
 import pool from '../config/database';
 import { authenticate } from '../middleware/auth';
+import requireIntParam from '../middleware/requireIntParam';
 import upload from '../middleware/upload';
 import { deleteUploadedFile, deleteUploadedFiles } from '../utils/fileUtils';
 import logger from '../utils/logger';
 
 // POST /api/v1/pets/:id/images
-router.post("/:id/images", authenticate, upload.array("images", 3), async (req: Request, res: Response) => {
+router.post("/:id/images", authenticate, requireIntParam("id"), upload.array("images", 3), async (req: Request, res: Response) => {
   const petDbId = parseInt(req.params.id);
   if (isNaN(petDbId)) return res.status(400).json({ error: "Invalid pet ID" });
   try {

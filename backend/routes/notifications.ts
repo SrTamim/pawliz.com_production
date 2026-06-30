@@ -6,6 +6,7 @@ import pool from '../config/database';
 import { authenticate } from '../middleware/auth';
 import { createNotification } from '../services/notificationService';
 import validate from '../middleware/validate';
+import requireIntParam from '../middleware/requireIntParam';
 import logger from '../utils/logger';
 
 // ==================== GET NOTIFICATIONS ====================
@@ -95,7 +96,7 @@ router.put("/read-all/all", authenticate, async (req: Request, res: Response) =>
 });
 
 // PUT /api/notifications/:id/read - Mark single notification as read
-router.put("/:id/read", authenticate, async (req: Request, res: Response) => {
+router.put("/:id/read", authenticate, requireIntParam("id"), async (req: Request, res: Response) => {
   try {
     const notificationId = parseInt(req.params.id);
     if (isNaN(notificationId))
@@ -122,7 +123,7 @@ router.put("/:id/read", authenticate, async (req: Request, res: Response) => {
 // ==================== DELETE NOTIFICATIONS ====================
 
 // DELETE /api/notifications/:id - Delete notification
-router.delete("/:id", authenticate, async (req: Request, res: Response) => {
+router.delete("/:id", authenticate, requireIntParam("id"), async (req: Request, res: Response) => {
   try {
     const notificationId = parseInt(req.params.id);
     if (isNaN(notificationId))

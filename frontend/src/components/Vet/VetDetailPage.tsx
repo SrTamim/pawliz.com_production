@@ -44,13 +44,14 @@ function WeeklyScheduleView({ schedule, closedLabel = 'Closed' }: any) {
   );
 }
 
-export default function VetDetailPage({ vetId, open, onClose, onAuthRequired, fullPage = false, initialVet = null }: any) {
+export default function VetDetailPage({ vetId, open, onClose, onAuthRequired, fullPage = false, initialVet = null, onReviewChange }: any) {
   const [vet, setVet] = useState<any>(initialVet);
   const [reviews, setReviews] = useState<any[]>([]);
   const [qualifications, setQualifications] = useState<any[]>([]);
   const [clinicContacts, setClinicContacts] = useState<any[]>([]);
   const [clinicVets, setClinicVets] = useState<any[]>([]);
   const [loading, setLoading] = useState(!initialVet);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -63,11 +64,16 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired, fu
   const { toast } = useToast();
   const { t } = useTranslation("vet");
 
+  const [reloadKey, setReloadKey] = useState(0);
+
   useEffect(() => {
     if (!open || !vetId) return;
+    let cancelled = false;
     setLoading(true);
+    setLoadError(null);
     vetsAPI.getById(vetId)
       .then(res => {
+        if (cancelled) return;
         setVet(res.vet);
         setLogoFailed(false);
         setReviews(res.reviews || []);
@@ -75,9 +81,16 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired, fu
         setClinicContacts(res.clinic_contacts || []);
         setClinicVets(res.clinic_vets || []);
       })
-      .catch(() => setVet(null))
-      .finally(() => setLoading(false));
-  }, [vetId, open]);
+      .catch((e: any) => {
+        if (cancelled) return;
+        // Distinguish a load failure (network/server) from a genuinely missing
+        // vet so the user sees a retry affordance instead of an endless spinner.
+        setVet(null);
+        setLoadError((e as Error)?.message || 'Failed to load profile');
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [vetId, open, reloadKey]);
 
   const submitReview = async () => {
     if (!rating) { toast('Please select a star rating', 'error'); return; }
@@ -89,6 +102,10 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired, fu
       setRating(0); setComment('');
       const res = await vetsAPI.getById(vetId);
       setVet(res.vet); setReviews(res.reviews || []);
+      // Tell the parent (Home) the rating changed so it can refresh map pins +
+      // sidebar, which read the denormalized avg_rating column. Optional: the
+      // standalone /vets/[id] page doesn't pass this and has nothing to refresh.
+      onReviewChange?.(vetId);
     } catch (e: any) { toast(e.message, 'error'); }
     finally { setSubmitting(false); }
   };
@@ -146,6 +163,11 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired, fu
       }}>
         {loading ? (
           <Loading text={t("detail.loadingProfile")} />
+        ) : loadError ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: 32, textAlign: 'center' }}>
+            <EmptyState icon="⚠️" title={t("detail.noProfile")} />
+            <Button variant="accent" onClick={() => setReloadKey(k => k + 1)}>{t("detail.retry")}</Button>
+          </div>
         ) : !vet ? (
           <EmptyState icon="⚠️" title={t("detail.noProfile")} />
         ) : (

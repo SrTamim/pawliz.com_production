@@ -279,9 +279,12 @@ async function seed() {
       `SELECT setval('vets_id_seq', (SELECT COALESCE(MAX(id), 0) FROM vets))`,
     );
 
-    // Create sample users
-    const hashedPassword = await bcrypt.hash("User@123", 12);
-    const adminHash = await bcrypt.hash("Admin@123", 12);
+    // Create sample users. Passwords come from env so they can be rotated on any
+    // shared DB without editing code; the literals are LOCAL dev defaults only.
+    const seedUserPassword = process.env.SEED_USER_PASSWORD || "User@123";
+    const seedAdminPassword = process.env.SEED_ADMIN_PASSWORD || "Admin@123";
+    const hashedPassword = await bcrypt.hash(seedUserPassword, 12);
+    const adminHash = await bcrypt.hash(seedAdminPassword, 12);
 
     // Update admin password properly
     await client.query(
@@ -385,9 +388,9 @@ async function seed() {
     console.log("✅ Inserted sample reviews");
 
     console.log("\n🎉 Seed completed successfully!");
-    console.log("📋 Default credentials:");
-    console.log("   Admin  → Phone: 01700000000 | Password: Admin@123");
-    console.log("   User   → Phone: 01712345678 | Password: User@123");
+    console.log("📋 Seeded accounts (passwords from SEED_ADMIN_PASSWORD / SEED_USER_PASSWORD, default dev values):");
+    console.log("   Admin  → Phone: 01700000000");
+    console.log("   User   → Phone: 01712345678");
   } catch (err) {
     console.error("❌ Seed error:", err);
   } finally {

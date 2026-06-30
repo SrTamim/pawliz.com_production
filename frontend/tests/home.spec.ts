@@ -24,10 +24,16 @@ test("sidebar vet search filters the list", async ({ page }, testInfo) => {
   const search = page.locator("#sidebar-vet-search");
   await expect(search).toBeVisible();
   // Type a query — the list debounces (400ms) then re-queries the backend.
+  // Wait for the actual search request instead of a fixed timer so the test is
+  // neither flaky on a slow backend nor wastes time on a fast one.
+  const searchResponse = page.waitForResponse(
+    (r) => /\/vets(\?|$)/.test(r.url()) && r.request().method() === "GET",
+    { timeout: 10_000 },
+  );
   await search.fill("vet");
   // Either matching vet rows appear, or the empty state shows. Both prove the
   // search ran without error.
-  await page.waitForTimeout(900);
+  await searchResponse;
   const rows = page.locator(".vet-row");
   const count = await rows.count();
   expect(count).toBeGreaterThanOrEqual(0); // no crash; list responded

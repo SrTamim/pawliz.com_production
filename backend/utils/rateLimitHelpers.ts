@@ -53,17 +53,16 @@ export function rateLimitKeyWithLogging(req: Request): string {
       if (e.name === 'TokenExpiredError') {
         logger.debug('Expired token in rate limit check');
       } else if (e.name === 'JsonWebTokenError') {
-        // NOTE(pre-existing): v8 ipKeyGenerator expects an IP string; passing
-        // req returns it unchanged, so the effective key for anonymous traffic
-        // is "[object Object]" (one shared bucket). Preserved as-is — fixing
-        // would change live rate-limit behavior. See migration notes.
-        const ipKey = ipKeyGenerator(req as any);
+        // v8 ipKeyGenerator expects the client IP string (it normalizes IPv6
+        // subnets). req.ip is the real client IP because trust proxy is set in
+        // server.ts. Passing req.ip gives each client its own bucket.
+        const ipKey = ipKeyGenerator(req.ip ?? '');
         logger.warn(`Invalid JWT signature detected from ${ipKey}`);
         recordAuthFailure(ipKey);
       }
     }
   }
-  return ipKeyGenerator(req as any);
+  return ipKeyGenerator(req.ip ?? '');
 }
 
 export function logRateLimitEvent(req: Request, res: Response): void {

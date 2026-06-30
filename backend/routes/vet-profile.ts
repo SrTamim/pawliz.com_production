@@ -77,6 +77,15 @@ const updateVetProfileValidation = [
   body('social_instagram').optional().isLength({ max: 255 }).withMessage('Instagram link max 255 chars'),
   body('social_linkedin').optional().isLength({ max: 255 }).withMessage('LinkedIn link max 255 chars'),
   body('social_whatsapp').optional().isLength({ max: 255 }).withMessage('WhatsApp link max 255 chars'),
+  // Coordinates: allow empty string ("" clears the field in the handler) but
+  // reject out-of-range numbers so a bad value can't be stored.
+  body('latitude').optional({ checkFalsy: true }).isFloat({ min: -90, max: 90 }).withMessage('Latitude must be between -90 and 90'),
+  body('longitude').optional({ checkFalsy: true }).isFloat({ min: -180, max: 180 }).withMessage('Longitude must be between -180 and 180'),
+  // services is stored as a JSON array; the handler coerces non-arrays to [],
+  // but reject an explicit non-array so malformed payloads surface as 400.
+  body('services').optional().isArray().withMessage('services must be an array'),
+  body('weekly_holidays').optional().isArray().withMessage('weekly_holidays must be an array'),
+  body('weekly_schedule').optional().isObject().withMessage('weekly_schedule must be an object'),
 ];
 
 async function updateVetProfile(req: Request, res: Response) {

@@ -3,6 +3,7 @@ import express from 'express';
 const router = express.Router();
 import pool from '../config/database';
 import logger from '../utils/logger';
+import requireIntParam from '../middleware/requireIntParam';
 import * as vetsCache from '../utils/vetsCache';
 
 const SLIM_COLS = `SELECT v.id, v.name, v.location_name, v.latitude, v.longitude, v.address, v.contact, v.image, v.cover_image, v.vet_type, v.avg_rating, v.review_count, v.status, v.approval_status, v.user_id`;
@@ -17,6 +18,9 @@ const FULL_COLS = `SELECT v.id, v.name, v.location_name, v.latitude, v.longitude
 router.get("/", async (req: Request, res: Response) => {
   const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 50));
   const { location, search } = req.query;
+  // Server-side rating filter (clamped 0–5). Sidebar star buttons send this so
+  // the filter spans ALL clinics, not just the loaded page.
+  const minRating = Math.min(5, Math.max(0, parseFloat(req.query.min_rating as string) || 0));
 
   const useCursor = "cursor" in req.query;
   const rawCursor = req.query.cursor as string | undefined;
@@ -28,6 +32,7 @@ router.get("/", async (req: Request, res: Response) => {
   const isCacheableHome =
     !search &&
     !location &&
+    !minRating &&
     (!useCursor || (!Number.isFinite(cursorId) && (rawCursor === "" || rawCursor === undefined))) &&
     page === 1 &&
     (req.query.offset === undefined || parseInt(req.query.offset as string) === 0) &&
@@ -54,6 +59,7 @@ router.get("/", async (req: Request, res: Response) => {
     const params = [];
     if (location) { params.push(`%${location}%`); baseWhere += ` AND v.location_name ILIKE $${params.length}`; }
     if (search) { params.push(`%${search}%`); baseWhere += ` AND (v.name ILIKE $${params.length} OR v.address ILIKE $${params.length} OR v.location_name ILIKE $${params.length})`; }
+    if (minRating > 0) { params.push(minRating); baseWhere += ` AND v.avg_rating >= $${params.length}`; }
     if (useCursor && Number.isFinite(cursorId)) { params.push(cursorId); baseWhere += ` AND v.id > $${params.length}`; }
 
     const selectCols = isCacheableHome ? SLIM_COLS : FULL_COLS;
@@ -197,7 +203,7 @@ router.get("/map", async (req: Request, res: Response) => {
  * GET /api/v1/vets/:id/reviews
  * Paginated reviews for a vet
  */
-router.get("/:id/reviews", async (req: Request, res: Response) => {
+router.get("/:id/reviews", requireIntParam("id"), async (req: Request, res: Response) => {
   try {
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 10));
@@ -228,7 +234,7 @@ router.get("/:id/reviews", async (req: Request, res: Response) => {
  * GET /api/v1/vets/:id
  * Get single vet details with reviews, qualifications, documents
  */
-router.get("/:id", async (req: Request, res: Response) => {
+router.get("/:id", requireIntParam("id"), async (req: Request, res: Response) => {
   try {
     const vetResult = await pool.query(
       `SELECT v.id, v.name, v.location_name, v.latitude, v.longitude, v.address, v.contact, v.email, v.website, v.image, v.cover_image, v.description, v.services, v.clinic_reg_number, v.vet_type, v.checkup_start, v.checkup_end, v.weekly_holidays, v.weekly_schedule, v.social_facebook, v.social_instagram, v.social_linkedin, v.social_whatsapp, v.is_active, v.created_at, v.updated_at, v.status, v.approval_status, v.user_id, COALESCE(AVG(r.rating), 0)::DECIMAL(3,2) AS avg_rating, COUNT(r.id)::INTEGER AS review_count FROM vets v LEFT JOIN reviews r ON v.id = r.vet_id AND r.is_active = true WHERE v.id = $1 AND v.is_active = true AND (v.approval_status = 'approved' OR v.approval_status IS NULL) GROUP BY v.id`,

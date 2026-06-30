@@ -3,6 +3,7 @@ import express from 'express';
 const router = express.Router();
 import pool from '../config/database';
 import { authenticate, requirePermission, requireAnyPermission } from '../middleware/auth';
+import requireIntParam from '../middleware/requireIntParam';
 import logger from '../utils/logger';
 
 // GET /api/v1/admin/pets
@@ -45,7 +46,7 @@ router.get("/pets", authenticate, requireAnyPermission("pets", "lost-pets-mgmt",
 });
 
 // PUT /api/v1/admin/pets/:id
-router.put("/pets/:id", authenticate, requirePermission("pets.edit"), async (req: Request, res: Response) => {
+router.put("/pets/:id", authenticate, requireIntParam("id"), requirePermission("pets.edit"), async (req: Request, res: Response) => {
   const { name, type, breed, gender, age, color, weight, potty_trained, is_active, status } = req.body;
   const petId = parseInt(req.params.id);
   try {
@@ -121,7 +122,7 @@ router.put("/pets/:id", authenticate, requirePermission("pets.edit"), async (req
 });
 
 // DELETE /api/v1/admin/pets/:id
-router.delete("/pets/:id", authenticate, requirePermission("pets.delete"), async (req: Request, res: Response) => {
+router.delete("/pets/:id", authenticate, requireIntParam("id"), requirePermission("pets.delete"), async (req: Request, res: Response) => {
   try {
     const r = await pool.query("UPDATE pets SET is_active = false, updated_at = NOW() WHERE id = $1 RETURNING id", [req.params.id]);
     if (!r.rows[0]) return res.status(404).json({ error: "Pet not found" });
@@ -161,7 +162,7 @@ router.get("/found-pets", authenticate, requirePermission("found-pets"), async (
 });
 
 // PUT /api/v1/admin/found-pets/:id
-router.put("/found-pets/:id", authenticate, requirePermission("found-pets.edit"), async (req: Request, res: Response) => {
+router.put("/found-pets/:id", authenticate, requireIntParam("id"), requirePermission("found-pets.edit"), async (req: Request, res: Response) => {
   const { pet_type, color, gender, breed, found_location_name, found_date, description, status, is_active } = req.body;
   try {
     const updates = [];
@@ -191,7 +192,7 @@ router.put("/found-pets/:id", authenticate, requirePermission("found-pets.edit")
 });
 
 // DELETE /api/v1/admin/found-pets/:id
-router.delete("/found-pets/:id", authenticate, requirePermission("found-pets.delete"), async (req: Request, res: Response) => {
+router.delete("/found-pets/:id", authenticate, requireIntParam("id"), requirePermission("found-pets.delete"), async (req: Request, res: Response) => {
   try {
     await pool.query("UPDATE found_pet_reports SET is_active = false, updated_at = NOW() WHERE id = $1", [req.params.id]);
     res.json({ message: "Report deactivated" });
@@ -230,7 +231,7 @@ router.get("/rescue-pets", authenticate, requirePermission("rescue-pets"), async
 });
 
 // PUT /api/v1/admin/rescue-pets/:id
-router.put("/rescue-pets/:id", authenticate, requirePermission("rescue-pets.edit"), async (req: Request, res: Response) => {
+router.put("/rescue-pets/:id", authenticate, requireIntParam("id"), requirePermission("rescue-pets.edit"), async (req: Request, res: Response) => {
   const { pet_type, color, gender, breed, rescue_location_name, rescue_date, description, urgency, status, is_active } = req.body;
   try {
     const updates = [];
@@ -261,7 +262,7 @@ router.put("/rescue-pets/:id", authenticate, requirePermission("rescue-pets.edit
 });
 
 // DELETE /api/v1/admin/rescue-pets/:id
-router.delete("/rescue-pets/:id", authenticate, requirePermission("rescue-pets.delete"), async (req: Request, res: Response) => {
+router.delete("/rescue-pets/:id", authenticate, requireIntParam("id"), requirePermission("rescue-pets.delete"), async (req: Request, res: Response) => {
   try {
     await pool.query("UPDATE rescue_posts SET is_active = false, updated_at = NOW() WHERE id = $1", [req.params.id]);
     res.json({ message: "Report deactivated" });

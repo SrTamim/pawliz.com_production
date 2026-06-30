@@ -3,6 +3,7 @@ import express from 'express';
 const router = express.Router();
 import { body, validationResult } from 'express-validator';
 import { authenticate, optionalAuth } from '../middleware/auth';
+import requireIntParam from '../middleware/requireIntParam';
 import upload from '../middleware/upload';
 import * as communityService from '../services/communityService';
 import * as reactionService from '../services/reactionService';
@@ -72,7 +73,7 @@ router.get('/posts', optionalAuth, async (req: Request, res: Response) => {
   }
 });
 
-router.get('/posts/:id', optionalAuth, async (req: Request, res: Response) => {
+router.get('/posts/:id', optionalAuth, requireIntParam("id"), async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: 'Invalid post ID' });
@@ -85,7 +86,7 @@ router.get('/posts/:id', optionalAuth, async (req: Request, res: Response) => {
   }
 });
 
-router.get('/users/:userId/posts', optionalAuth, async (req: Request, res: Response) => {
+router.get('/users/:userId/posts', optionalAuth, requireIntParam("userId"), async (req: Request, res: Response) => {
   try {
     const userId = parseInt(req.params.userId);
     if (isNaN(userId)) return res.status(400).json({ error: 'Invalid user ID' });
@@ -141,6 +142,7 @@ router.post(
 router.put(
   '/posts/:id',
   authenticate,
+  requireIntParam('id'),
   upload.array('images', 2),
   [
     body('body').optional().trim().notEmpty().withMessage('Post text cannot be empty').isLength({ max: 5000 }),
@@ -176,7 +178,7 @@ router.put(
   },
 );
 
-router.delete('/posts/:id', authenticate, async (req: Request, res: Response) => {
+router.delete('/posts/:id', authenticate, requireIntParam("id"), async (req: Request, res: Response) => {
   const postId = parseInt(req.params.id);
   if (isNaN(postId)) return res.status(400).json({ error: 'Invalid post ID' });
   try {
@@ -242,7 +244,7 @@ router.post(
 );
 
 // Reuse the shared comment fetch (filters is_active + is_hidden already).
-router.get('/comments/:postId', async (req: Request, res: Response) => {
+router.get('/comments/:postId', requireIntParam("postId"), async (req: Request, res: Response) => {
   try {
     const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
     const offset = parseInt(req.query.offset as string) || 0;
@@ -255,7 +257,7 @@ router.get('/comments/:postId', async (req: Request, res: Response) => {
 });
 
 // Delete own comment — shared service, then decrement the denormalized count.
-router.delete('/comments/:id', authenticate, async (req: Request, res: Response) => {
+router.delete('/comments/:id', authenticate, requireIntParam("id"), async (req: Request, res: Response) => {
   const commentId = parseInt(req.params.id);
   if (isNaN(commentId)) return res.status(400).json({ error: 'Invalid comment ID' });
   try {
@@ -297,7 +299,7 @@ router.post(
   },
 );
 
-router.get('/reactions/:postId', optionalAuth, async (req: Request, res: Response) => {
+router.get('/reactions/:postId', optionalAuth, requireIntParam("postId"), async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.postId);
     if (isNaN(id)) return res.status(400).json({ error: 'Invalid post ID' });

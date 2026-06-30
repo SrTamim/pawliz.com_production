@@ -4,6 +4,7 @@ const router = express.Router();
 import bcrypt from 'bcryptjs';
 import pool from '../config/database';
 import { authenticate, requirePermission, requireAnyPermission, evictUser } from '../middleware/auth';
+import requireIntParam from '../middleware/requireIntParam';
 import { hasPermission } from '../utils/permissions';
 import { body } from 'express-validator';
 import validate from '../middleware/validate';
@@ -44,7 +45,7 @@ router.get("/", authenticate, requirePermission("users"), async (req: Request, r
 // Base gate: any of the three user actions can reach this route; each field is
 // then guarded individually below (default-deny). name/email/dob/address edits
 // require admin superuser (no staff flag exists for them).
-router.put("/:id", authenticate, requireAnyPermission("users.reset_password", "users.deactivate", "users.role"), [
+router.put("/:id", authenticate, requireIntParam("id"), requireAnyPermission("users.reset_password", "users.deactivate", "users.role"), [
   body("name").optional().trim().notEmpty().withMessage("Name cannot be empty"),
   body("email").optional({ checkFalsy: true }).isEmail().withMessage("Valid email required"),
   // Role is validated against the live roles table in the handler (any existing,

@@ -1,0 +1,57 @@
+name: CI
+
+# Type-check and test both packages on every push and PR so broken types or
+# failing tests are caught before merge. E2E (Playwright) is intentionally left
+# out of the default gate because it needs a seeded Postgres + running servers;
+# run it locally (npm run test:e2e) or wire a dedicated job with services later.
+
+on:
+  push:
+    branches: [main, ts-migration]
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend (typecheck + tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - name: Typecheck (source)
+        run: npm run typecheck
+      - name: Typecheck (tests, strict)
+        run: npx tsc --noEmit -p tsconfig.test.json
+      - name: Build
+        run: npm run build
+      - name: Unit tests
+        run: npm test
+
+  frontend:
+    name: Frontend (typecheck + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      # Build-time guard in next.config.ts requires this in production builds.
+      NEXT_PUBLIC_API_URL: http://localhost:5000/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Build
+        run: npm run build

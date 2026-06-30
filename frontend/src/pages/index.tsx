@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import Sidebar from "../components/Sidebar";
@@ -61,7 +61,10 @@ const VetDetailPage = dynamic(() => import("../components/Vet/VetDetailPage"), {
 });
 
 const VETS_LS_KEY = "pawliz_vets_v1";
-const VETS_LS_TTL_MS = 5 * 60 * 1000;
+// 60s matches the backend /vets/map cache TTL — short enough that a reload after
+// a review (which busts the backend cache) can't show pins older than the server's
+// own staleness window.
+const VETS_LS_TTL_MS = 60 * 1000;
 
 function readVetsFromLocalStorage() {
   if (typeof window === "undefined") return null;
@@ -133,6 +136,17 @@ export default function Home({ initialVets = [] }: any) {
   const { isAdmin, user } = useAuth();
   const { toast } = useToast();
 
+  // Remember the sidebar's active search/location so a post-review refresh can
+  // replay the same query instead of snapping the list back to the full set.
+  const lastQueryRef = useRef<{ search: string; location: string; minRating: number }>({ search: "", location: "", minRating: 0 });
+  const loadVetsTracked = useCallback(
+    (search = "", location = "", noCache = false, minRating = 0) => {
+      lastQueryRef.current = { search, location, minRating };
+      return loadVets(search, location, noCache, minRating);
+    },
+    [loadVets],
+  );
+
   // Detect mobile
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -168,9 +182,9 @@ export default function Home({ initialVets = [] }: any) {
   }, [mapActivated, selectedVetId, nearbyMode, userLocation]);
 
   // Load ALL map pins (slim). Falls back to localStorage cache, then DEMO.
-  const loadMapVets = useCallback(async ({ background = false } = {}) => {
+  const loadMapVets = useCallback(async ({ background = false, noCache = false } = {}) => {
     try {
-      const res = await vetsAPI.getMap();
+      const res = await vetsAPI.getMap(noCache);
       const fresh = res.vets || [];
       setMapVets(fresh);
       writeVetsToLocalStorage(fresh);
@@ -181,6 +195,19 @@ export default function Home({ initialVets = [] }: any) {
       }
     }
   }, [toast, t]);
+
+  // A review changed a vet's rating. Map pins + sidebar read the denormalized
+  // avg_rating column, so refresh both from the server (backend cache is already
+  // busted by the review write). Foreground loadMapVets so a fetch failure surfaces
+  // rather than silently keeping stale pins.
+  const handleReviewChange = useCallback(() => {
+    // noCache: the just-written rating must beat the 60s browser HTTP cache on
+    // /vets/map + /vets. Normal loads still use the cached (fast) path — only
+    // this post-review refresh bypasses it.
+    loadMapVets({ noCache: true });
+    const { search, location, minRating } = lastQueryRef.current;
+    loadVetsTracked(search, location, true, minRating);
+  }, [loadMapVets, loadVetsTracked]);
 
   // Initial load: paint pins fast (SSR initial -> localStorage -> network),
   // load the sidebar's first page, and fetch the location filter list.
@@ -215,8 +242,10 @@ export default function Home({ initialVets = [] }: any) {
         const { lat, lng } = await res.json();
         if (lat == null || lng == null) return;
         // Fire-and-forget: warms /vets/:id server cache for nearby vets.
-        fetchNearbyVets(lat, lng, 25, 15).catch(() => {});
-      } catch {}
+        fetchNearbyVets(lat, lng, 25, 15).catch((e) => console.debug("Geo prefetch failed:", e));
+      } catch (e) {
+        console.debug("Geo prefetch setup failed:", e);
+      }
     })();
     return () => { cancelled = true; };
   }, []);
@@ -245,14 +274,22 @@ export default function Home({ initialVets = [] }: any) {
         const { latitude, longitude } = pos.coords;
         setUserLocation({ lat: latitude, lng: longitude });
 
-        // Start at 5km, double until results found (max 320km)
+        // Expand the search radius 5→10→…→320km until results are found. The
+        // bound (radius <= 320) caps this at 7 requests; if every call fails or
+        // returns nothing we stop and tell the user instead of hanging.
         let radius = 5;
-        let nearby = [];
-        while (radius <= 320) {
-          const data = await fetchNearbyVets(latitude, longitude, radius);
-          nearby = data.vets || [];
-          if (nearby.length > 0) break;
-          radius *= 2;
+        let nearby: any[] = [];
+        try {
+          while (radius <= 320) {
+            const data = await fetchNearbyVets(latitude, longitude, radius);
+            nearby = data.vets || [];
+            if (nearby.length > 0) break;
+            radius *= 2;
+          }
+        } catch (err) {
+          console.debug("Nearby vets lookup failed:", err);
+          toast("Could not load nearby vets. Please try again.", "error");
+          return;
         }
 
         setNearbyVets(nearby);
@@ -359,7 +396,7 @@ export default function Home({ initialVets = [] }: any) {
                   const val = e.target.value;
                   clearTimeout((window as any).__mobileSearchTimer);
                   (window as any).__mobileSearchTimer = setTimeout(
-                    () => loadVets(val),
+                    () => loadVetsTracked(val, "", false, lastQueryRef.current.minRating),
                     400,
                   );
                 }}
@@ -422,8 +459,9 @@ export default function Home({ initialVets = [] }: any) {
             loading={loading}
             locations={locations}
             onSelectVet={handleSelectVet}
-            onSearch={(q: any, loc: any) => loadVets(q, loc)}
-            onFilterLocation={(loc: any, q: any) => loadVets(q, loc)}
+            onSearch={(q: any, loc: any) => loadVetsTracked(q, loc, false, lastQueryRef.current.minRating)}
+            onFilterLocation={(loc: any, q: any) => loadVetsTracked(q, loc, false, lastQueryRef.current.minRating)}
+            onFilterRating={(r: any, q: any, loc: any) => loadVetsTracked(q, loc, false, r)}
             selectedVetId={selectedVetId}
             onNearbyVets={handleNearbyVets}
             nearbyMode={nearbyMode}
@@ -488,6 +526,7 @@ export default function Home({ initialVets = [] }: any) {
       <VetDetailPage
         vetId={detailVetId}
         open={detailOpen}
+        onReviewChange={handleReviewChange}
         onClose={() => setDetailOpen(false)}
         onAuthRequired={() => {
           setDetailOpen(false);

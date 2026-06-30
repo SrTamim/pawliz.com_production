@@ -9,6 +9,7 @@ export default function Sidebar({
   onSelectVet,
   onSearch,
   onFilterLocation,
+  onFilterRating,
   selectedVetId,
   onNearbyVets,
   nearbyMode,
@@ -34,13 +35,16 @@ export default function Sidebar({
   };
 
   const handleRating = (r: any) => {
-    setActiveRating((prev: any) => (prev === r ? 0 : r));
+    // Toggle off if the active chip is clicked again.
+    const next = activeRating === r ? 0 : r;
+    setActiveRating(next);
+    // Server-side filter: spans ALL clinics, not just the loaded page. Replays
+    // the active search/location so the rating filter composes with them.
+    onFilterRating?.(next, searchVal, activeLocation);
   };
 
-  const displayed =
-    activeRating > 0
-      ? vets.filter((v: any) => parseFloat(v.avg_rating || 0) >= activeRating)
-      : vets;
+  // Server now returns the rating-filtered set, so render `vets` directly.
+  const displayed = vets;
 
   return (
     <aside

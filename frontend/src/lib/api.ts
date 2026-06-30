@@ -66,6 +66,7 @@ async function request(
   body: any = null,
   isFormData: boolean = false,
   signal: AbortSignal | null = null,
+  noCache: boolean = false,
 ): Promise<any> {
   const headers: Record<string, string> = {};
   if (!isFormData) headers["Content-Type"] = "application/json";
@@ -81,6 +82,10 @@ async function request(
       method,
       headers,
       credentials: "include",
+      // noCache: skip the browser HTTP cache for this one call. Used after a
+      // review write so the refreshed /vets/map + /vets responses are fresh,
+      // while normal page loads keep the cached (fast) path intact.
+      cache: noCache ? "no-store" : "default",
       body: isFormData ? body : body ? JSON.stringify(body) : null,
       signal: finalSignal,
     });
@@ -146,11 +151,11 @@ export const authAPI = {
 
 // ─── VETS ──────────────────────────────────────────────────────────────────
 export const vetsAPI = {
-  getAll: (params: Params = {}) => {
+  getAll: (params: Params = {}, noCache = false) => {
     const q = new URLSearchParams(params).toString();
-    return request(`/vets${q ? "?" + q : ""}`);
+    return request(`/vets${q ? "?" + q : ""}`, "GET", null, false, null, noCache);
   },
-  getMap: () => request("/vets/map"),
+  getMap: (noCache = false) => request("/vets/map", "GET", null, false, null, noCache),
   getLocations: () => request("/vets/locations"),
   getById: (id: number | string) => request(`/vets/${id}`),
   create: (data: Params) => request("/vets", "POST", data),

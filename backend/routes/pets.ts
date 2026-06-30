@@ -5,6 +5,7 @@ import { body } from 'express-validator';
 import QRCode from 'qrcode';
 import { authenticate } from '../middleware/auth';
 import validate from '../middleware/validate';
+import requireIntParam from '../middleware/requireIntParam';
 import logger from '../utils/logger';
 import * as petService from '../services/petService';
 
@@ -87,7 +88,7 @@ router.post("/", authenticate, [
   }
 });
 
-router.put("/:id", authenticate, [
+router.put("/:id", authenticate, requireIntParam("id"), [
   body("name").optional().trim().notEmpty().withMessage("Pet name cannot be empty").isLength({ max: 100 }).withMessage("Pet name max 100 chars"),
   body("type").optional().isIn(["dog", "cat", "other"]).withMessage("Invalid pet type"),
   body("breed").optional().isLength({ max: 100 }).withMessage("Breed max 100 chars"),
@@ -115,7 +116,7 @@ router.put("/:id", authenticate, [
   }
 });
 
-router.delete("/:id", authenticate, async (req: Request, res: Response) => {
+router.delete("/:id", authenticate, requireIntParam("id"), async (req: Request, res: Response) => {
   const petDbId = parseInt(req.params.id);
   if (isNaN(petDbId)) return res.status(400).json({ error: "Invalid pet ID" });
   try {

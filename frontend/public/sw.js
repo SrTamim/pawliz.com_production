@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'pawliz-v6';
+const CACHE_VERSION = 'pawliz-v8';
 // NOTE: never precache HTML routes (e.g. '/') — navigations are network-first
 // (see fetch handler) so a new deploy's HTML is always served fresh. Caching '/'
 // here served stale home HTML to returning visitors after a deploy, which
@@ -55,6 +55,44 @@ self.addEventListener('activate', (event) => {
     })
   );
   self.clients.claim();
+});
+
+// Web Push — show a native OS notification (with sound) for any push payload,
+// even when the site/PWA is closed. Payload is server-built JSON.
+self.addEventListener('push', (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch (e) {
+    data = {};
+  }
+  const tag = data.tag || undefined;
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'Pawliz', {
+      body: data.message || '',
+      icon: '/icon-192.png',
+      badge: '/favicon.svg',
+      data: { url: data.action_url || '/' },
+      tag,
+      // Re-alert (sound + banner) even if a notification with this tag exists,
+      // so repeated notifications don't silently replace the previous one.
+      renotify: tag ? true : undefined,
+    })
+  );
+});
+
+// Focus an existing tab on the target URL, or open a new one.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || '/';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((cs) => {
+      for (const c of cs) {
+        if (c.url.includes(url) && 'focus' in c) return c.focus();
+      }
+      if (clients.openWindow) return clients.openWindow(url);
+    })
+  );
 });
 
 // CLEAR_API_CACHE message — called on logout to prevent PII leakage between users on shared devices

@@ -4,10 +4,12 @@ import {
   useState,
   useEffect,
   useCallback,
+  useRef,
   type ReactNode,
 } from "react";
 import { authAPI } from "../lib/api";
 import { disconnectSocket } from "../lib/socket";
+import { maybeAutoSubscribe, syncSubscription, isPWA } from "../lib/webPush";
 import type { User } from "../types";
 
 /**
@@ -67,15 +69,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // Once per app open, when a logged-in user is present: silently register the
+  // push subscription if permission is already granted (honors PWA install-time
+  // grants). For an installed PWA that hasn't decided yet, prompt on launch so
+  // installed users get notifications by default.
+  const pushSyncedRef = useRef(false);
+  useEffect(() => {
+    if (!user || pushSyncedRef.current) return;
+    pushSyncedRef.current = true;
+    void syncSubscription();
+    if (isPWA()) void maybeAutoSubscribe();
+  }, [user]);
+
   const login = useCallback(async (phone: string, password: string, rememberMe = false) => {
     const res = await authAPI.login(phone, password, rememberMe);
     setUser(res.user);
+    // Auto-ask for device-notification permission (only if undecided). The login
+    // click is the required user gesture; best-effort, never blocks the flow.
+    void maybeAutoSubscribe();
     return res.user;
   }, []);
 
   const register = useCallback(async (data: Record<string, any>) => {
     const res = await authAPI.register(data);
     setUser(res.user);
+    void maybeAutoSubscribe();
     return res.user;
   }, []);
 

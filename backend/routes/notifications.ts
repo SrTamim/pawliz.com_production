@@ -169,6 +169,7 @@ router.get("/preferences/settings", authenticate, async (req: Request, res: Resp
       `SELECT
         COALESCE((meta->>'notifications_enabled')::boolean, true) AS notifications_enabled,
         COALESCE((meta->>'notifications_email')::boolean, false) AS notifications_email,
+        COALESCE((meta->>'sms_vaccine_reminders')::boolean, false) AS sms_vaccine_reminders,
         COALESCE(meta->>'notification_types', 'all') AS notification_types
        FROM users
        WHERE id = $1`,
@@ -178,6 +179,7 @@ router.get("/preferences/settings", authenticate, async (req: Request, res: Resp
     res.json({
       notifications_enabled: prefs.notifications_enabled !== false,
       notifications_email: prefs.notifications_email === true,
+      sms_vaccine_reminders: prefs.sms_vaccine_reminders === true,
       notification_types: prefs.notification_types || 'all',
     });
   } catch (err) {
@@ -193,13 +195,15 @@ router.get("/preferences/settings", authenticate, async (req: Request, res: Resp
 router.put("/preferences/settings", authenticate, [
   body("notifications_enabled").optional().isBoolean(),
   body("notifications_email").optional().isBoolean(),
+  body("sms_vaccine_reminders").optional().isBoolean(),
   body("notification_types").optional().isIn(['all', 'comments', 'system']),
 ], validate, async (req: Request, res: Response) => {
   try {
-    const { notifications_enabled, notifications_email, notification_types } = req.body;
+    const { notifications_enabled, notifications_email, sms_vaccine_reminders, notification_types } = req.body;
     const updates: Record<string, any> = {};
     if (notifications_enabled !== undefined) updates.notifications_enabled = notifications_enabled;
     if (notifications_email !== undefined) updates.notifications_email = notifications_email;
+    if (sms_vaccine_reminders !== undefined) updates.sms_vaccine_reminders = sms_vaccine_reminders;
     if (notification_types) updates.notification_types = notification_types;
 
     await pool.query(

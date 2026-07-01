@@ -12,6 +12,7 @@ import pool from './config/database';
 import logger from './utils/logger';
 import * as smsService from './services/smsService';
 import * as communityService from './services/communityService';
+import * as vaccineReminderService from './services/vaccineReminderService';
 import * as socketModule from './socket';
 import { REQUEST_TIMEOUT_MS, RATE_LIMIT_API_MAX } from './utils/constants';
 
@@ -40,6 +41,10 @@ if (missing.length) {
 // Warn if SMS_API_KEY missing — OTP registration/reset will fail silently without it
 if (!process.env.SMS_API_KEY) {
   logger.warn('SMS_API_KEY not set — SMS/OTP features will fail. Set SMS_API_KEY in .env');
+}
+// Warn if VAPID keys missing — Web Push is disabled (no-op) without them, but the server runs fine
+if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+  logger.warn('VAPID_PUBLIC_KEY/VAPID_PRIVATE_KEY not set — Web Push notifications disabled. Set both to enable.');
 }
 
 const app = express();
@@ -195,6 +200,17 @@ const otpLimiter = rateLimit({
 });
 app.use("/api/v1/otp", otpLimiter);
 
+// Web Push subscribe/unsubscribe — modest limiter (authed, per-user)
+const pushLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: rateLimitKeyWithLogging,
+  message: { error: "Too many push subscription requests. Please wait." },
+});
+app.use("/api/v1/push", pushLimiter);
+
 // Routes
 app.use("/api/v1/auth", require("./routes/auth"));
 app.use("/api/v1/vet-auth", require("./routes/vet-auth"));
@@ -214,6 +230,7 @@ app.use("/api/v1/lost-found", require("./routes/lost-found"));
 app.use("/api/v1/community", require("./routes/community"));
 app.use("/api/v1/rescue-adoption", require("./routes/rescue-adoption"));
 app.use("/api/v1/notifications", require("./routes/notifications"));
+app.use("/api/v1/push", require("./routes/push"));
 app.use("/api/v1/profile", require("./routes/profile"));
 app.use("/api/v1/comments", require("./routes/comments"));
 app.use("/api/v1/contact-post", require("./routes/contact-post"));
@@ -304,6 +321,22 @@ cron.schedule("0 4 * * *", () => {
        WHERE created_at < NOW() - INTERVAL '90 days'
        LIMIT 5000)`,
   );
+});
+
+// Prune old vaccine-reminder dedup rows (log grows only by reminders actually sent)
+cron.schedule("50 4 * * *", () => {
+  batchedDelete(
+    "Vaccine reminder log cleanup",
+    `DELETE FROM vaccine_reminder_log WHERE id IN (
+       SELECT id FROM vaccine_reminder_log
+       WHERE sent_at < NOW() - INTERVAL '60 days'
+       LIMIT 5000)`,
+  );
+});
+
+// 02:00 UTC = 08:00 Asia/Dhaka — daily vaccine due-date reminders (in-app + SMS)
+cron.schedule("0 2 * * *", () => {
+  vaccineReminderService.runVaccineReminders().catch((err) => logger.error("Vaccine reminders failed:", err));
 });
 
 // 16:00 UTC = 22:00 (10 PM) Asia/Dhaka — Render runs UTC

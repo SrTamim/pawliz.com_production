@@ -58,7 +58,8 @@ router.get("/public/:petId", async (req: Request, res: Response) => {
     const pet = await petService.getPublicPet(req.params.petId);
     if (!pet) return res.status(404).json({ error: "Pet not found" });
     res.json({ pet });
-  } catch {
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });

@@ -75,7 +75,7 @@ router.post(
  * PUT /api/v1/vets-admin/:id
  * Update vet (admin only)
  */
-router.put("/:id", authenticate, requireIntParam("id"), requirePermission("vets.edit"), [
+router.put("/:id", authenticate, requirePermission("vets.edit"), requireIntParam("id"), [
   body("name").optional().trim().notEmpty().withMessage("Name cannot be empty").isLength({ max: 200 }),
   body("location_name").optional().trim().notEmpty().isLength({ max: 200 }),
   body("latitude").optional().isFloat({ min: -90, max: 90 }),
@@ -120,7 +120,7 @@ router.put("/:id", authenticate, requireIntParam("id"), requirePermission("vets.
  * DELETE /api/v1/vets-admin/:id
  * Soft delete vet (admin only)
  */
-router.delete("/:id", authenticate, requireIntParam("id"), requirePermission("vets.delete"), async (req: Request, res: Response) => {
+router.delete("/:id", authenticate, requirePermission("vets.delete"), requireIntParam("id"), async (req: Request, res: Response) => {
   try {
     const vetCheck = await pool.query("SELECT image FROM vets WHERE id = $1", [
       req.params.id,
@@ -138,7 +138,8 @@ router.delete("/:id", authenticate, requireIntParam("id"), requirePermission("ve
 
     vetsCache.bust();
     res.json({ message: "Vet deleted successfully" });
-  } catch {
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -150,8 +151,8 @@ router.delete("/:id", authenticate, requireIntParam("id"), requirePermission("ve
 router.post(
   "/:id/image",
   authenticate,
-  requireIntParam("id"),
   requirePermission("vets.edit"),
+  requireIntParam("id"),
   upload.single("image"),
   async (req: Request, res: Response) => {
     if (!req.file) return res.status(400).json({ error: "No image uploaded" });
@@ -174,7 +175,8 @@ router.post(
 
       vetsCache.bust();
       res.json({ image: imageUrl, message: "Image uploaded" });
-    } catch {
+    } catch (err) {
+      logger.error(err);
       res.status(500).json({ error: "Server error" });
     }
   },

@@ -35,11 +35,13 @@ let _refreshing: Promise<boolean> | null = null;
 
 async function tryRefresh(): Promise<boolean> {
   if (_refreshing) return _refreshing;
+  // Clear the in-flight guard in .finally() (not inside .then/.catch) so it is
+  // reset only after the request fully settles. Otherwise two near-simultaneous
+  // 401s could both see _refreshing as null and fire a second /auth/refresh.
   _refreshing = fetch(`${API_BASE}/auth/refresh`, {
     method: "POST",
     credentials: "include",
   }).then((r: any) => {
-    _refreshing = null;
     if (!r.ok) {
       // 401/403: refresh failed, logout only once
       if (typeof window !== "undefined" && !sessionStorage.getItem("_logout_in_progress")) {
@@ -51,11 +53,12 @@ async function tryRefresh(): Promise<boolean> {
     sessionStorage.removeItem("_logout_in_progress");
     return true;
   }).catch(() => {
-    _refreshing = null;
     if (typeof window !== "undefined") {
       sessionStorage.removeItem("_logout_in_progress");
     }
     return false;
+  }).finally(() => {
+    _refreshing = null;
   });
   return _refreshing;
 }

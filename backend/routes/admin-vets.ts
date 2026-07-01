@@ -129,7 +129,7 @@ router.get("/claim-requests", authenticate, requirePermission("claim-requests"),
 });
 
 // PATCH /api/v1/admin/vets/claim-requests/:vetId/approve
-router.patch("/claim-requests/:vetId/approve", authenticate, requireIntParam("vetId"), requirePermission("claim-requests.edit"), async (req: Request, res: Response) => {
+router.patch("/claim-requests/:vetId/approve", authenticate, requirePermission("claim-requests.edit"), requireIntParam("vetId"), async (req: Request, res: Response) => {
   try {
     const result = await pool.query(
       `UPDATE vets SET status='claimed', claimed_at=NOW(), approval_status='approved', is_active=true,
@@ -148,7 +148,7 @@ router.patch("/claim-requests/:vetId/approve", authenticate, requireIntParam("ve
 });
 
 // PATCH /api/v1/admin/vets/claim-requests/:vetId/reject
-router.patch("/claim-requests/:vetId/reject", authenticate, requireIntParam("vetId"), requirePermission("claim-requests.edit"), async (req: Request, res: Response) => {
+router.patch("/claim-requests/:vetId/reject", authenticate, requirePermission("claim-requests.edit"), requireIntParam("vetId"), async (req: Request, res: Response) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -184,7 +184,7 @@ router.patch("/claim-requests/:vetId/reject", authenticate, requireIntParam("vet
 });
 
 // PUT /api/v1/admin/vets/:id/approve
-router.put("/:id/approve", authenticate, requireIntParam("id"), requirePermission("vets.approve"), async (req: Request, res: Response) => {
+router.put("/:id/approve", authenticate, requirePermission("vets.approve"), requireIntParam("id"), async (req: Request, res: Response) => {
   try {
     const result = await pool.query(
       `UPDATE vets SET approval_status='approved', rejection_reason=NULL, is_active=true, updated_at=CURRENT_TIMESTAMP WHERE id=$1 RETURNING id, name, approval_status`,
@@ -201,7 +201,7 @@ router.put("/:id/approve", authenticate, requireIntParam("id"), requirePermissio
 });
 
 // PUT /api/v1/admin/vets/:id/reject
-router.put("/:id/reject", authenticate, requireIntParam("id"), requirePermission("vets.approve"), async (req: Request, res: Response) => {
+router.put("/:id/reject", authenticate, requirePermission("vets.approve"), requireIntParam("id"), async (req: Request, res: Response) => {
   const { reason } = req.body;
   try {
     const result = await pool.query(
@@ -219,7 +219,7 @@ router.put("/:id/reject", authenticate, requireIntParam("id"), requirePermission
 });
 
 // GET /api/v1/admin/vets/:id
-router.get("/:id", authenticate, requireIntParam("id"), requirePermission("vets"), async (req: Request, res: Response) => {
+router.get("/:id", authenticate, requirePermission("vets"), requireIntParam("id"), async (req: Request, res: Response) => {
   try {
     const [vetResult, qualsResult, docsResult, contactsResult, clinicVetsResult] = await Promise.all([
       pool.query(
@@ -267,7 +267,7 @@ const updateVetValidation = [
   // and the allowed set isn't pinned in code, so restricting risks rejecting a
   // valid value. The handler already defaults blanks to 'clinic'.
 ];
-router.put("/:id", authenticate, requireIntParam("id"), requirePermission("vets.edit"), updateVetValidation, async (req: Request, res: Response) => {
+router.put("/:id", authenticate, requirePermission("vets.edit"), requireIntParam("id"), updateVetValidation, async (req: Request, res: Response) => {
   const valErrors = validationResult(req);
   if (!valErrors.isEmpty()) return res.status(400).json({ errors: valErrors.array() });
   const {
@@ -323,7 +323,7 @@ router.put("/:id", authenticate, requireIntParam("id"), requirePermission("vets.
 });
 
 // DELETE /api/v1/admin/vets/:id (soft delete — sets is_active=false, preserves all data)
-router.delete("/:id", authenticate, requireIntParam("id"), requirePermission("vets.delete"), async (req: Request, res: Response) => {
+router.delete("/:id", authenticate, requirePermission("vets.delete"), requireIntParam("id"), async (req: Request, res: Response) => {
   try {
     const result = await pool.query(
       `UPDATE vets SET is_active = false, updated_at = NOW() WHERE id = $1 RETURNING id, name`,
@@ -340,7 +340,7 @@ router.delete("/:id", authenticate, requireIntParam("id"), requirePermission("ve
 });
 
 // DELETE /api/v1/admin/vet-qualifications/:qualId
-router.delete("/vet-qualifications/:qualId", authenticate, requireIntParam("qualId"), requirePermission("vets.delete"), async (req: Request, res: Response) => {
+router.delete("/vet-qualifications/:qualId", authenticate, requirePermission("vets.delete"), requireIntParam("qualId"), async (req: Request, res: Response) => {
   try {
     const r = await pool.query('DELETE FROM vet_qualifications WHERE id = $1 RETURNING id', [req.params.qualId]);
     if (!r.rows[0]) return res.status(404).json({ error: "Qualification not found" });
@@ -352,7 +352,7 @@ router.delete("/vet-qualifications/:qualId", authenticate, requireIntParam("qual
 });
 
 // DELETE /api/v1/admin/clinic-contacts/:contactId
-router.delete("/clinic-contacts/:contactId", authenticate, requireIntParam("contactId"), requirePermission("vets.delete"), async (req: Request, res: Response) => {
+router.delete("/clinic-contacts/:contactId", authenticate, requirePermission("vets.delete"), requireIntParam("contactId"), async (req: Request, res: Response) => {
   try {
     const r = await pool.query('DELETE FROM clinic_contacts WHERE id = $1 RETURNING id', [req.params.contactId]);
     if (!r.rows[0]) return res.status(404).json({ error: "Contact not found" });
@@ -364,7 +364,7 @@ router.delete("/clinic-contacts/:contactId", authenticate, requireIntParam("cont
 });
 
 // DELETE /api/v1/admin/clinic-vets/:clinicVetId
-router.delete("/clinic-vets/:clinicVetId", authenticate, requireIntParam("clinicVetId"), requirePermission("vets.delete"), async (req: Request, res: Response) => {
+router.delete("/clinic-vets/:clinicVetId", authenticate, requirePermission("vets.delete"), requireIntParam("clinicVetId"), async (req: Request, res: Response) => {
   try {
     const r = await pool.query('DELETE FROM clinic_vets WHERE id = $1 RETURNING id', [req.params.clinicVetId]);
     if (!r.rows[0]) return res.status(404).json({ error: "Clinic vet not found" });

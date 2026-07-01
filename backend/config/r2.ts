@@ -44,7 +44,13 @@ export const client: S3Client | null = isConfigured
   : null;
 
 export const PUBLIC_BUCKET = R2_BUCKET_NAME as string;
-// Private bucket falls back to the public bucket name only if unset; in
-// practice R2_PRIVATE_BUCKET must be a separate bucket with no public access.
+// Fail fast in production if the private bucket is unset — otherwise private vet
+// docs would silently fall back to the public bucket and become world-readable.
+if (process.env.NODE_ENV === 'production' && !R2_PRIVATE_BUCKET) {
+  throw new Error('R2_PRIVATE_BUCKET must be set in production — private docs would leak into the public bucket otherwise');
+}
+// Private bucket falls back to the public bucket name only if unset (dev/test); in
+// production R2_PRIVATE_BUCKET is required (see fail-fast above) and must be a
+// separate bucket with no public access.
 export const PRIVATE_BUCKET = (R2_PRIVATE_BUCKET || R2_BUCKET_NAME) as string;
 export const PUBLIC_URL = R2_PUBLIC_URL ? R2_PUBLIC_URL.replace(/\/$/, '') : '';

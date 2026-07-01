@@ -43,10 +43,11 @@ router.post("/:id/images", authenticate, requireIntParam("id"), upload.array("im
 });
 
 // DELETE /api/v1/pets/:id/images/:imageIndex
-router.delete("/:id/images/:imageIndex", authenticate, async (req: Request, res: Response) => {
+router.delete("/:id/images/:imageIndex", authenticate, requireIntParam("id"), async (req: Request, res: Response) => {
   const petDbId = parseInt(req.params.id);
   const imageIndex = parseInt(req.params.imageIndex);
-  if (isNaN(petDbId) || isNaN(imageIndex)) {
+  // imageIndex is a JS array index (may be 0), not a DB id — kept inline.
+  if (isNaN(imageIndex)) {
     return res.status(400).json({ error: "Invalid parameters" });
   }
   try {

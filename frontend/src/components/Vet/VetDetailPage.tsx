@@ -265,8 +265,26 @@ export default function VetDetailPage({ vetId, open, onClose, onAuthRequired, fu
                 {clinicContacts.length > 0 && (
                   <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                     {clinicContacts.map((c: any) => {
-                      const isLink = c.contact_type === 'whatsapp' || c.contact_type === 'email' || c.contact_type === 'other';
-                      const href = c.contact_type === 'whatsapp' ? `https://wa.me/${c.contact_value.replace(/\D/g,'')}` : c.contact_type === 'email' ? `mailto:${c.contact_value}` : c.contact_value;
+                      // For 'other', only treat the value as a link if it's an
+                      // http(s) URL — blocks javascript:/data: hrefs (DOM XSS) from
+                      // untrusted contact data.
+                      let href = '';
+                      let isLink = false;
+                      if (c.contact_type === 'whatsapp') {
+                        href = `https://wa.me/${c.contact_value.replace(/\D/g, '')}`;
+                        isLink = true;
+                      } else if (c.contact_type === 'email') {
+                        href = `mailto:${c.contact_value}`;
+                        isLink = true;
+                      } else if (c.contact_type === 'other') {
+                        try {
+                          const u = new URL(c.contact_value);
+                          if (u.protocol === 'http:' || u.protocol === 'https:') {
+                            href = c.contact_value;
+                            isLink = true;
+                          }
+                        } catch { /* not a valid absolute URL → render as plain text */ }
+                      }
                       return (
                         <div key={c.id} style={{ padding: '6px 14px', background: 'var(--bg-elevated)', borderRadius: 8, fontSize: 13, display: 'flex', gap: 6, alignItems: 'center' }}>
                           <span style={{ display: 'flex', alignItems: 'center' }}><ContactIcon type={c.contact_type} size={16} /></span>

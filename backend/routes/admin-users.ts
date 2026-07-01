@@ -9,6 +9,7 @@ import { hasPermission } from '../utils/permissions';
 import { body } from 'express-validator';
 import validate from '../middleware/validate';
 import { logActivity } from '../utils/activityLogger';
+import logger from '../utils/logger';
 
 // GET /api/v1/admin/users
 router.get("/", authenticate, requirePermission("users"), async (req: Request, res: Response) => {
@@ -36,7 +37,8 @@ router.get("/", authenticate, requirePermission("users"), async (req: Request, r
     const countParams = params.slice(0, -2);
     const count = await pool.query(`SELECT COUNT(*) FROM users u ${where}`, countParams);
     res.json({ users: result.rows, total: parseInt(count.rows[0].count), page, limit });
-  } catch {
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -120,7 +122,8 @@ router.put("/:id", authenticate, requireIntParam("id"), requireAnyPermission("us
     );
     if (!result.rows[0]) return res.status(404).json({ error: "User not found" });
     res.json({ user: result.rows[0] });
-  } catch {
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });

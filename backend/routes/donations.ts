@@ -3,6 +3,7 @@ import express from 'express';
 const router = express.Router();
 import pool from '../config/database';
 import { authenticate, requirePermission } from '../middleware/auth';
+import requireIntParam from '../middleware/requireIntParam';
 import { body, validationResult } from 'express-validator';
 import upload from '../middleware/upload';
 import { deleteUploadedFile } from '../utils/fileUtils';
@@ -29,7 +30,7 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // PUT /api/donations/:id - Admin: Update donation info
-router.put('/:id', authenticate, requirePermission('donation.edit'), (req: Request, res: Response, next: NextFunction) => {
+router.put('/:id', authenticate, requirePermission('donation.edit'), requireIntParam("id"), (req: Request, res: Response, next: NextFunction) => {
   req.uploadDir = 'public';
   upload.single('qr_code_image')(req, res, next);
 }, donationValidation, async (req: Request, res: Response) => {

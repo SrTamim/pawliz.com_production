@@ -41,11 +41,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    authAPI
-      .me()
-      .then((res: any) => setUser(res.user))
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await authAPI.me();
+        if (!cancelled) setUser(res.user);
+      } catch {
+        // /auth/me is excluded from the api layer's auto-refresh (see lib/api.ts),
+        // so a cold load with an expired access token but a valid refresh cookie
+        // would otherwise resolve to null and bounce the user off gated pages.
+        // Attempt a one-shot refresh, then retry me() before giving up.
+        try {
+          await authAPI.refresh();
+          const res = await authAPI.me();
+          if (!cancelled) setUser(res.user);
+        } catch {
+          if (!cancelled) setUser(null);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const login = useCallback(async (phone: string, password: string, rememberMe = false) => {

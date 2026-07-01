@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { TEST_USER } from "../helpers";
 
 /**
  * Authenticated profile suite (runs in the chromium-auth project, which loads
@@ -20,8 +21,16 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("profile loads with name and completion ring", async ({ page }) => {
-  // Header shows the user's name.
-  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  // Header shows the user's name. Assert on the seeded name rather than mere
+  // visibility: an empty <h1> renders as "hidden" and would fail with a vague
+  // message, masking the real cause (an account row with no name — reseed via
+  // backend/database/seed.ts, which now upserts name/occupation/role).
+  // Exact match (not toContainText): the profile <h1> renders ONLY the name
+  // (frontend/src/pages/profile.tsx) — phone/occupation are separate sibling
+  // elements. Keeping exact match catches a stray suffix leaking into the
+  // heading as a regression. If the h1 is ever meant to hold extra text,
+  // update this assertion deliberately.
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(TEST_USER.name);
   // Completion percentage ring renders a "NN%" indicator.
   await expect(page.locator(".completion")).toBeVisible();
 });

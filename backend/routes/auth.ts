@@ -147,7 +147,8 @@ router.get('/me', optionalAuth, async (req: Request, res: Response) => {
     const pages = Array.isArray(row.permissions?.pages) ? row.permissions.pages : [];
     row.is_staff = row.role === 'admin' || pages.length > 0;
     res.json({ user: row });
-  } catch {
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -215,7 +216,8 @@ router.post('/logout-all', authenticate, async (req: Request, res: Response) => 
     await pool.query('DELETE FROM refresh_tokens WHERE user_id = $1', [req.user!.id]);
     clearCookies(res);
     res.json({ message: 'Logged out from all devices' });
-  } catch {
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: 'Server error' });
   }
 });

@@ -46,7 +46,7 @@ router.get("/pets", authenticate, requireAnyPermission("pets", "lost-pets-mgmt",
 });
 
 // PUT /api/v1/admin/pets/:id
-router.put("/pets/:id", authenticate, requireIntParam("id"), requirePermission("pets.edit"), async (req: Request, res: Response) => {
+router.put("/pets/:id", authenticate, requirePermission("pets.edit"), requireIntParam("id"), async (req: Request, res: Response) => {
   const { name, type, breed, gender, age, color, weight, potty_trained, is_active, status } = req.body;
   const petId = parseInt(req.params.id);
   try {
@@ -122,12 +122,13 @@ router.put("/pets/:id", authenticate, requireIntParam("id"), requirePermission("
 });
 
 // DELETE /api/v1/admin/pets/:id
-router.delete("/pets/:id", authenticate, requireIntParam("id"), requirePermission("pets.delete"), async (req: Request, res: Response) => {
+router.delete("/pets/:id", authenticate, requirePermission("pets.delete"), requireIntParam("id"), async (req: Request, res: Response) => {
   try {
     const r = await pool.query("UPDATE pets SET is_active = false, updated_at = NOW() WHERE id = $1 RETURNING id", [req.params.id]);
     if (!r.rows[0]) return res.status(404).json({ error: "Pet not found" });
     res.json({ message: "Pet deactivated" });
-  } catch {
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -156,13 +157,14 @@ router.get("/found-pets", authenticate, requirePermission("found-pets"), async (
     const countParams = params.slice(0, -2);
     const count = await pool.query(`SELECT COUNT(*) FROM found_pet_reports f ${where}`, countParams);
     res.json({ posts: result.rows, total: parseInt(count.rows[0].count), page, limit });
-  } catch {
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
 // PUT /api/v1/admin/found-pets/:id
-router.put("/found-pets/:id", authenticate, requireIntParam("id"), requirePermission("found-pets.edit"), async (req: Request, res: Response) => {
+router.put("/found-pets/:id", authenticate, requirePermission("found-pets.edit"), requireIntParam("id"), async (req: Request, res: Response) => {
   const { pet_type, color, gender, breed, found_location_name, found_date, description, status, is_active } = req.body;
   try {
     const updates = [];
@@ -186,17 +188,19 @@ router.put("/found-pets/:id", authenticate, requireIntParam("id"), requirePermis
     );
     if (!result.rows[0]) return res.status(404).json({ error: "Report not found" });
     res.json({ post: result.rows[0] });
-  } catch {
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
 // DELETE /api/v1/admin/found-pets/:id
-router.delete("/found-pets/:id", authenticate, requireIntParam("id"), requirePermission("found-pets.delete"), async (req: Request, res: Response) => {
+router.delete("/found-pets/:id", authenticate, requirePermission("found-pets.delete"), requireIntParam("id"), async (req: Request, res: Response) => {
   try {
     await pool.query("UPDATE found_pet_reports SET is_active = false, updated_at = NOW() WHERE id = $1", [req.params.id]);
     res.json({ message: "Report deactivated" });
-  } catch {
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -225,13 +229,14 @@ router.get("/rescue-pets", authenticate, requirePermission("rescue-pets"), async
     const countParams = params.slice(0, -2);
     const count = await pool.query(`SELECT COUNT(*) FROM rescue_posts r ${where}`, countParams);
     res.json({ posts: result.rows, total: parseInt(count.rows[0].count), page, limit });
-  } catch {
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
 // PUT /api/v1/admin/rescue-pets/:id
-router.put("/rescue-pets/:id", authenticate, requireIntParam("id"), requirePermission("rescue-pets.edit"), async (req: Request, res: Response) => {
+router.put("/rescue-pets/:id", authenticate, requirePermission("rescue-pets.edit"), requireIntParam("id"), async (req: Request, res: Response) => {
   const { pet_type, color, gender, breed, rescue_location_name, rescue_date, description, urgency, status, is_active } = req.body;
   try {
     const updates = [];
@@ -256,17 +261,19 @@ router.put("/rescue-pets/:id", authenticate, requireIntParam("id"), requirePermi
     );
     if (!result.rows[0]) return res.status(404).json({ error: "Report not found" });
     res.json({ post: result.rows[0] });
-  } catch {
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
 // DELETE /api/v1/admin/rescue-pets/:id
-router.delete("/rescue-pets/:id", authenticate, requireIntParam("id"), requirePermission("rescue-pets.delete"), async (req: Request, res: Response) => {
+router.delete("/rescue-pets/:id", authenticate, requirePermission("rescue-pets.delete"), requireIntParam("id"), async (req: Request, res: Response) => {
   try {
     await pool.query("UPDATE rescue_posts SET is_active = false, updated_at = NOW() WHERE id = $1", [req.params.id]);
     res.json({ message: "Report deactivated" });
-  } catch {
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });

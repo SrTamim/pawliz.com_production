@@ -3,6 +3,7 @@ import express from 'express';
 const router = express.Router();
 import pool from '../config/database';
 import { authenticate } from '../middleware/auth';
+import requireIntParam from '../middleware/requireIntParam';
 import { body, validationResult } from 'express-validator';
 import logger from '../utils/logger';
 
@@ -23,6 +24,7 @@ const VALID_REASONS = ["spam", "harassment", "inappropriate", "misinformation", 
 router.post(
   "/:id/report",
   authenticate,
+  requireIntParam("id"),
   [body("reason").isIn(VALID_REASONS).withMessage("Invalid reason")],
   async (req: Request, res: Response) => {
     const errors = validationResult(req);
@@ -30,8 +32,6 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
 
     const commentId = parseInt(req.params.id);
-    if (isNaN(commentId))
-      return res.status(400).json({ error: "Invalid comment ID" });
 
     const { reason } = req.body;
 

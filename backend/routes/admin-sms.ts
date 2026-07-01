@@ -4,6 +4,7 @@ const router = express.Router();
 import pool from '../config/database';
 import { authenticate, requirePermission } from '../middleware/auth';
 import * as smsService from '../services/smsService';
+import logger from '../utils/logger';
 
 // GET /api/v1/admin/sms/balance
 router.get("/balance", authenticate, requirePermission("sms-settings"), async (req: Request, res: Response) => {
@@ -11,6 +12,7 @@ router.get("/balance", authenticate, requirePermission("sms-settings"), async (r
     const data = await smsService.getBalance();
     res.json({ balance: data });
   } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: "Failed to fetch SMS balance" });
   }
 });
@@ -30,6 +32,7 @@ router.get("/settings", authenticate, requirePermission("sms-settings"), async (
       admin_phone: settings.admin_phone || "",
     });
   } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: "Failed to fetch SMS settings" });
   }
 });
@@ -38,6 +41,15 @@ router.get("/settings", authenticate, requirePermission("sms-settings"), async (
 router.patch("/settings", authenticate, requirePermission("sms-settings.edit"), async (req: Request, res: Response) => {
   try {
     const { sms_enabled, admin_phone } = req.body;
+    // Validate before writing: sms_enabled must be boolean; admin_phone must be a
+    // valid BD number (01XXXXXXXXX) or empty string to clear it. Prevents garbage/
+    // oversized values silently breaking the low-balance SMS alert target.
+    if (sms_enabled !== undefined && typeof sms_enabled !== "boolean") {
+      return res.status(400).json({ error: "sms_enabled must be a boolean" });
+    }
+    if (admin_phone !== undefined && admin_phone !== "" && !/^01[3-9]\d{8}$/.test(String(admin_phone).trim())) {
+      return res.status(400).json({ error: "Valid Bangladeshi phone number required (01XXXXXXXXX)" });
+    }
     const updates = [];
     if (sms_enabled !== undefined) {
       updates.push(
@@ -59,6 +71,7 @@ router.patch("/settings", authenticate, requirePermission("sms-settings.edit"), 
     smsService.bustSmsSettingsCache();
     res.json({ message: "SMS settings updated" });
   } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: "Failed to update SMS settings" });
   }
 });

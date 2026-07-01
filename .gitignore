@@ -56,6 +56,9 @@ playwright/.cache/
 # Playwright local scratch specs (config + tracked specs stay committed)
 frontend/e2e/
 
+# MCP config (contains Supabase project ref — keep local only)
+.mcp.json
+
 # Test session artifacts (root)
 /helpboard-lost.yaml
 /package.json

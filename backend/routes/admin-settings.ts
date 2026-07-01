@@ -4,6 +4,7 @@ const router = express.Router();
 import pool from '../config/database';
 import { authenticate, requirePermission } from '../middleware/auth';
 import { logActivity } from '../utils/activityLogger';
+import logger from '../utils/logger';
 
 // Only these keys may be updated via PUT /admin/settings
 // SMS settings (sms_enabled, admin_phone) are managed by PATCH /admin/sms/settings
@@ -113,7 +114,8 @@ router.get("/stats", authenticate, requirePermission("overview"), async (req: Re
         rate: lostTotalN > 0 ? Math.round((lostFoundN / lostTotalN) * 100) : 0,
       },
     });
-  } catch {
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -171,7 +173,8 @@ router.get("/stats/timeseries", authenticate, requirePermission("overview"), asy
         posts: parseInt(r.posts, 10),
       })),
     });
-  } catch {
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -183,7 +186,8 @@ router.get("/settings", authenticate, requirePermission("settings"), async (req:
     const settings: Record<string, any> = {};
     result.rows.forEach((r) => (settings[r.key] = r.value));
     res.json({ settings });
-  } catch {
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -212,7 +216,8 @@ router.put("/settings", authenticate, requirePermission("settings.edit"), async 
     ));
     logActivity(req.user!.id, "admin_settings_update", { details: { keys: filteredEntries.map(([k]) => k) } });
     res.json({ message: "Settings updated" });
-  } catch {
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -241,7 +246,8 @@ router.get("/activity-logs", authenticate, requirePermission("overview"), async 
     const countParams = params.slice(0, -2);
     const count = await pool.query(`SELECT COUNT(*) FROM activity_logs al ${where}`, countParams);
     res.json({ logs: result.rows, total: parseInt(count.rows[0].count), page, limit });
-  } catch {
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });

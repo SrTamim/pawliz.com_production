@@ -135,14 +135,26 @@ router.put("/lost/:id/found", authenticate, requireIntParam("id"), async (req: R
 
     const { pet_id } = check.rows[0];
 
-    await pool.query(
-      "UPDATE lost_pet_reports SET is_found = true, updated_at = NOW() WHERE id = $1",
-      [reportId],
-    );
-    await pool.query(
-      "UPDATE pets SET status = 'safe', is_lost = false, updated_at = NOW() WHERE id = $1",
-      [pet_id],
-    );
+    // Both writes must land together — otherwise the report can flip to found
+    // while the pet stays status='lost' (or vice versa) on a partial failure.
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query(
+        "UPDATE lost_pet_reports SET is_found = true, updated_at = NOW() WHERE id = $1",
+        [reportId],
+      );
+      await client.query(
+        "UPDATE pets SET status = 'safe', is_lost = false, updated_at = NOW() WHERE id = $1",
+        [pet_id],
+      );
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
 
     res.json({ message: "Pet marked as reunited" });
   } catch (err) {

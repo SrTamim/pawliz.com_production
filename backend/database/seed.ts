@@ -299,6 +299,9 @@ async function seed() {
         email: "rahim@gmail.com",
         dob: "1990-05-15",
         address: "Mirpur-10, Dhaka",
+        occupation: "Software Engineer",
+        // Documented as a 'vet' account in frontend/tests/helpers.ts.
+        role: "vet",
       },
       {
         name: "Sultana Begum",
@@ -306,6 +309,8 @@ async function seed() {
         email: "sultana@gmail.com",
         dob: "1988-09-22",
         address: "Gulshan-2, Dhaka",
+        occupation: "Teacher",
+        role: "user",
       },
       {
         name: "Karim Hassan",
@@ -313,13 +318,26 @@ async function seed() {
         email: "karim@gmail.com",
         dob: "1995-12-03",
         address: "Dhanmondi, Dhaka",
+        occupation: "Accountant",
+        role: "user",
       },
     ];
 
+    // Upsert (not DO NOTHING): a re-seed must repair any pre-existing row that
+    // was created another way (e.g. registration) with missing name/occupation,
+    // otherwise the seeded fields would never be applied.
     for (const user of sampleUsers) {
       await client.query(
-        `INSERT INTO users (name, phone, email, password, dob, address)
-         VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (phone) DO NOTHING`,
+        `INSERT INTO users (name, phone, email, password, dob, address, occupation, role)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         ON CONFLICT (phone) DO UPDATE SET
+           name = EXCLUDED.name,
+           email = EXCLUDED.email,
+           password = EXCLUDED.password,
+           dob = EXCLUDED.dob,
+           address = EXCLUDED.address,
+           occupation = EXCLUDED.occupation,
+           role = EXCLUDED.role`,
         [
           user.name,
           user.phone,
@@ -327,6 +345,8 @@ async function seed() {
           hashedPassword,
           user.dob,
           user.address,
+          user.occupation,
+          user.role,
         ],
       );
     }

@@ -6,6 +6,7 @@ import { authenticate, requireSuperAdmin, evictUsersByRole } from '../middleware
 import { body } from 'express-validator';
 import validate from '../middleware/validate';
 import { logActivity } from '../utils/activityLogger';
+import logger from '../utils/logger';
 const {
   ASSIGNABLE_PAGES,
   sanitizePermissions,
@@ -33,7 +34,8 @@ router.get('/', authenticate, requireSuperAdmin, async (req: Request, res: Respo
       ORDER BY r.is_system DESC, r.name ASC
     `);
     res.json({ roles: result.rows });
-  } catch {
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -133,7 +135,8 @@ router.put(
       await evictUsersByRole(name);
       logActivity(req.user!.id, 'role_updated', { details: { name } });
       res.json({ role: result.rows[0] });
-    } catch {
+    } catch (err) {
+      logger.error(err);
       res.status(500).json({ error: 'Server error' });
     }
   },
@@ -158,7 +161,8 @@ router.delete('/:name', authenticate, requireSuperAdmin, async (req: Request, re
     await pool.query('DELETE FROM roles WHERE name = $1', [name]);
     logActivity(req.user!.id, 'role_deleted', { details: { name } });
     res.json({ message: 'Role deleted' });
-  } catch {
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: 'Server error' });
   }
 });

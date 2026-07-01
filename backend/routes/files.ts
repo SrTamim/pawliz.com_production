@@ -14,9 +14,8 @@ router.get("/:filename", authenticate, async (req: Request, res: Response) => {
   try {
     const { filename } = req.params;
 
-    // Block path traversal + SQL LIKE wildcard chars
-    if (filename.includes("..") || filename.includes("/") || filename.includes("\\")
-        || filename.includes("%") || filename.includes("_")) {
+    // Block path traversal
+    if (filename.includes("..") || filename.includes("/") || filename.includes("\\")) {
       return res.status(400).json({ error: "Invalid filename" });
     }
 

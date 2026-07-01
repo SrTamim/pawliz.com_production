@@ -3,6 +3,7 @@ import express from 'express';
 const router = express.Router();
 import { body } from 'express-validator';
 import { authenticate } from '../middleware/auth';
+import requireIntParam from '../middleware/requireIntParam';
 import validate from '../middleware/validate';
 import logger from '../utils/logger';
 import * as petHealthService from '../services/petHealthService';
@@ -15,9 +16,8 @@ import * as petHealthService from '../services/petHealthService';
 // ==================== Vaccination records ====================
 
 // GET /api/v1/pets/:id/vaccinations
-router.get("/:id/vaccinations", authenticate, async (req: Request, res: Response) => {
+router.get("/:id/vaccinations", authenticate, requireIntParam("id"), async (req: Request, res: Response) => {
   const petDbId = parseInt(req.params.id);
-  if (isNaN(petDbId)) return res.status(400).json({ error: "Invalid pet ID" });
   try {
     const records = await petHealthService.listVaccinations(petDbId, req.user!.id);
     if (records === null) return res.status(404).json({ error: "Pet not found" });
@@ -29,7 +29,7 @@ router.get("/:id/vaccinations", authenticate, async (req: Request, res: Response
 });
 
 // POST /api/v1/pets/:id/vaccinations
-router.post("/:id/vaccinations", authenticate, [
+router.post("/:id/vaccinations", authenticate, requireIntParam("id"), [
   body("vaccine_name").trim().notEmpty().withMessage("Vaccine name is required").isLength({ max: 100 }).withMessage("Vaccine name max 100 chars"),
   body("date_given").optional({ checkFalsy: true }).isISO8601().withMessage("Invalid date given"),
   body("next_due_date").optional({ checkFalsy: true }).isISO8601().withMessage("Invalid next due date"),
@@ -37,7 +37,6 @@ router.post("/:id/vaccinations", authenticate, [
   body("notes").optional().isLength({ max: 1000 }).withMessage("Notes max 1000 chars"),
 ], validate, async (req: Request, res: Response) => {
   const petDbId = parseInt(req.params.id);
-  if (isNaN(petDbId)) return res.status(400).json({ error: "Invalid pet ID" });
   try {
     const record = await petHealthService.addVaccination(petDbId, req.user!.id, req.body);
     if (record === null) return res.status(404).json({ error: "Pet not found" });
@@ -49,7 +48,7 @@ router.post("/:id/vaccinations", authenticate, [
 });
 
 // PUT /api/v1/pets/:id/vaccinations/:recordId
-router.put("/:id/vaccinations/:recordId", authenticate, [
+router.put("/:id/vaccinations/:recordId", authenticate, requireIntParam("id", "recordId"), [
   body("vaccine_name").optional().trim().notEmpty().withMessage("Vaccine name cannot be empty").isLength({ max: 100 }).withMessage("Vaccine name max 100 chars"),
   body("date_given").optional({ checkFalsy: true }).isISO8601().withMessage("Invalid date given"),
   body("next_due_date").optional({ checkFalsy: true }).isISO8601().withMessage("Invalid next due date"),
@@ -58,7 +57,6 @@ router.put("/:id/vaccinations/:recordId", authenticate, [
 ], validate, async (req: Request, res: Response) => {
   const petDbId = parseInt(req.params.id);
   const recordId = parseInt(req.params.recordId);
-  if (isNaN(petDbId) || isNaN(recordId)) return res.status(400).json({ error: "Invalid ID" });
   try {
     const record = await petHealthService.updateVaccination(recordId, petDbId, req.user!.id, req.body);
     if (record === null) return res.status(404).json({ error: "Record not found" });
@@ -70,10 +68,9 @@ router.put("/:id/vaccinations/:recordId", authenticate, [
 });
 
 // DELETE /api/v1/pets/:id/vaccinations/:recordId
-router.delete("/:id/vaccinations/:recordId", authenticate, async (req: Request, res: Response) => {
+router.delete("/:id/vaccinations/:recordId", authenticate, requireIntParam("id", "recordId"), async (req: Request, res: Response) => {
   const petDbId = parseInt(req.params.id);
   const recordId = parseInt(req.params.recordId);
-  if (isNaN(petDbId) || isNaN(recordId)) return res.status(400).json({ error: "Invalid ID" });
   try {
     const deleted = await petHealthService.deleteVaccination(recordId, petDbId, req.user!.id);
     if (!deleted) return res.status(404).json({ error: "Record not found" });
@@ -87,9 +84,8 @@ router.delete("/:id/vaccinations/:recordId", authenticate, async (req: Request, 
 // ==================== Weight logs ====================
 
 // GET /api/v1/pets/:id/weight-logs
-router.get("/:id/weight-logs", authenticate, async (req: Request, res: Response) => {
+router.get("/:id/weight-logs", authenticate, requireIntParam("id"), async (req: Request, res: Response) => {
   const petDbId = parseInt(req.params.id);
-  if (isNaN(petDbId)) return res.status(400).json({ error: "Invalid pet ID" });
   try {
     const logs = await petHealthService.listWeightLogs(petDbId, req.user!.id);
     if (logs === null) return res.status(404).json({ error: "Pet not found" });

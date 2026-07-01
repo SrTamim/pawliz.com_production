@@ -111,6 +111,7 @@ app.use("/api/v1/auth/login", authLimiter);
 app.use("/api/v1/auth/register", authLimiter);
 app.use("/api/v1/vet-auth/register", authLimiter);
 app.use("/api/v1/vet-auth", authLimiter);
+app.use("/api/v1/auth/forgot-password", authLimiter);
 
 const contactPostLimiter = rateLimit({
   windowMs: 10 * 60 * 1000,

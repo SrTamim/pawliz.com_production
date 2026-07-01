@@ -120,7 +120,8 @@ router.get("/locations", async (req: Request, res: Response) => {
       "SELECT DISTINCT location_name FROM vets WHERE is_active = true AND (approval_status = 'approved' OR approval_status IS NULL) AND location_name IS NOT NULL ORDER BY location_name",
     );
     res.json({ locations: result.rows.map((r) => r.location_name) });
-  } catch {
+  } catch (err) {
+    logger.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });

@@ -264,7 +264,7 @@ router.delete("/rescue/:id", authenticate, requireIntParam("id"), async (req: Re
     pool.query(
       `DELETE FROM notifications WHERE id IN (SELECT notification_id FROM contact_notifications WHERE post_id = $1 AND post_type = 'rescue')`,
       [postId],
-    ).catch(() => {});
+    ).catch((err) => logger.error('Rescue post notification cleanup failed:', err));
 
     pool.query(
       `INSERT INTO activity_logs (event_type, post_id, post_type, user_id)
@@ -384,12 +384,19 @@ router.post(
       );
       if (!petCheck.rows[0]) return res.status(404).json({ error: "Pet not found" });
 
+      // Partial unique index adoption_posts_pet_available_uniq (pet_id WHERE
+      // status='available') guards against a duplicate active post. ON CONFLICT
+      // turns a concurrent/repeat create into a clean 409 instead of a raw 500.
       const result = await pool.query(
         `INSERT INTO adoption_posts (pet_id, user_id, adoption_requirements, status)
          VALUES ($1, $2, $3, 'available')
+         ON CONFLICT (pet_id) WHERE status = 'available' DO NOTHING
          RETURNING *`,
         [pet_id, req.user!.id, adoption_requirements || null]
       );
+      if (!result.rows[0]) {
+        return res.status(409).json({ error: "This pet already has an active adoption post" });
+      }
       res.status(201).json({ message: "Adoption post created", post: result.rows[0] });
     } catch (err) {
       logger.error("Create adoption post error:", err);
@@ -420,7 +427,7 @@ router.delete("/adoption/:id", authenticate, requireIntParam("id"), async (req: 
     pool.query(
       `DELETE FROM notifications WHERE id IN (SELECT notification_id FROM contact_notifications WHERE post_id = $1 AND post_type = 'adoption')`,
       [postId],
-    ).catch(() => {});
+    ).catch((err) => logger.error('Adoption post notification cleanup failed:', err));
 
     pool.query(
       `INSERT INTO activity_logs (event_type, post_id, post_type, user_id)

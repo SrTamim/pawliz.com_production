@@ -46,7 +46,7 @@ function formatPhone(phone: string): string {
   return '88' + phone;
 }
 
-function sendSms(phone: string, message: string): Promise<SmsApiResponse> {
+export function sendSms(phone: string, message: string): Promise<SmsApiResponse> {
   return new Promise((resolve, reject) => {
     const formattedPhone = formatPhone(phone);
     const params = new URLSearchParams({

@@ -197,7 +197,7 @@ CREATE TABLE IF NOT EXISTS post_comments (
 CREATE TABLE IF NOT EXISTS notifications (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
-  type VARCHAR(50) NOT NULL CHECK (type IN ('comment_on_post', 'post_commented', 'post_reunited', 'follow', 'contact_request')),
+  type VARCHAR(50) NOT NULL CHECK (type IN ('comment_on_post', 'post_commented', 'post_reunited', 'follow', 'contact_request', 'vaccine_reminder')),
   title VARCHAR(255) NOT NULL,
   message TEXT NOT NULL,
   related_post_id INTEGER,
@@ -219,6 +219,27 @@ CREATE TABLE IF NOT EXISTS contact_notifications (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_contact_notifications_post ON contact_notifications(post_id, post_type);
+
+-- Vaccine reminder idempotency log (daily cron dedup)
+CREATE TABLE IF NOT EXISTS vaccine_reminder_log (
+  id                    SERIAL PRIMARY KEY,
+  vaccination_record_id INTEGER REFERENCES pet_vaccination_records(id) ON DELETE CASCADE,
+  next_due_date         DATE NOT NULL,
+  milestone             VARCHAR(20) NOT NULL,
+  sent_at               TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (vaccination_record_id, next_due_date, milestone)
+);
+
+-- Web Push subscriptions (browser PushSubscription endpoints per user)
+CREATE TABLE IF NOT EXISTS web_push_subscriptions (
+  id         SERIAL PRIMARY KEY,
+  user_id    INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+  endpoint   TEXT UNIQUE NOT NULL,
+  p256dh     TEXT NOT NULL,
+  auth       TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_web_push_subscriptions_user_id ON web_push_subscriptions (user_id);
 
 -- Add occupation column to users if not exists
 DO $$ BEGIN

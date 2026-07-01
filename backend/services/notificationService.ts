@@ -1,6 +1,7 @@
 import pool from '../config/database';
 import { getIO } from '../socket';
 import logger from '../utils/logger';
+import * as webPushService from './webPushService';
 
 /**
  * Create notification + emit via Socket.IO to user.
@@ -36,6 +37,12 @@ export async function createNotification(
     if (io) {
       io.to(`user:${userId}`).emit('notification', notification);
     }
+    // Best-effort device push (all notification types). Fire-and-forget — NOT
+    // awaited, so it never adds latency; self-catching, so it never affects the
+    // return contract. No-op (zero DB queries) when VAPID is not configured.
+    webPushService
+      .sendPushToUser(userId, { title, message, action_url: actionUrl, tag: `notif-${notification.id}` })
+      .catch((err) => logger.warn('Web push failed (non-fatal):', err));
     return notification;
   } catch (err) {
     logger.error('Create notification error:', err);
@@ -88,6 +95,16 @@ export async function upsertStackedCommentNotification(
     const io = getIO();
     if (io && notification) {
       io.to(`user:${recipientId}`).emit('notification', notification);
+    }
+    if (notification) {
+      webPushService
+        .sendPushToUser(recipientId, {
+          title: notification.title,
+          message: notification.message,
+          action_url: notification.action_url,
+          tag: `notif-${notification.id}`,
+        })
+        .catch((err) => logger.warn('Web push failed (non-fatal):', err));
     }
     return notification;
   } catch (err) {

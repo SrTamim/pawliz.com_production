@@ -606,3 +606,9 @@ export const notificationsAPI = {
   getPreferences: () => request("/notifications/preferences/settings"),
   updatePreferences: (prefs: Params) => request("/notifications/preferences/settings", "PUT", prefs),
 };
+
+// ─── WEB PUSH ─────────────────────────────────────────────────────────────
+export const pushAPI = {
+  subscribe: (subscription: any) => request("/push/subscribe", "POST", subscription),
+  unsubscribe: (endpoint: string) => request("/push/unsubscribe", "POST", { endpoint }),
+};
